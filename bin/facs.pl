@@ -1,7 +1,9 @@
 #!/usr/bin/perl -w
 
-#Loads query in FASTA format, K-mer length and Bloom Filters. Interrogates queries against filters and classifies queries onto genomes. #The algorithm loops trough all queries for one filter at a time. 
-#Copyright 2010 Henrik Stranneheim
+# Loads query in FASTA format, K-mer length and Bloom Filters. Interrogates
+# queries against filters and classifies queries onto genomes. #The algorithm 
+# loops trough all queries for one filter at a time. 
+# Copyright 2010 Henrik Stranneheim
 
 =pod
 
@@ -68,6 +70,7 @@ use Bloom::Faster;
 use Pod::Usage;
 use Pod::Text;
 
+
 if (@ARGV != 4) {
   my $verbosity = 0;
   if (@ARGV == 0) {
@@ -78,16 +81,6 @@ if (@ARGV != 4) {
 	     -verbose => $verbosity
 	    });
 }
-
-
-
-# Inputs K-mer length, reference list and queries parameters
-my ($targetlength, $reffilterlist, $queryfile, $outprefix) = @ARGV;
-my $queryheadercount=0;
-
-Querysseqs($queryfile); #reads query sequences and stores it in %querys
-
-Reffilterlist($reffilterlist); #reads reference genome list and stores it in @refs
 
 my $refid;
 my $refcount;
@@ -111,6 +104,14 @@ my $norevcheck=0;
 my $n_shorts = 0; 
 my $trackmatch=0;
 my $trackposition=0;
+
+# Inputs K-mer length, reference list and queries parameters
+my ($targetlength, $reffilterlist, $queryfile, $outprefix) = @ARGV;
+my $queryheadercount=0;
+
+Querysseqs($queryfile); #reads query sequences and stores it in %querys
+
+Reffilterlist($reffilterlist); #reads reference genome list and stores it in @refs
 
 
 for (my $refid=0;$refid<scalar(@refs);$refid++) { 
@@ -352,25 +353,26 @@ sub Checkfilter {
 
 sub Querysseqs {
 
-open(QUERY, "<$_[0]") or die "Can't open $_[0]:$!, \n";    
+    open(QUERY, "<$_[0]") or die "Can't open $_[0]:$!, \n";    
 
     while (<QUERY>) {
-    if (m/^\s+$/) {		# Avoid blank lines
-      next;
-    }	
-	if (/>/) {
-	    
-	    $queryseq ="";
-	    chomp($queryid = $_); 
-	    $queryheadercount++;
-	}	
-	
-	else {
-	    chomp($queryseq .= $_);
+        chomp $_;
 
-	}
-	$querys{$queryid}=$queryseq;
-	 
+        if (m/^\s+$/) {		# Avoid blank lines
+            next;
+        }	
+
+	    if (/>(\S+)/) {
+	    
+	        $queryseq ="";
+	        $queryid = $1; 
+	        $queryheadercount++;
+	    }	
+	    else {
+	        $queryseq .= $_;
+	    }
+
+	    $querys{$queryid}=$queryseq;
     }
     
     $queryheadercount = scalar(keys(%querys));
@@ -417,7 +419,7 @@ sub Write_matches {
 		my $matchid = pop @matches;
 		$assemblysseq .= $querys{$matchid};
 	
-		print GENOME $matchid,"\n"; 
+		print GENOME '>', $matchid,"\n"; 
 	
 		for (my $i=0;$i<(length($assemblysseq)/60);$i++) {
 	    
@@ -444,7 +446,7 @@ sub Write_mismatches {
 	
 	$assemblysseq .= $allshort{$id};
 	
-	print GENOME $id,"\n";
+	print GENOME '>', $id,"\n";
 	
 	for (my $i=0;$i<(length($assemblysseq)/60);$i++) {
 	    
