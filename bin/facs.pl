@@ -37,6 +37,9 @@ Prefix for output filenames.
 
 =head1 DESCRIPTION
 
+This version of facs.pl is based on facs_2.pl, using the more accurate scoring
+system.
+
 facs interrogates queries against filters and classifies queries
 onto genomes. The algorithm loops trough all queries for one filter
 at a time.
