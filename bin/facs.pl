@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 
 # Loads query in FASTA format, K-mer length and Bloom Filters. Interrogates
-# queries against filters and classifies queries onto genomes. #The algorithm 
-# loops trough all queries for one filter at a time. 
-# Copyright 2010 Henrik Stranneheim
+# queries against filters and classifies queries onto genomes. 
+#The algorithm loops trough all queries for one filter at a time. 
+# Copyright 2011 Henrik Stranneheim
 
 =pod
 
@@ -11,33 +11,12 @@
 
 facs - Filter reads of DNA
 
-=head1 SYNOPSIS
+=head2 SYNOPSIS
 
-  facs k bloomfilterlistfile queryfile outprefix
+facs k bloomfilterlist queryfile outprefix
 
-=head2 ARGUMENTS
-
-=over 4
-
-=item B<k>
-
-The word size for K-mers used by the filter.
-
-=item B<bloomfilterlistfile>
-
-File containing a list of Bloom filters built using I<bloombuild>
-
-=item B<queryfile>
-
-Fasta file with reads to be filtered.
-
-=item B<outprefix>
-
-Prefix for output filenames.
-
-=back
-
-=head1 DESCRIPTION
+Build Bloom filters from reference genomes in fasta files using bloombuild.pl. These
+can later be queried using FACS.
 
 This version of facs.pl is based on facs_2.pl, using the more accurate scoring
 system.
@@ -46,40 +25,113 @@ facs interrogates queries against filters and classifies queries
 onto genomes. The algorithm loops trough all queries for one filter
 at a time.
 
-Results are written to three files
+Results are written to two files
 
-=over 4
+1. Reads matching a reference
 
-=item + Reads matching a reference
+2. Reads not matching any reference
 
-=item + Reads not matching a reference
+=head3 Arguments
 
-=item + Reads with reverse complement matching a reference.
+-b/--bloomfilter A file containing a list of filenames for already created bloom filters. Each line contains the file name of the specific bloom filter. (defaults to STDIN)
 
-=back
+-op/--outfileprefix Output prefix for the output files (defaults to "")
 
-=head1 SEE ALSO
+-osma/--outfilesuffix Output suffix for the matches output files
+
+-osmi/--outfilesuffix Output suffix for the mismatches output files
+
+-k/--kmer Word length for K-mers to be queried against the bloom filter (defaults to '21')
+
+-f/--falseposprob The false positive probaility that you accept (defaults to '0.0005')
+
+-dbpr/--databsepath The unix path to the bloom filters (defaults to STDIN)
+
+-o/--outdirectory The unix path to the output directory (defaults to STDIN)
+
+-mc/--matchcutoff The percent identity to classify a match (defaults to 80)
+
+-lc/--lengthcutoff The minimum required read length (defaults to 60)
+
+-qp/--quickpasses Number of quick passes that must match before vetting read (defaults to 1)
+
+Note: You have to use the same false positive rate and K-mer length as was used when the bloom filters were created.
+
+=head4 I/O
+
+Input format (FASTA/Pearson)
+
+Output format (FASTA/Pearson)
+
+=head5 SEE ALSO
 
 bloombuild
 
 =cut
 
-
 use strict;
 use Bloom::Faster;
 use Pod::Usage;
 use Pod::Text;
+use Getopt::Long;
 
+use vars qw($USAGE);
 
-if (@ARGV != 4) {
+BEGIN {
+    $USAGE =
+qq{facs.pl < queryfile.fa -b bloomfilter.obj > file_suffix.fasta
+-k/--kmer Word length for K-mers to be queried against the bloom filter (defaults to '21')
+-f/--falseposprob The false positive probaility that you accept (defaults to '0.0005')
+-b/--bloomfilter A file containing a list of filenames for already created bloom filters. Each line contains the file name of the specific bloom filter. (defaults to STDIN)
+-op/--outfileprefix Output prefix for the output files (defaults to "")
+-osma/--outfilesuffix Output suffix for the matching output files (defaults to "_matching.fasta")
+-osmi/--outfilesuffix Output suffix for the mismatching output files (defaults to "_mismatching.fasta")
+-dbpr/--databsepath The unixpath to the bloom filters (defaults to STDIN)
+-o/--outputdirectory The unixpath to the output directory (defaults to STDIN)
+-mc/--matchcutoff The percent identity to classify a match (defaults to "0.8"~80%)
+-lc/--lengthcutoff The minimum required read length (defaults to 60)
+-qp/--quickpasses Number of quick passes that must match before vetting read (defaults to 1)
+};
+
+}
+my ($rformat, $oformat, $outfileprefix, $matchoutfilesuffix, $mismatchoutfilesuffix, $kmerlength, 
+$falseposratebloom, $dbpr, $od, $matchcutoff, $lengthcutoff, $nrqp, 
+$help) = ('fasta','fasta', "", "_matching.fasta", "_mismatching.fasta", 21, 0.0005,".", ".", 0.8, 60, 1);
+my ($queryfile, $bloomfilterlist);
+
+GetOptions('k|kmerlength:i' => \$kmerlength,
+'f|falseposratebloom:s' => \$falseposratebloom,
+'b|bloomfilter:s' => \$bloomfilterlist,
+'op|outfileprefix:s' => \$outfileprefix,
+'osma|matchoutfilesuffix:s' => \$matchoutfilesuffix,
+'osmi|mismatchoutfilesuffix:s' => \$mismatchoutfilesuffix,
+'dbpr|databaseref:s'  => \$dbpr,
+'o|outdirectory:s'  => \$od,
+'mc|matchcutoff:s'  => \$matchcutoff,
+'lc|lengthcutoff:i'  => \$lengthcutoff,
+'qp|quickpasses:i'  => \$nrqp,
+'h|help' => \$help,
+);
+
+die $USAGE if( $help );
+
+if ($queryfile) {
+
+	}
+else {
+
+($queryfile) = @ARGV;
+
+if (@ARGV != 1) {
   my $verbosity = 0;
   if (@ARGV == 0) {
     $verbosity = 2;
   }
-
-  pod2usage({-message => "Not the right number of arguments.",
+  print"\n";
+  pod2usage({-message => "Must supply a query file and list of bloom filter(s).\n",
 	     -verbose => $verbosity
 	    });
+	}
 }
 
 my $refid;
@@ -105,13 +157,12 @@ my $n_shorts = 0;
 my $trackmatch=0;
 my $trackposition=0;
 
-# Inputs K-mer length, reference list and queries parameters
-my ($targetlength, $reffilterlist, $queryfile, $outprefix) = @ARGV;
+
 my $queryheadercount=0;
 
 Querysseqs($queryfile); #reads query sequences and stores it in %querys
 
-Reffilterlist($reffilterlist); #reads reference genome list and stores it in @refs
+Bloomfilterlist($bloomfilterlist); #reads reference genome list and stores it in @refs
 
 
 for (my $refid=0;$refid<scalar(@refs);$refid++) { 
@@ -121,21 +172,21 @@ for (my $refid=0;$refid<scalar(@refs);$refid++) {
 	push @matchesid, $refs[$refid];  #Stores reference id for classification stats later
 
 	print STDERR "Filter:","\t", $refs[$refid],"\n";
-	print STDERR "Targetlength:","\t", $targetlength,"\n"; 
+	print STDERR "Targetlength:","\t", $kmerlength,"\n"; 
     	
    	for $queryid (keys %querys) {  
 
 
-		if ( length($querys{$queryid})>60 ) { #Minimum length cut-off
+		if ( length($querys{$queryid})>$lengthcutoff ) { #Minimum length cut-off
 	
 		#Divides querie into K-mers, checks filter, calculates match score and classifies sequences
-		Sortquerykeys($querys{$queryid}, $targetlength,$queryid);
+		Sortquerykeys($querys{$queryid}, $kmerlength,$queryid);
 		
 			if ($norevcheck eq 0) {
 			#Translates and reverses queries
 			$querys{$queryid} =~tr/ATGC/TACG/;
 			$querys{$queryid} = reverse $querys{$queryid};
-			Sortquerykeys($querys{$queryid}, $targetlength,$queryid);
+			Sortquerykeys($querys{$queryid}, $kmerlength,$queryid);
 			}
 		$norevcheck=0; 
 
@@ -151,7 +202,7 @@ for (my $refid=0;$refid<scalar(@refs);$refid++) {
     	print STDERR "Finished with Classification of Query Keys","\n";
 		
 	#Writes matches to file
-	Write_matches($outprefix . "_" . $refs[$refid]);	
+	Write_matches($outfileprefix . "_" . $refs[$refid]);	
 	Print();
 	#Resets parameters
 	Blank();
@@ -163,7 +214,7 @@ for (my $refid=0;$refid<scalar(@refs);$refid++) {
 	    
 			}
 
-		Write_mismatches($outprefix . "_" . $refs[$refid]);
+		Write_mismatches($outfileprefix . "_" . $refs[$refid]);
 
 		}
 }
@@ -219,7 +270,7 @@ undef($filter);
 sub LoadBloom {
  
  my $filtername = shift;
- $filter = new Bloom::Faster($filtername);
+ $filter = new Bloom::Faster("$dbpr/$filtername");
 
 }
 
@@ -260,7 +311,7 @@ sub Sortquerykeys {
 
 		if ($kmermatchcountqp) { 
 
-	            if ($kmermatchcountqp eq 1) { #For queryies passing quickpass
+	            if ($kmermatchcountqp eq $nrqp) { #For queryies passing quickpass
 
 			$kmermatchcountqp=0;
 			$i=$lengthseq;
@@ -274,7 +325,7 @@ sub Sortquerykeys {
 
     			}
 			
-			if ( ( $kmermatchcount/length($_[0]) ) > 0.80) { #For matches
+			if ( ( $kmermatchcount/length($_[0]) ) > $matchcutoff) { #For matches
 					
 					push (@matches, $_[2]); #Saves match headers
 					$norevcheck=1;
@@ -309,7 +360,7 @@ sub CheckfilterQP {
     
     else {
 	
-	$_[0] = $_[0] + $targetlength-1; #Increments position in query 
+	$_[0] = $_[0] + $kmerlength-1; #Increments position in query 
 	return;
     }
     
@@ -320,7 +371,7 @@ sub Checkfilter {
 # $_[0] = Position in query
 # $_[1] = my $query
      
-    if ($trackposition >= $targetlength ) {
+    if ($trackposition >= $kmerlength ) {
 
 		$trackmatch = 0;
 		$trackposition = 0;
@@ -330,7 +381,7 @@ sub Checkfilter {
 	 
 		if ($trackmatch eq 0) {
 		
-		$kmermatchcount = $kmermatchcount + $targetlength-1; #Adds to match score		
+		$kmermatchcount = $kmermatchcount + $kmerlength-1; #Adds to match score		
 		$trackmatch = 1;
 		$trackposition++;
 		}
@@ -381,7 +432,7 @@ sub Querysseqs {
     return;
 }
 
-sub Reffilterlist {
+sub Bloomfilterlist {
  my $filename = shift;
 
  open(REF, "<$filename") or die "Can't open $filename:$!, \n";   
@@ -408,9 +459,9 @@ sub Reffilterlist {
 sub Write_matches {
     
 	my $filename = shift;
-	$filename .= "_matching.fasta";
+	$filename .= $matchoutfilesuffix;
 	
-    open (GENOME, ">$filename") or die "Can't write to $filename: $!\n";
+    open (GENOME, ">$od/$filename") or die "Can't write to $od/$filename: $!\n";
     
     my $assemblysseq;
 
@@ -436,9 +487,9 @@ sub Write_matches {
 
 sub Write_mismatches {
     my $filename = shift;
-    $filename .= "_mismatch.fasta";
+    $filename .= $mismatchoutfilesuffix;
 
-    open (GENOME, ">$filename") or die "Can't write to $filename: $!\n";
+    open (GENOME, ">$od/$filename") or die "Can't write to $od/$filename: $!\n";
 
     my $assemblysseq;
     

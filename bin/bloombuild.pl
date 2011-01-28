@@ -10,7 +10,12 @@ BloomBuild reference
 Build Bloom filters from reference genomes in fasta files. These
 can later be queried using FACS.
 
--r/--reference A file containing a list of filenames for reference genome data. Each line contains a filename. Each file is a Fasta file. (defaults to STDIN)
+-r/--reference A file containing a list of filenames for reference genome data. Each line contains a filename. 
+Each file is a Fasta file. (defaults to STDIN)
+
+NOTE: Presently the Bloom::FASTER module has problems
+with garbage collection which only enables one reference to built each time the program loads. 
+Supplying references in batch might cause a high false positive rate. 
 
 -os/--outfile Output suffix for the created Bloom filter (defaults to .obj)
 
@@ -44,7 +49,13 @@ BEGIN {
 qq{bloombuild.pl < file.fa > file.obj
 -k/--kmer Word length for K-mers inserted into the filter (defaults to '21')
 -f/--falseposprob The false positive probaility that you accept (defaults to '0.0005')
--r/--reference A file containing a list of filenames for reference genome data. Each line contains a filename. Each file is a Fasta file. (defaults to STDIN)
+-r/--reference A file containing a list of filenames for reference genome data. Each line contains 
+a filename. Each file is a Fasta file. (defaults to STDIN)
+
+NOTE: Presently the Bloom::FASTER module has problems
+with garbage collection which only enables one reference to built each time the program loads. 
+Supplying references in batch might cause a high false positive rate.
+
 -os/--outfilesuffix Output suffix for the created Bloom filter (defaults to .obj)
 -dbpr/--databsepath The unixpath to the references (defaults to STDIN)
 -dbpo/--databsepath The unixpath to the output directory (defaults to STDIN)
@@ -56,7 +67,7 @@ $help) = ('fasta','bloom', ".obj", 21, 0.0005,".", ".");
 my ($ref);
 
 GetOptions('k|kmerlength:i' => \$kmerlength,
-'f|falseposratebloom:i' => \$falseposratebloom,
+'f|falseposratebloom:s' => \$falseposratebloom,
 'r|reference:s' => \$ref,
 'os|outfile:s' => \$outfilesuffix,
 'dbpr|databaseref:s'  => \$dbpr,
@@ -221,13 +232,13 @@ open(BLOOM, "<$_[0]") or die "Can't open $_[0]:$!, \n";
 
     while(<BLOOM>) {
 	
-	if (/>/) {  #Loads Bloom file id
-	    
-	    chomp($refid = $');  #'
-	    $refcount++;
-	    push @refs, $refid;
+	if (/\S+/) {
 
-	}
+      chomp;
+      $refcount++;
+      push @refs, $_;
+    }
+
 
     }
     
