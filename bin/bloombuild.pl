@@ -2,77 +2,92 @@
 
 # Builds Bloom filters with a given K-mer length, false positive rate
 # and reference in a FASTA format
-#
-# Copyright 2009 Henrik Stranneheim
-
-
-=pod
-
-=head1 NAME
-
-BloomBuild - Create a filter for LoadFACS
 
 =head1 SYNOPSIS
 
-  BloomBuild k fp referencegenome outfile
+BloomBuild reference
 
-=head2 ARGUMENTS
+Build Bloom filters from reference genomes in fasta files. These
+can later be queried using FACS.
 
-=over 4
+-r/--reference A file containing a list of filenames for reference genome data. Each line contains a filename. Each file is a Fasta file. (defaults to STDIN)
 
-=item B<k>
+-os/--outfile Output suffix for the created Bloom filter (defaults to .obj)
 
-The word size for K-mers inserted into the filter.
+-k/--kmer Word length for K-mers inserted into the filter (defaults to '21')
 
-=item B<fp>
+-f/--falseposprob The false positive probaility that you accept (defaults to '0.0005')
 
-The false positive probability that you accept
+-dbpr/--databsepath The unixpath to the references (defaults to STDIN)
 
-=item B<referencefile>
+-dbpo/--databsepath The unixpath to the output directory (defaults to STDIN)
 
-A file containing a list of filenames for reference genome data.
-Each line contains a filename. Each file is a Fasta file.
+I/O
+Input format (FASTA/Pearson)
 
-=item B<outfile>
-
-Filename for the created Bloom filter.
-
-=back
-
-=head1 DESCRIPTION
-
-Build Bloom filters from reference genomes in Fasta files. These
-can later be queried using LoadFACS.
+Output format (Bloom filter)
 
 =head1 SEE ALSO
 
-LoadFACS
+FACS
 
 =cut
 
-
-
 use strict;
 use Bloom::Faster;
-use Pod::Usage;
-use Pod::Text;
+use Getopt::Long;
 
+use vars qw($USAGE);
 
-# Inputs K-mer length, false positive and references to create bloom filters
-if (@ARGV != 4) {
+BEGIN {
+    $USAGE =
+qq{bloombuild.pl < file.fa > file.obj
+-k/--kmer Word length for K-mers inserted into the filter (defaults to '21')
+-f/--falseposprob The false positive probaility that you accept (defaults to '0.0005')
+-r/--reference A file containing a list of filenames for reference genome data. Each line contains a filename. Each file is a Fasta file. (defaults to STDIN)
+-os/--outfilesuffix Output suffix for the created Bloom filter (defaults to .obj)
+-dbpr/--databsepath The unixpath to the references (defaults to STDIN)
+-dbpo/--databsepath The unixpath to the output directory (defaults to STDIN)
+};
+
+}
+my ($rformat, $oformat, $outfilesuffix, $kmerlength, $falseposratebloom, $dbpr, $dbpo, 
+$help) = ('fasta','bloom', ".obj", 21, 0.0005,".", ".");
+my ($ref);
+
+GetOptions('k|kmerlength:i' => \$kmerlength,
+'f|falseposratebloom:i' => \$falseposratebloom,
+'r|reference:s' => \$ref,
+'os|outfile:s' => \$outfilesuffix,
+'dbpr|databaseref:s'  => \$dbpr,
+'dbpo|databaseout:s'  => \$dbpo,
+'h|help' => \$help,
+);
+
+die $USAGE if( $help );
+
+#Inputs references to create bloom filters
+
+if ($ref) {
+
+	}
+else {
+
+($ref) = @ARGV;
+
+if (@ARGV != 1) {
   my $verbosity = 0;
   if (@ARGV == 0) {
     $verbosity = 2;
   }
-
-  pod2usage({-message => "Not the right number of arguments.",
+  print"\n";
+  pod2usage({-message => "Must supply reference.\n",
 	     -verbose => $verbosity
 	    });
+	}
 }
-
-my ($targetlength, $falseposratebloom, $Ref, $outfile) = @ARGV;
-
-my $bloomfilter;
+#Reads reference list
+ReferenceList($ref);
 
 my $id;	
 my $seq;
@@ -81,38 +96,36 @@ my $headercount;
 
 my $refid;
 my @refs;
-my @accessions;
-my $refcount;
+my $refcount=0;
 
 my $keycount;
 my $filtercounter=0;
 
-#Reads list of reference files
-#CheckReference($Ref);
+for (my $refid=0;$refid<scalar(@refs);$refid++) { 
 
-#Refseq($refs[$refid], $refid);
-Refseq($Ref);
+	print STDERR "BloomFilter Counter:","\t", $refid,"\n";
+	print STDERR "Reference Id:","\t", $refs[$refid],"\n";
+	print STDERR "K-mer length:","\t", $kmerlength,"\n";
+	print STDERR "False Positive Rate Bloom Filter:","\t", $falseposratebloom,"\n"; 
 
-for $id (keys %seqs) {	
-#  print STDERR "id = $id\n";
-  #Adds keys to the filter
-  Targetkeys($seqs{$id}, $refid); 
+    Refseq($refs[$refid], $refid);
+    	
 
-  $id .=$targetlength;
+    for $id (keys %seqs) {	
 
+    #Adds keys to the filter
+    Targetkeys($seqs{$id}, $refid); 
+    
+    $id .=$outfilesuffix;
+
+    #Saves Bloom filter 
+    Savebloom($id, $refid);	
+    
+    #Resets %seqs & undefines bloom filter
+    Blank($refid);
+
+    }
 }
-
-print STDERR "Accessions:\n\t", join("\n\t", @accessions),"\n";
-print STDERR "Targetlength:","\t", $targetlength,"\n";
-print STDERR "False Positive Rate Bloom Filter:","\t", $falseposratebloom,"\n"; 
-
-#Saves Bloom filter 
-Savebloom("$outfile$targetlength");	
-print STDERR "Created filter file: \t$outfile$targetlength\n";
-
-
-#Resets %seqs & undefines bloom filter
-#Blank($refid);
 
 ##########
 #End of main program
@@ -137,16 +150,14 @@ print STDERR "Created filter file: \t$outfile$targetlength\n";
 sub Bloomfilter {
     
 	$keycount = $_[0];
-#	$$_[1] = Bloom::Faster->new({n => $keycount, e => $falseposratebloom});
-
-	return Bloom::Faster->new({n => $keycount, e => $falseposratebloom});
+	$$_[1] = Bloom::Faster->new({n => $keycount, e => $falseposratebloom});
     
 }
 
 
 sub Savebloom {
-  my $fname = shift @_;
-  $bloomfilter->to_file($fname);
+
+    $$_[1]->to_file("$dbpo/$_[0]");
     
 }
 
@@ -160,35 +171,32 @@ sub Blank {
 
 sub Targetkeys {
     
-  my ($seq) = $_[0]; 
+      my ($seq) = $_[0]; 
     
-	my $lengthseq = length($seq)-($targetlength-1); #Stops sliding window at the end
+	my $lengthseq = length($seq)-($kmerlength-1); #Stops sliding window at the end
 
 	for (my $i=0;$i<$lengthseq;$i++) {	
 
-	$bloomfilter->add (substr ($seq, $i, $targetlength) );
+	$$_[1]->add (substr ($seq, $i, $kmerlength) );
 	
     }
 
-    print STDERR "Added reference keys to filter\n";
+    print STDERR "Added Reference Keys to Filter", "\n";
     return;
     
 }
 
 
 sub Refseq {
-
-   open(FASTA, "<$_[0]") or die "Can't open $_[0]:$!, \n";
-
-   $headercount = 0;
-   @accessions = ();
+    
+open(FASTA, "<$dbpr/$_[0]") or die "Can't open $_[0]:$!, \n";
     while(<FASTA>) {
 
 	if (/>/) {
-	  $seq ="";
-	  chomp($id = $'); #'
-	  push @accessions, $id;
-	  $headercount++;
+	   
+	    $seq ="";
+	    chomp($id = $'); #'
+	    $headercount++;
 	}
 	
 	else {
@@ -202,30 +210,38 @@ sub Refseq {
     print STDERR "Finished Reading Reference Sequence","\n";
     close(FASTA);
 	#Determines bitvector length & creates vector
-   $bloomfilter = Bloomfilter(length($seqs{$id}), $$_[1] );  
+	Bloomfilter(length($seqs{$id}), $$_[1] );  
     return;
     
 }
 
-sub CheckReference {
-  my $fn = shift;
+sub ReferenceList {
+   
+open(BLOOM, "<$_[0]") or die "Can't open $_[0]:$!, \n";
 
-  open(BLOOM, "<$fn") or die "Can't open $fn:$!, \n";
+    while(<BLOOM>) {
+	
+	if (/>/) {  #Loads Bloom file id
+	    
+	    chomp($refid = $');  #'
+	    $refcount++;
+	    push @refs, $refid;
 
-  while(<BLOOM>) {
-
-    chomp($refid = $_);  #'
-    $refcount++;
-
-    push @refs, $refid;
 	}
 
-  close(BLOOM);
+    }
+    
+    close(BLOOM);
   if ($refcount == 0) {
-    print STDERR "Did not find any files in reference file '$fn'\n";
+    print STDERR "Did not find any files in reference file '$ref'\n";
   }
 
-  return;
+    print STDERR "Finished Reading Bloom List","\n"; 
+    return;
 }
+
+
+
+
 
 
