@@ -11,11 +11,11 @@
 
 facs - Filter reads of DNA
 
-=head2 SYNOPSIS
+=head1 SYNOPSIS
 
 facs queryfile -b bloomfilterlist
 
-=head3 DESCRIPTION
+=head1 DESCRIPTION
 
 Build Bloom filters from reference genomes in fasta files using bloombuild.pl. These
 can later be queried using FACS.
@@ -61,13 +61,13 @@ Results are written to two files
 
 Note: You have to use the same false positive rate and K-mer length as was used when the bloom filters were created.
 
-=head4 I/O
+=head1 I/O
 
 Input format (FASTA/Pearson)
 
 Output format (FASTA/Pearson)
 
-=head5 SEE ALSO
+=head1 SEE ALSO
 
 bloombuild
 

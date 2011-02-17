@@ -3,19 +3,29 @@
 # Builds Bloom filters with a given K-mer length, false positive rate
 # and reference in a FASTA format
 
+=head1 NAME
+
+ bloombuild - build Bloom filters from reference genomes in FASTA files.
+
 =head1 SYNOPSIS
 
-BloomBuild reference
+ bloombuild [options] -r reference.fasta
 
-Build Bloom filters from reference genomes in fasta files. These
-can later be queried using FACS.
+=head1 DESCRIPTION
 
--r/--reference A file containing a list of filenames for reference genome data. Each line contains a filename. 
-Each file is a Fasta file. (defaults to STDIN)
+ Build Bloom filters from reference genomes in fasta files. These
+ can later be queried using FACS.
 
-NOTE: Presently the Bloom::FASTER module has problems
-with garbage collection which only enables one reference to built each time the program loads. 
-Supplying references in batch might cause a high false positive rate. 
+ -r/--reference A file containing a list of filenames for reference genome data.
+ Each line contains a filename. 
+ Each file is a Fasta file. (defaults to STDIN)
+
+ NOTE: Presently the Bloom::FASTER module has problems
+ with garbage collection which only enables one reference to built each time
+ the program loads. Supplying references in batch might cause a high false
+ positive rate. 
+
+=head1 OPTIONS
 
 -os/--outfile Output suffix for the created Bloom filter (defaults to .obj)
 
@@ -27,7 +37,7 @@ Supplying references in batch might cause a high false positive rate.
 
 -dbpo/--databsepath The unixpath to the output directory (defaults to STDIN)
 
-I/O
+=head1 I/O
 Input format (FASTA/Pearson)
 
 Output format (Bloom filter)
