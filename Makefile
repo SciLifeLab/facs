@@ -1,4 +1,4 @@
-CFLAGS=-O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp
+CFLAGS=-O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g
 
 all:
 	gcc -c *.c ${CFLAGS}
