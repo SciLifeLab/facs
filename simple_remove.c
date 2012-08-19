@@ -288,9 +288,9 @@ get_parainfo (char *full)
   int offsett = statbuf.st_size / cores;
   //last_piece = buffer*PAGE-(cores-1)*offsett;
   int add = 0;
-  printf ("offset->%d\n", offsett);
+  //printf ("offset->%d\n", offsett);
   Queue *pos = head;
-  printf ("TYPE->%d\n", type);
+  //printf ("TYPE->%d\n", type);
   if (type == 1)
     {
 
@@ -300,7 +300,7 @@ get_parainfo (char *full)
 	  full = strchr (full, '>');	//drop the possible fragment
 	  if (add != 0)
 	    full = strchr (full + offsett, '>');
-	  printf ("full->%0.20s\n", full);
+	  //printf ("full->%0.20s\n", full);
 	  x->location = full;
 	  x->number = add;
 	  x->next = pos->next;
@@ -332,7 +332,7 @@ get_parainfo (char *full)
       //printf("cores->%d\n",cores);
     }
   count = cores;
-  printf ("count->%d\n", count);
+  //printf ("count->%d\n", count);
   return;
 }
 
@@ -810,20 +810,20 @@ save_result (char *source, char *obj_file)
       strncat (match, source, so - source);
       strncat (mismatch, source, so - source);
     }
-  printf ("match->%s\n", match);
-  printf ("mismatch->%s\n", mismatch);
+  //printf ("match->%s\n", match);
+  //printf ("mismatch->%s\n", mismatch);
   strcat (match, so_name);
   strcat (mismatch, so_name);
-  printf ("match->%s\n", match);
-  printf ("mismatch->%s\n", mismatch);
+  //printf ("match->%s\n", match);
+  //printf ("mismatch->%s\n", mismatch);
   strcat (match, "_contam_");
   strcat (mismatch, "_clean_");
-  printf ("match->%s\n", match);
-  printf ("mismatch->%s\n", mismatch);
+  //printf ("match->%s\n", match);
+  //printf ("mismatch->%s\n", mismatch);
   strcat (match, obj_name);
   strcat (mismatch, obj_name);
-  printf ("match->%s\n", match);
-  printf ("mismatch->%s\n", mismatch);
+  //printf ("match->%s\n", match);
+  //printf ("mismatch->%s\n", mismatch);
   if (type == 1)
     {
       strcat (match, ".fasta");
