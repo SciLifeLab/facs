@@ -8,3 +8,6 @@ all:
 
 clean:
 	rm *.o
+
+tests:
+	./bloom_build -k 21 -l tests/reference.list
