@@ -11,6 +11,7 @@ clean:
 	rm *.o
 
 tests:
+	mkdir -p tests/data
 	./tests/fastq_dummy.py 50 tests/data/ecoli_dummy.fastq
 	./bloom_build -k 21 -l tests/reference_genomes.list -p tests/data/ecoli.bloom
-	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -l tests/bloom_filters.list
+	valgrind ./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -l tests/bloom_filters.list
