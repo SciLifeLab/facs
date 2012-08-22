@@ -30,7 +30,7 @@ long long share, offset, CHUNK, total_size;
 /*-------------------------------------*/
 float error_rate, tole_rate, contamination_rate;
 /*-------------------------------------*/
-int k_mer, mode, count, mytask, ntask, type = 2, count = 0;
+int k_mer, mode, mytask, ntask, type = 2;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
   *contam2;
@@ -77,33 +77,11 @@ main (int argc, char **argv)
 
   get_parainfo (position);
 
-  head1 = head;
-
-  char *obj_file = (char *) malloc (200 * sizeof (char));
-
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
 
-  memset (obj_file, 0, 200);
   memset (detail, 0, 1000 * 1000);
 
-  char *pos = NULL;
-
-  int x;
-  while (all_ref)
-    {
-
-      printf ("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
-
-      if ((pos = strchr (all_ref, '\n')))
-	strncat (obj_file, all_ref, pos - all_ref);
-      else
-	break;
-
-      all_ref = pos + 1;
-
-      printf ("obj_file->%s\n", obj_file);
-
-      load_bloom (obj_file, bl_2);
+  load_bloom (all_ref, bl_2);
 
       k_mer = bl_2->k_mer;
 
@@ -126,15 +104,7 @@ main (int argc, char **argv)
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
 
-      head = head1;
-
-      save_result (source, obj_file);
-
-      memset (obj_file, 0, 200);
-
-      bloom_destroy (bl_2);
-
-    }				//while
+      save_result (source, all_ref);
 
   munmap (position, statbuf.st_size);
 
@@ -168,37 +138,37 @@ init (int argc, char **argv)
   prefix = NULL;
 /*-------default-------*/
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:p:l:q:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
 	{
 	case 'e':
-	  printf ("Error rate: \nThe argument of -e is %s\n", optarg);
+	  //printf ("Error rate: \nThe argument of -e is %s\n", optarg);
 	  (optarg) && ((error_rate = atof (optarg)), 1);
 	  break;
 	case 'k':
-	  printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
+	  //printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
 	  (optarg) && ((k_mer = atoi (optarg)), 1);
 	  break;
 	case 'm':
-	  printf ("Mode : \nThe argument of -m is %s\n", optarg);
+	  //printf ("Mode : \nThe argument of -m is %s\n", optarg);
 	  (optarg) && ((mode = atoi (optarg)), 1);
 	  break;
 	case 't':
-	  printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
+	  //printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
 	  (optarg) && ((tole_rate = atof (optarg)), 1);
 	  break;
-	case 'p':
-	  printf ("Prefix : \nThe argument of -p is %s\n", optarg);
+	case 'o':
+	  //printf ("Out : \nThe argument of -o is %s\n", optarg);
 	  (optarg) && ((prefix = optarg), 1);
 	  break;
-	case 'l':
-	  printf ("Bloom list : \nThe argument of -l is %s\n", optarg);
-	  (optarg) && (all_ref = mmaping (optarg), 1);
+	case 'r':
+	  //printf ("Bloom list : \nThe argument of -r is %s\n", optarg);
+	  (optarg) && ((all_ref = optarg), 1);
 	  break;
 	case 'q':
-	  printf ("Query : \nThe argument of -q is %s\n", optarg);
+	  //printf ("Query : \nThe argument of -q is %s\n", optarg);
 	  (optarg) && (source = optarg, 1);
 	  break;
 	case '?':
@@ -284,58 +254,81 @@ void
 get_parainfo (char *full)
 {
   printf ("distributing...\n");
+
+  char *temp=full;
+
   int cores = omp_get_num_procs ();
+
   int offsett = statbuf.st_size / cores;
-  //last_piece = buffer*PAGE-(cores-1)*offsett;
+
   int add = 0;
-  //printf ("offset->%d\n", offsett);
+
+  printf ("task->%d\n", offsett);
+
   Queue *pos = head;
-  //printf ("TYPE->%d\n", type);
+
   if (type == 1)
     {
-
       for (add = 0; add < cores; add++)
 	{
 	  Queue *x = NEW (Queue);
-	  full = strchr (full, '>');	//drop the possible fragment
+
+          if (add == 0 && *full != '>')
+
+	  temp = strchr (full, '>');	//drop the possible fragment
+
 	  if (add != 0)
-	    full = strchr (full + offsett, '>');
+
+	    temp = strchr (full + offsett, '>');
+
 	  //printf ("full->%0.20s\n", full);
-	  x->location = full;
+
+	  x->location = temp;
+
 	  x->number = add;
+
 	  x->next = pos->next;
+
 	  pos->next = x;
+
 	  pos = pos->next;
-	  //printf("???\n");
 	}
     }				// end if
 
   else
     {
-      //int add = 0;
-      //Queue *pos=head;
       for (add = 0; add < cores; add++)
 	{
 	  Queue *x = NEW (Queue);
+
 	  if (add == 0 && *full != '@')
-	    full = strstr (full, "\n@") + 1;	//drop the fragment
+
+	    temp = strstr (full, "\n@") + 1;	//drop the fragment
+
+          //printf("offset->%d\n",offsett*add);
+
 	  if (add != 0)
-	    full = strstr (full + offsett, "\n@") + 1;
-	  //if (add == (cores-1))
-	  //         full[10]='\0';
-	  x->location = full;
+
+	    temp = strstr (full + offsett*add, "\n@");
+
+          if (temp)
+          temp++;
+
+	  x->location = temp;
+
 	  x->number = add;
+
 	  x->next = pos->next;
+
 	  pos->next = x;
+
 	  pos = pos->next;
 	}			//end else  
-      //printf("cores->%d\n",cores);
+
     }
-  count = cores;
-  //printf ("count->%d\n", count);
+
   return;
 }
-
 /*-------------------------------------*/
 void
 fastq_process (bloom * bl, Queue * info)
@@ -346,8 +339,12 @@ fastq_process (bloom * bl, Queue * info)
   char *p = info->location;
   char *next, *temp_start, *temp_end, *temp_piece = NULL;
 
-  if (info->next != tail)
+  if (info->next==NULL)
+    return;
+
+  else if (info->next != tail)
     next = info->next->location;
+
   else
     next = strchr (p, '\0');
 
@@ -559,22 +556,24 @@ fasta_process (bloom * bl, Queue * info)
 
   char *p = info->location;
 
-  char *x;
+  char *next;
 
   char *temp = p;
 
-  if (info->next != tail)
-    x = info->next->location;
+  if (info->next==NULL)
+    return;
+  else if (info->next != tail)
+    next = info->next->location;
   else
-    x = strchr (p, '\0');
+    next = strchr (p, '\0');
 
-  while (p != x)
+  while (p != next)
     {
 #pragma omp atomic
       read_num++;
       temp = strchr (p + 1, '>');
       if (!temp)
-	temp = x;
+	temp = next;
       int result = fasta_read_check (p, temp, "normal", bl);
       if (result)
 	{
@@ -605,6 +604,9 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 {
 
   char *p = strchr (begin + 1, '\n') + 1;
+
+  if (!p || *p == '>')
+     return 1;
 
   char *start = p;
 
@@ -773,7 +775,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 void
 save_result (char *source, char *obj_file)
 {
-  printf ("saving\n");
+  printf ("saving...\n");
   char *match = (char *) malloc (400 * sizeof (char)),
     *mismatch = (char *) malloc (400 * sizeof (char)),
     *so_name = (char *) malloc (200 * sizeof (char)),
