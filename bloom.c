@@ -350,8 +350,11 @@ save_bloom (char *filename, bloom * bl, char *prefix)
 
   int fd, fq;
 
-  fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
-//  fd = open(FILENAME, O_RDWR|O_CREAT|O_LARGEFILE, 0644);
+#ifdef __APPLE__
+  fd = open(bloom_file, O_RDWR|O_CREAT, 0644);
+#else // assume linux
+  fd = open(bloom_file, O_RDWR|O_CREAT|O_LARGEFILE, 0644);
+#endif
   if (fd < 0)
     {
       perror (bloom_file);
@@ -363,7 +366,11 @@ save_bloom (char *filename, bloom * bl, char *prefix)
 				      1) +
     sizeof (int) * (bl->stat.ideal_hashes + 1);
 
-  if (ftruncate64 (fd, total_size) < 0)
+#ifdef __APPLE__
+  if (ftruncate(fd, total_size) < 0)
+#else
+  if (ftruncate64(fd, total_size) < 0)
+#endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
       close (fd);
@@ -389,19 +396,6 @@ save_bloom (char *filename, bloom * bl, char *prefix)
 
   printf ("big file process OK\n");
 
-  /*  <4GB
-     FILE *fd = fopen64 (bloom_file, "w");
-
-     fwrite (bl, sizeof (bloom), 1, fd);
-
-     fwrite (bl->vector, sizeof (char) * ((int) (bl->stat.elements / 8) + 1),1, fd);
-
-     fwrite (bl->random_nums.num, sizeof (int) * (bl->stat.ideal_hashes + 1),1, fd);
-
-     printf ("successful bloom save...\n");
-
-     fclose (fd);
-   */
   return 1;
 
 }
@@ -415,20 +409,13 @@ load_bloom (char *filename, bloom * bl)
 
   printf ("bloom name->%s\n", filename);
 
-  fd = open64 (filename, O_RDONLY, 0644);
-
+#ifdef __APPLE__
+  fd = open(filename, O_RDONLY, 0644); 
+#else
+  fd = open64(filename, O_RDONLY, 0644); 
+#endif
   x = read (fd, bl, sizeof (bloom));
-/*
-  BIGNUM total_size = sizeof (bloom) + sizeof (char) * ((long long) (bl->stat.elements / 8) + 1) + sizeof (int) * (bl->stat.ideal_hashes + 1);
 
-  if (ftruncate64(fd, total_size) < 0)
-  {
-  printf("[%d]-ftruncate64 error: %s/n", errno, strerror(errno));
-  close(fd);
-  return 0;
- }
-  //x = read (fd, bl, sizeof (bloom));
-*/
   bl->vector =
     (char *) malloc (sizeof (char) *
 		     ((long long) (bl->stat.elements / 8) + 1));
