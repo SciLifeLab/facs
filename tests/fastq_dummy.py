@@ -30,6 +30,6 @@ with open(dummy_fastq, "w") as f:
 
     for r in xrange(reads):
         f.write(header + '\n')
-        f.write('GATTACAA' * stride + '\n')
+        f.write('QQQQQQQQ' * stride + '\n')
         f.write('+' + '\n')
         f.write('arvestad' * stride + '\n')

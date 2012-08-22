@@ -12,6 +12,7 @@ clean:
 
 tests:
 	mkdir -p tests/data
+	test -s tests/data/ecoli_K12.fasta||wget http://togows.dbcls.jp/entry/ncbi-nucleotide/eschColi_K12,U00096.2.fasta -O tests/data/ecoli_K12.fasta
 	./tests/fastq_dummy.py 50 tests/data/ecoli_dummy.fastq
 	./bloom_build -k 21 -l tests/reference_genomes.list -p tests/data/ecoli.bloom
-	valgrind ./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -l tests/bloom_filters.list
+	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -l tests/bloom_filters.list
