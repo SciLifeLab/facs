@@ -15,6 +15,7 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#define TWOG 2000000000
 #define hashsize(n) ((BIGNUM)1<<(n))
 #define hashmask(n) (hashsize(n) - 1)
 #define NEW(type) (type *) malloc(sizeof(type))
@@ -22,8 +23,10 @@
 
 int seed[20] =
   { 152501029, 152501717, 152503097, 152500171, 152500157, 152504837,
-10161313, 10371313, 10431313, 10501313, 10581313, 10611313, 10641313, 10651313,
-10671313, 10731313, 10821313, 10881313, 10951313, 11001313 };
+  10161313, 10371313, 10431313, 10501313, 10581313, 10611313, 10641313,
+    10651313,
+  10671313, 10731313, 10821313, 10881313, 10951313, 11001313
+};
 
 int
 bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, float error_rate,
@@ -160,11 +163,9 @@ bloom_test (bloom * bloom, char *str, int mode)
   hit = 1;
   for (i = 0; i < bloom->stat.ideal_hashes; i++)
     {
-      //printf("okay\n");
-      //printf("i-->%d\n",i);
-      ret = bloom_hash (bloom, str, i, bloom->k_mer);	//************error line
-      //printf("afterokay\n");
-      //printf("ret %lld\n",ret);
+
+      ret = bloom_hash (bloom, str, i, bloom->k_mer);
+
       if (!test (bloom->vector, ret))
 	{
 	  hit = 0;
@@ -179,40 +180,17 @@ bloom_test (bloom * bloom, char *str, int mode)
 	    }
 	}
     }
-  //printf("hit-->%d\n",hit);
+
   return hit;
 }
 
 BIGNUM
 bloom_hash (bloom * bloom, char *str, int i, int length)
 {
-
-  //char *newstr;
-  //char salt[100];
   BIGNUM ret = 0;
   BIGNUM hash;
-  /*
-     if (i > 0) {
-     sprintf(salt,"%d",bloom->random_nums.num[i]);
-     if ((newstr = (char *)malloc(sizeof(char) * (strlen(str) + strlen(salt)  + 1))) == NULL) {
-     perror("malloc");
-     errno = ERR_MALLOC;
-     return -1;
-     }
-     sprintf(newstr,"%s%s",str,salt);
-     } else {
-     newstr = strdup(str);
-     } 
-   */
 
-  //printf("ret->%d\n",ret);
-  //ret = (BIGNUM)abs(bloom->hash(newstr)) % (BIGNUM)bloom->stat.elements; 
-  //if (i > 0)
-  //printf("i->%d\n",i);
-  //printf("seed->%d\n",seed[i]);
   ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
-
-  //printf("ret->");
 
   return ret;
 }
@@ -224,8 +202,7 @@ set (char *big, BIGNUM index)
 
   finder (index, &dr);
   big[dr.index] += dr.spot;
-  //printf("index->%lld\n",index);
-  //printf("dr.index->%lld\ndr.spot->%d\n",dr.index,dr.spot);
+
   return 0;
 }
 
@@ -253,10 +230,10 @@ int
 finder (BIGNUM index, deref * dr)
 {
 
-  //dr->index = (BIGNUM)(index / 8);
-  //dr->spot = pow(2,(index % 8));
-  dr->index = (BIGNUM) (index >> 3);
+  dr->index = (BIGNUM) (index / 8);
   dr->spot = pow (2, (index % 8));
+  //dr->index = (BIGNUM) (index >> 3);
+  //dr->spot = pow (2, (index % 8));
   //dr->spot = 0x80;
   //dr->spot = dr->spot >> (index & 0x07);
   //dr->spot = pow(2,(index & 0x07));
@@ -318,34 +295,51 @@ to_bitstr (bloom * bm)
 }
 
 int
-save_bloom (char *filename, bloom * bl, char *prefix)
+save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
-  char *position1;
+  char *position1,*position2;
   char *bloom_file = (char *) malloc (300 * sizeof (char));
-  char *possible_prefix = (char *) malloc (200 * sizeof (char));
 
   memset (bloom_file, 0, 300);
-  memset (possible_prefix, 0, 200);
-
+  printf("here\n");
+  printf("target->%s\n",target);
   position1 = strrchr (filename, '/');
-
+  position2 = strrchr (target+2, '/');
+/*
   if (!prefix)
-    {
+    { 
+      
       if (position1)
-	strncat (possible_prefix, filename, position1 + 1 - filename);
+	strncat (possible_prefix, filename, position1 + 1 - filename);  
+      
     }
-  else
-    strcat (possible_prefix, prefix);
-
+*/
+  //if (prefix)
+  //  strcat (possible_prefix, prefix);
+/*  
   strcat (bloom_file, possible_prefix);
 
   if (position1)
     strncat (bloom_file, position1 + 1, strrchr (filename, '.') - position1);
   else
     strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
-
-  strcat (bloom_file, "bloom");
-
+*/
+  //printf("position2->%s\n",position2);
+  if (prefix)
+    strcat (bloom_file, prefix);
+  else
+    {
+      if (position2)
+      strncat (bloom_file,target+2,position2+1-(target+2));   
+    
+      if (position1)
+	strncat (bloom_file, position1 + 1,
+		 strrchr (filename, '.') - position1);
+      else
+	strncat (bloom_file, filename,
+		 strrchr (filename, '.') - filename + 1);
+      strcat (bloom_file, "bloom");
+    }
   printf ("bloom name->%s\n", bloom_file);
 
   int fd, fq;
@@ -382,11 +376,11 @@ save_bloom (char *filename, bloom * bl, char *prefix)
   total_size = (long long) (bl->stat.elements / 8) + 1;
 
   BIGNUM off = 0;
-  while (total_size > 2000000000)
+  while (total_size > TWOG)
     {
-      fq = write (fd, bl->vector + off, sizeof (char) * 2000000000);
-      total_size -= 2000000000;
-      off += 2000000000;
+      fq = write (fd, bl->vector + off, sizeof (char) * TWOG);
+      total_size -= TWOG;
+      off += TWOG;
     }
   fq = write (fd, bl->vector + off, sizeof (char) * total_size);
   close (fd);
@@ -420,25 +414,21 @@ load_bloom (char *filename, bloom * bl)
     (char *) malloc (sizeof (char) *
 		     ((long long) (bl->stat.elements / 8) + 1));
 
-//  x = read (fd, bl->vector, sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
-
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
-  while (total_size > 2000000000)
+
+  while (total_size > TWOG)
     {
-      x = read (fd, bl->vector + off, sizeof (char) * 2000000000);
-      //lseek(fd,off,SEEK_CUR);
-      total_size -= 2000000000;
-      off += 2000000000;
+      x = read (fd, bl->vector + off, sizeof (char) * TWOG);
+
+      total_size -= TWOG;
+
+      off += TWOG;
     }
-  //lseek(fd,off,SEEK_CUR);
+
   x = read (fd, bl->vector + off, sizeof (char) * total_size);
   close (fd);
 
-  //memset(bl->vector,0,sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
-
   printf ("successful bloom read...\n");
-
-  //printf("<----k_mer---->%d\n",bl->k_mer);
 
   close (fd);
 }

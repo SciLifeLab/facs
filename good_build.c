@@ -30,7 +30,7 @@ struct stat statbuf;
 float error_rate, tole_rate, contamination_rate;
 BIGNUM total_size = 0;
 int k_mer = 21, mode = 0, count = 0;
-long hit = 0, un_hit = 0;
+long long hit = 0, un_hit = 0;
 
 BIGNUM capacity;
 
@@ -47,6 +47,7 @@ void fasta_add (bloom * bl, char *position);
 /*-------------------------------------*/
 //char *mmaping (char *source);
 char *mmaping (char *filename);
+char *fasta_title (char *full);
 char *large_load (char *filename);
 char *fasta_data (bloom * bl_2, char *data);
 /*-------------------------------------*/
@@ -68,135 +69,35 @@ main (int argc, char *argv[])
 
   init (argc, argv);
 
-  if (mode == 1)
-    {
-      char *obj_file = (char *) malloc (200 * sizeof (char));
+      char *program_path = (char *) malloc (200 * sizeof (char));
 
-      char *pos = NULL;
-
-      printf ("source->%s\n", source);
-
-      while (source)
-	{
-
-	  printf ("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
-
-	  pos = strchr (source, '\n');
-
-	  if (pos)
-	    {
-	      strncpy (obj_file, source, pos - source);
-
-	      source = pos + 1;
-	    }
-	  else
-	    break;
-
-	  //position = large_load (obj_file);
-	  position = mmaping (obj_file);
+	  position = mmaping (source);
 
 	  if (*position == '>')
+
 	    capacity = strlen (position);
+
 	  else
+
 	    capacity = strlen (position) / 2;
 
 	  init_bloom (bl_2);
 
 	  if (position[0] == '>')
+
 	    fasta_add (bl_2, position);
+
 	  else
+
 	    fastq_add (bl_2, position);
 
-	  printf ("finish 1 processing...\n");
+          strcat (program_path, argv[0]);
 
-	  printf ("obj_file->%s\n", obj_file);
+          printf ("program_path->%s\n",program_path);
 
-	  save_bloom (obj_file, bl_2, prefix);
+	  save_bloom (source, bl_2, prefix, argv[0]);
 
-	  bloom_destroy (bl_2);
-
-	  memset (bl_2, 0, sizeof (bloom));
-
-	  memset (obj_file, 0, strlen (obj_file));
-
-	  //memset(position,0,total_size);
 	  munmap (position, statbuf.st_size);
-
-	  //free(position);
-
-	}
-    }
-  else if (mode == 2)
-    {
-      char *pos = NULL;
-
-      char *so = argv[4];
-
-      while (source)
-	{
-	  printf ("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXXX\n");
-
-	  char *obj_file = (char *) malloc (100 * sizeof (char));
-
-	  pos = strchr (source, '\n');
-
-	  if (pos)
-	    {
-	      strncpy (obj_file, source, pos - source);
-
-	      source = pos + 1;
-	    }
-	  else
-	    break;
-
-	  if (strlen (obj_file) > 2)
-	    {
-	      Queue *x = NEW (Queue);
-	      x->location = obj_file;
-	      x->next = head->next;
-	      head->next = x;
-	      capacity += get_size (obj_file);
-	    }
-	}
-
-      init_bloom (bl_2);
-
-      for (head = head->next; head != tail; head = head->next)
-	{
-
-	  printf ("location4->%s\n", head->location);
-
-	  position = large_load (head->location);
-
-	  if (position[0] == '>')
-	    fasta_add (bl_2, position);
-	  else
-	    fastq_add (bl_2, position);
-
-	  //printf("after free\n");
-	}
-
-      //printf("sleep all day\n");
-
-      printf ("finish processing...\n");
-      //printf ("so->%s\n",so);
-
-      save_bloom (so, bl_2, prefix);
-
-      bloom_destroy (bl_2);
-
-      memset (bl_2, 0, sizeof (bloom));
-
-      printf ("All finished Go check...\n");
-    }
-  else
-    {
-      perror ("Mode select error.");
-
-      return -1;
-    }
-
-  free (bl_2);
 
   gettimeofday (&tv2, &tz);
 
@@ -248,8 +149,6 @@ mmaping (char *source)
       perror (" mmap source ");
       exit (EXIT_FAILURE);
     }
-
-  //printf("sm->%s\n",sm);
 
   return sm;
 }
@@ -319,48 +218,50 @@ init (int argc, char **argv)
   prefix = NULL;
 /*-------default-------*/
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:p:l:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:o:r:")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
 	{
 	case 'e':
-	  printf ("Error rate: \nThe argument of -e is %s\n", optarg);
+	  //printf ("Error rate: \nThe argument of -e is %s\n", optarg);
 	  (optarg) && ((error_rate = atof (optarg)), 1);
 	  break;
 	case 'k':
-	  printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
+	  //printf("K_mer size: \nThe argument of -k is %s\n", optarg);
 	  (optarg) && ((k_mer = atoi (optarg)), 1);
 	  break;
 	case 'm':
-	  printf ("Mode : \nThe argument of -m is %s\n", optarg);
+	  //printf("Mode : \nThe argument of -m is %s\n", optarg);
 	  (optarg) && ((mode = atoi (optarg)), 1);
+	  if (mode != 1 && mode != 2)
+	    {
+	      perror ("Mode select error.");
+	      exit (0);
+	    }
 	  break;
-	case 'p':
-	  printf ("Prefix : \nThe argument of -p is %s\n", optarg);
+	case 'o':
+	  //printf("Output : \nThe argument of -o is %s\n", optarg);
 	  (optarg) && ((prefix = optarg), 1);
 	  break;
-	case 'l':
-	  printf ("File list : \nThe argument of -l is %s\n", optarg);
-	  (optarg) && (source = mmaping (optarg), 1);
+	case 'r':
+	  //printf("File list : \nThe argument of -l is %s\n", optarg);
+	  (optarg) && ((source = optarg), 1);
+	  if (!source)
+	    {
+	      perror ("error, no resource.");
+	      exit (0);
+	    }
 	  break;
 	case '?':
-	  printf ("Unknown option: -%c\n", (char) optopt);
+	  printf("Unknown option: -%c\n",(char)optopt);
 	  exit (0);
 	}
 
     }
 
-  if (!source)
-    {
-      perror ("error, no resource.");
-      exit (0);
-    }
-  if (mode != 1 && mode != 2)
-    {
-      perror ("Mode select error.");
-      exit (0);
-    }
+
+
 
 }
 
@@ -396,16 +297,32 @@ init_bloom (bloom * bl)
 }
 
 /*-------------------------------------*/
+char *
+fasta_title (char *full)
+{
+
+  char *ptr;
+
+  ptr = strchr (full, '\n');
+
+  temp_title = (char *) malloc ((ptr - full + 1) * sizeof (char));
+
+  strncpy (temp_title, full, ptr - full + 1);	//include '\n'
+
+  return ptr + 1;
+}
+
+/*-------------------------------------*/
 void
 fasta_add (bloom * bl, char *position)
 {
-
-  while (strchr (position + 1, '>'))
+  while (strlen (position) > k_mer + 2)
     {
-      position = fasta_data (bl, position);
+      if (position[0] == '>')
+	position = fasta_title (position);
+      else
+	position = fasta_data (bl, position);
     }
-
-  position = fasta_data (bl, position);
 }
 
 /*-------------------------------------*/
@@ -474,12 +391,6 @@ fasta_data (bloom * bl_2, char *data)
 
   int n = 0, m = 0;
 
-  //printf("data->%0.20s\n",data);
-
-  p = strchr (p, '\n') + 1;
-
-  //printf("data->%0.20s\n",data);
-
   while (*p != '>' && *p != '\0')
     {
 
@@ -502,7 +413,7 @@ fasta_data (bloom * bl_2, char *data)
 
       if (strlen (key) == k_mer)
 	{
-	  //printf("k_mer->%s\n",key);
+
 	  if (bloom_add (bl_2, key))
 	    hit++;
 	  else
