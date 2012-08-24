@@ -344,8 +344,11 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 
   int fd, fq;
 
-  fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
-
+#ifdef __APPLE__
+  fd = open(bloom_file, O_RDWR|O_CREAT, 0644);
+#else // assume linux
+  fd = open(bloom_file, O_RDWR|O_CREAT|O_LARGEFILE, 0644);
+#endif
   if (fd < 0)
     {
       perror (bloom_file);
@@ -357,7 +360,11 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 				      1) +
     sizeof (int) * (bl->stat.ideal_hashes + 1);
 
-  if (ftruncate64 (fd, total_size) < 0)
+#ifdef __APPLE__
+  if (ftruncate(fd, total_size) < 0)
+#else
+  if (ftruncate64(fd, total_size) < 0)
+#endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
       close (fd);
@@ -396,8 +403,11 @@ load_bloom (char *filename, bloom * bl)
 
   printf ("bloom name->%s\n", filename);
 
-  fd = open64 (filename, O_RDONLY, 0644);
-
+#ifdef __APPLE__
+  fd = open(filename, O_RDONLY, 0644); 
+#else
+  fd = open64(filename, O_RDONLY, 0644); 
+#endif
   x = read (fd, bl, sizeof (bloom));
 
   bl->vector =

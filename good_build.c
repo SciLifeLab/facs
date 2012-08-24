@@ -122,7 +122,13 @@ mmaping (char *source)
   int src;
   char *sm;
 
-  if ((src = open (source, O_RDONLY | O_LARGEFILE, 0644)) < 0)
+
+#ifdef __APPLE__
+  src = open (source, O_RDONLY,0644);
+#else
+  src = open (source, O_RDONLY|O_LARGEFILE,0644);
+#endif
+  if (src < 0)
     {
       perror (" open source ");
       exit (EXIT_FAILURE);
@@ -156,20 +162,27 @@ large_load (char *filename)
 
   printf ("queryname->%s\n", filename);
 
-  fd = open (filename, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
+#ifdef __APPLE__
+  fd = open(filename, O_RDWR|O_CREAT, 0644); 
+#else
+  fd = open(filename, O_RDWR|O_CREAT|O_LARGEFILE, 0644); 
+#endif
 
-  if (fd < 0)
-    {
+  if (fd < 0) {
       perror (filename);
-      return -1;
-    }
+      return NULL;
+  }
 
   (strstr (filename, ".fasta") || strstr (filename, ".fna"))
     && ((total_size = get_size (filename)), 1)
     || (total_size = (get_size (filename) * 2));
 
 
-  if (ftruncate64 (fd, total_size) < 0)
+#ifdef __APPLE__
+  if (ftruncate(fd, total_size) < 0)
+#else
+  if (ftruncate64(fd, total_size) < 0)
+#endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
       close (fd);
