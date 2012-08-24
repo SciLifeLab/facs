@@ -1,14 +1,6 @@
 CFLAGS=-O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp
 .PHONY: tests clean
 
-# If on linux:
-#CC=gcc
-
-# If on MacOS, make sure that you have a recent enough compiler that
-# has support for OpenMP:
-CC=gcc-mp-4.7
-
-
 all:
 	${CC} -c *.c ${CFLAGS}
 	${CC} -o bloom_build good_build.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
