@@ -1,4 +1,4 @@
-CFLAGS=-O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp
+CFLAGS=-O0 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g
 .PHONY: tests clean
 
 all:
@@ -8,7 +8,7 @@ all:
 	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 
 clean:
-	rm -f *.o bloom_build simple_check simple_remove
+	rm -f core.* *.o bloom_build simple_check simple_remove
 
 tests:
 	mkdir -p tests/data

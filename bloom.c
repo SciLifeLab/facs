@@ -36,9 +36,7 @@ bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, float error_rate,
     {
       fprintf (stderr, "overflow1\n");
       return -1;
-    }
-  else
-    {
+    } else {
       /* this may waste a little time, but we need to ensure
        * that our array has a prime number of elements, even
        * if we have been requested to do otherwise */

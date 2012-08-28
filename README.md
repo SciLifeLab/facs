@@ -14,9 +14,9 @@ Usage
 Simply execute the scripts like './bloom_build' or './simple_remove' without any arguments will trigger an instruction page.
 The whole query will be looked like these:
 
-./bloom_build -m 1 -k 21 -e 0.005 -l reference_files_list
-./simple_check -m 1 -q test.fna -l reference_files_list -t 0.8 -s 1
-./simple_remove -m 1 -q test.fna -l reference_files_list -t 1
+./bloom_build -m 1 -k 21 -e 0.005 -r reference_genome.fasta -o bloom_filter.bloom
+./simple_check -m 1 -q test.fastq -r bloom_filter.bloom -t 0.8 -s 1
+./simple_remove -m 1 -q test.fastq -r bloom_filter.bloom -t 1
 
 Notes
 -----
