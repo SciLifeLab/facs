@@ -59,18 +59,19 @@ main (int argc, char *argv[])
   head = NEW (Queue);
   tail = NEW (Queue);
   head->next = tail;
-  
+ 
   init (argc, argv);
-  init_bloom (bl_2);
 
   char *program_path = (char *) malloc (200 * sizeof (char));
 
   position = mmaping(source);
-
+  
   if (*position == '>')
     capacity = strlen (position);
   else
     capacity = strlen (position) / 2;
+  
+  init_bloom (bl_2);
 
   fasta_add(bl_2, position);
 
