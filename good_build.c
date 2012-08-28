@@ -61,7 +61,6 @@ main (int argc, char *argv[])
   head->next = tail;
   
   init (argc, argv);
-  init_bloom (bl_2);
 
   char *program_path = (char *) malloc (200 * sizeof (char));
 
@@ -72,6 +71,7 @@ main (int argc, char *argv[])
   else
     capacity = strlen (position) / 2;
 
+  init_bloom (bl_2);
   fasta_add(bl_2, position);
 
 #ifdef DEBUG
@@ -87,10 +87,11 @@ main (int argc, char *argv[])
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
 
+#ifdef DEBUG
   printf ("all finished...\n");
-
   printf ("total=%ld sec\n", sec);
   printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
+#endif
 
   return 0;
 }
