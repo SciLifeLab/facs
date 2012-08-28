@@ -34,81 +34,62 @@ long long hit = 0, un_hit = 0;
 
 BIGNUM capacity;
 
-char *dm, *dst, *mis_dm, *mis_dst, *source, *obj, *temp_title, *position,
-  *prefix;
-/*-------------------------------------*/
+char *dm, *dst, *mis_dm, *mis_dst, *source,
+     *obj, *temp_title, *position, *prefix;
+
 Queue *head, *tail;
-/*-------------------------------------*/
-//void help ();
+
 void init_bloom (bloom * bl);
 void init (int argc, char **argv);
 void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
-/*-------------------------------------*/
-//char *mmaping (char *source);
+
 char *mmaping (char *filename);
 char *fasta_title (char *full);
 char *large_load (char *filename);
 char *fasta_data (bloom * bl_2, char *data);
-/*-------------------------------------*/
+
 long long get_size (char *strFileName);
-/*-------------------------------------*/
+
 main (int argc, char *argv[])
 {
   gettimeofday (&tv, &tz);	// time test
-
   bloom *bl_2;
-
   bl_2 = NEW (bloom);
-
   head = NEW (Queue);
-
   tail = NEW (Queue);
-
   head->next = tail;
-
+  
   init (argc, argv);
+  init_bloom (bl_2);
 
-      char *program_path = (char *) malloc (200 * sizeof (char));
+  char *program_path = (char *) malloc (200 * sizeof (char));
 
-	  position = mmaping (source);
+  position = mmaping(source);
 
-	  if (*position == '>')
+  if (*position == '>')
+    capacity = strlen (position);
+  else
+    capacity = strlen (position) / 2;
 
-	    capacity = strlen (position);
+  fasta_add(bl_2, position);
 
-	  else
+#ifdef DEBUG
+  strcat (program_path, argv[0]);
+  printf ("program_path->%s\n",program_path);
+#endif
 
-	    capacity = strlen (position) / 2;
-
-	  init_bloom (bl_2);
-
-	  if (position[0] == '>')
-
-	    fasta_add (bl_2, position);
-
-	  else
-
-	    fastq_add (bl_2, position);
-
-          strcat (program_path, argv[0]);
-
-          printf ("program_path->%s\n",program_path);
-
-	  save_bloom (source, bl_2, prefix, argv[0]);
-
-	  munmap (position, statbuf.st_size);
+  save_bloom (source, bl_2, prefix, argv[0]);
+  munmap (position, statbuf.st_size);
 
   gettimeofday (&tv2, &tz);
 
   sec = tv2.tv_sec - tv.tv_sec;
-
   usec = tv2.tv_usec - tv.tv_usec;
 
   printf ("all finished...\n");
 
   printf ("total=%ld sec\n", sec);
-
   printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
 
   return 0;
@@ -128,27 +109,23 @@ mmaping (char *source)
 #else
   src = open (source, O_RDONLY|O_LARGEFILE,0644);
 #endif
-  if (src < 0)
-    {
+  if (src < 0) {
       perror (" open source ");
       exit (EXIT_FAILURE);
-    }
+  }
 
-  if (fstat (src, &statbuf) < 0)
-    {
+  if (fstat (src, &statbuf) < 0) {
       perror (" fstat source ");
       exit (EXIT_FAILURE);
-    }
+  }
 
-  sm =
-    mmap (0, (long long) statbuf.st_size, PROT_READ,
-	  MAP_SHARED | MAP_NORESERVE, src, 0);
+  sm = mmap (0, (long long) statbuf.st_size, PROT_READ,
+	   MAP_SHARED | MAP_NORESERVE, src, 0);
 
-  if (MAP_FAILED == sm)
-    {
+  if (MAP_FAILED == sm) {
       perror (" mmap source ");
       exit (EXIT_FAILURE);
-    }
+  }
 
   return sm;
 }
@@ -160,7 +137,9 @@ large_load (char *filename)
 
   int fd;
 
+#ifdef DEBUG
   printf ("queryname->%s\n", filename);
+#endif
 
 #ifdef __APPLE__
   fd = open(filename, O_RDWR|O_CREAT, 0644); 
@@ -194,10 +173,12 @@ large_load (char *filename)
   char *data = (char *) malloc ((total_size + 1) * sizeof (char));
 
   read (fd, data, total_size);
-
   close (fd);
 
-  //printf("data->%s\n",data);
+#ifdef DEBUG
+// Too verbose
+// printf("data->%s\n",data);
+#endif
 
   return data;
 }
@@ -220,19 +201,15 @@ init (int argc, char **argv)
   int x;
   while ((x = getopt (argc, argv, "e:k:m:o:r:")) != -1)
     {
-      //printf("optind: %d\n", optind);
       switch (x)
 	{
 	case 'e':
-	  //printf ("Error rate: \nThe argument of -e is %s\n", optarg);
-	  (optarg) && ((error_rate = atof (optarg)), 1);
+	  (optarg) && ((error_rate = strtod(optarg, NULL)));
 	  break;
 	case 'k':
-	  //printf("K_mer size: \nThe argument of -k is %s\n", optarg);
 	  (optarg) && ((k_mer = atoi (optarg)), 1);
 	  break;
 	case 'm':
-	  //printf("Mode : \nThe argument of -m is %s\n", optarg);
 	  (optarg) && ((mode = atoi (optarg)), 1);
 	  if (mode != 1 && mode != 2)
 	    {
@@ -241,11 +218,9 @@ init (int argc, char **argv)
 	    }
 	  break;
 	case 'o':
-	  //printf("Output : \nThe argument of -o is %s\n", optarg);
 	  (optarg) && ((prefix = optarg), 1);
 	  break;
 	case 'r':
-	  //printf("File list : \nThe argument of -l is %s\n", optarg);
 	  (optarg) && ((source = optarg), 1);
 	  if (!source)
 	    {
@@ -258,10 +233,7 @@ init (int argc, char **argv)
 	  exit (0);
 	}
 
-    }
-
-
-
+  }
 
 }
 
@@ -277,20 +249,18 @@ init_bloom (bloom * bl)
 
   flags = 3;
 
-  get_suggestion (&bl->stat, capacity, error_rate);
+  get_suggestion(&bl->stat, capacity, error_rate);
 
-  printf ("capacity->%lld\n", bl->stat.capacity);
+#ifdef DEBUG
+  printf ("Capacity: %lld\n", bl->stat.capacity);
+  printf ("Vector size: %lld\n", bl->stat.elements);
+  printf ("Ideal hashes: %d\n", bl->stat.ideal_hashes);
+  printf ("Error rate: %f\n", bl->stat.e);
+  printf ("Real size: %lld\n", bl->stat.elements / 8);
+#endif
 
-  printf ("Vector size->%lld\n", bl->stat.elements);
-
-  printf ("ideal hashes->%d\n", bl->stat.ideal_hashes);
-
-  printf ("error_rate->%f\n", bl->stat.e);
-
-  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	      bl->stat.ideal_hashes, hash, flags);
-
-  printf ("real size->%lld\n", bl->stat.elements / 8);
+  bloom_init(bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
+	         bl->stat.ideal_hashes, hash, flags);
 
   bl->k_mer = k_mer;
 
