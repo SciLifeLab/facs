@@ -73,6 +73,7 @@ main (int argc, char *argv[])
   
   init_bloom (bl_2);
 
+  init_bloom (bl_2);
   fasta_add(bl_2, position);
 
 #ifdef DEBUG
@@ -88,10 +89,11 @@ main (int argc, char *argv[])
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
 
+#ifdef DEBUG
   printf ("all finished...\n");
-
   printf ("total=%ld sec\n", sec);
   printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
+#endif
 
   return 0;
 }

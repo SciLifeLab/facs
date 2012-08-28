@@ -5,18 +5,14 @@ Overview
 --------
 
 * 'bloom_build' is for building a bloom filter from a reference file. It Supports large genome file (>4GB),for instance, human genome.
-* 'simple_check' is for checking, also supports large bloom files #XXX Checking what?
-* 'simple_remove' is for removing.
+* 'simple_check' is for querying a fastq/fasta file against the bloom filter.
+* 'simple_remove' is for removing contamination sequences from a fastq/fasta file.
 
 Usage
 ------
 
-Simply execute the scripts like './bloom_build' or './simple_remove' without any arguments will trigger an instruction page.
-The whole query will be looked like these:
-
-./bloom_build -m 1 -k 21 -e 0.005 -r reference_genome.fasta -o bloom_filter.bloom
-./simple_check -m 1 -q test.fastq -r bloom_filter.bloom -t 0.8 -s 1
-./simple_remove -m 1 -q test.fastq -r bloom_filter.bloom -t 1
+1. ./bloom_build -r tests/data/ecoli_K12.fasta -o tests/data/ecoli.bloom
+2. ./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -r tests/data/ecoli.bloom
 
 Notes
 -----

@@ -67,30 +67,22 @@ main (int argc, char **argv)
 {
 
   long sec, usec, i;
-
   struct timezone tz;
-
   struct timeval tv, tv2;
 
   gettimeofday (&tv, &tz);
 
   init (argc, argv);		//initialize 
-
   struc_init ();
 
   position = mmaping (source);
-
   get_parainfo (position);
 
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
-
   memset (detail, 0, 1000 * 1000);
 
   load_bloom (all_ref, bl_2);
-
   k_mer = bl_2->k_mer;
-
-  //printf("position->%s\n",position);
 
 #pragma omp parallel
   {
@@ -112,21 +104,15 @@ main (int argc, char **argv)
     }				// End of single - no implied barrier (nowait)
   }				// End of parallel region - implied barrier
 
-
-  printf ("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-
+#ifdef DEBUG
   printf ("finish processing...\n");
+#endif
 
   evaluate (detail, source);
-
   statistic_save (detail, source);
-
   munmap (position, statbuf.st_size);
-
   gettimeofday (&tv2, &tz);
-
   sec = tv2.tv_sec - tv.tv_sec;
-
   usec = tv2.tv_usec - tv.tv_usec;
 
   printf ("total=%ld sec\n", sec);
@@ -151,6 +137,7 @@ init (int argc, char **argv)
   sampling_rate = 1;
   prefix = NULL;
 /*-------default-------*/
+
   int x;
   while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:")) != -1)
     {
@@ -158,35 +145,27 @@ init (int argc, char **argv)
       switch (x)
 	{
 	case 'e':
-	  printf ("Error rate: \nThe argument of -e is %s\n", optarg);
 	  (optarg) && ((error_rate = atof (optarg)), 1);
 	  break;
 	case 'k':
-	  printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
 	  (optarg) && ((k_mer = atoi (optarg)), 1);
 	  break;
 	case 'm':
-	  printf ("Mode : \nThe argument of -m is %s\n", optarg);
 	  (optarg) && ((mode = atoi (optarg)), 1);
 	  break;
 	case 't':
-	  printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
 	  (optarg) && ((tole_rate = atof (optarg)), 1);
 	  break;
 	case 's':
-	  printf ("Sampling rate: \nThe argument of -s is %s\n", optarg);
 	  (optarg) && ((sampling_rate = atof (optarg)), 1);
 	  break;
 	case 'o':
-	  printf ("Output : \nThe argument of -o is %s\n", optarg);
 	  (optarg) && ((prefix = optarg), 1);
 	  break;
 	case 'r':
-	  printf ("Bloom list : \nThe argument of -l is %s\n", optarg);
 	  (optarg) && ((all_ref = optarg), 1);
 	  break;
 	case 'q':
-	  printf ("Query : \nThe argument of -q is %s\n", optarg);
 	  (optarg) && (source = optarg, 1);
 	  break;
 	case '?':
@@ -216,15 +195,10 @@ init (int argc, char **argv)
 void
 struc_init ()
 {
-
   bl_2 = NEW (bloom);
-
   head = NEW (Queue);
-
   tail = NEW (Queue);
-
   head->next = tail;
-
 }
 
 /*-------------------------------------*/
@@ -234,19 +208,15 @@ get_parainfo (char *full)
   printf ("distributing...\n");
 
   char *temp=full;
-
   int cores = omp_get_num_procs ();
-
   int offsett = statbuf.st_size / cores;
-
   int add = 0;
 
   printf ("task->%d\n", offsett);
 
   Queue *pos = head;
 
-  if (type == 1)
-    {
+  if (type == 1) {
       for (add = 0; add < cores; add++)
 	{
 	  Queue *x = NEW (Queue);
@@ -256,25 +226,17 @@ get_parainfo (char *full)
 	  temp = strchr (full, '>');	//drop the possible fragment
 
 	  if (add != 0)
-
 	    temp = strchr (full + offsett, '>');
 
-	  //printf ("full->%0.20s\n", full);
 
 	  x->location = temp;
-
 	  x->number = add;
-
 	  x->next = pos->next;
-
 	  pos->next = x;
-
 	  pos = pos->next;
 	}
-    }				// end if
+  } else {
 
-  else
-    {
       for (add = 0; add < cores; add++)
 	{
 	  Queue *x = NEW (Queue);
@@ -293,17 +255,13 @@ get_parainfo (char *full)
           temp++;
 
 	  x->location = temp;
-
 	  x->number = add;
-
 	  x->next = pos->next;
-
 	  pos->next = x;
-
 	  pos = pos->next;
-	}			//end else  
+	} 
 
-    }
+   }
 
   return;
 }
@@ -345,7 +303,9 @@ void
 fastq_process (bloom * bl, Queue * info)
 {
 
+#ifdef DEBUG
   printf("fastq processing...\n");
+#endif
 
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
@@ -374,7 +334,6 @@ fastq_process (bloom * bl, Queue * info)
 
 #pragma omp atomic
       reads_num++;
-
 
       p = strchr (p, '\n') + 1;
       int distance = strchr (p, '\n') - p;
@@ -424,28 +383,16 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl)
       if (model == "reverse")
 	rev_trans (key);
 
-      //printf("key->%s\n",key);          
-      if (mode == 1)
-	{
-	  if (bloom_check (bl, key))
-	    {
-	      //printf("hit\n");
-	      return fastq_full_check (bl, begin, length);
-	      //return 0;
-	    }
-	  //else
-	  //printf("unhit\n");
-	}
+          if (mode == 1) {
+              if (bloom_check (bl, key))
+                  return fastq_full_check (bl, begin, length);
+	  } else {
 
-      else
-	{
-	  if (!bloom_check (bl, key))
-	    {
-	      return fastq_full_check (bl, begin, length);
-	    }
-
+          if (!bloom_check (bl, key)) {
+              return fastq_full_check (bl, begin, length);
+          }
 	}
-    }				// inner while
+  }				// inner while
 
   free (key);
 
@@ -482,49 +429,43 @@ fastq_full_check (bloom * bl, char *p, int distance)
   while (distance >= k_mer)
     {
       memcpy (key, p, sizeof (char) * k_mer);
-
       key[k_mer] = '\0';
-
       previous = p;
-
       p += 1;
 
-      if (bloom_check (bl, key))
-	{
-	  count++;
+      if (bloom_check (bl, key)) {
 
-	  if (pre_kmer == 1)
-	    {
-	      label_m++;
+          count++;
 
-	      if (count < 20)
-		match_s++;
-	      else
+          if (pre_kmer == 1)
+            {
+              label_m++;
 
-		{
-		  match_s += count;
-		  count = 0;
-		}
-	    }
+              if (count < 20)
+            match_s++;
+              else
 
-	  else
+            {
+              match_s += count;
+              count = 0;
+            }
+            }
 
-	    {
-	      label_m += k_mer;
-	      match_s += k_mer - 1;
-	    }
+          else
 
-	  pre_kmer = 1;
-	}
+            {
+              label_m += k_mer;
+              match_s += k_mer - 1;
+            }
 
-      else
+          pre_kmer = 1;
+        } else {
+          count = 0;
+          pre_kmer = 0;
+        }
+          distance--;
+        }				// end while
 
-	{
-	  count = 0;
-	  pre_kmer = 0;
-	}
-      distance--;
-    }				// end while
   free (key);
   label_mis = length - label_m;
 
@@ -538,10 +479,12 @@ fastq_full_check (bloom * bl, char *p, int distance)
 void
 fasta_process (bloom * bl, Queue * info)
 {
+
+#ifdef DEBUG
   printf("fasta processing...\n");
+#endif
 
   char *p = info->location;
-
   char *temp_next, *next, *temp, *temp_piece = NULL;
 
   if (info->next==NULL)

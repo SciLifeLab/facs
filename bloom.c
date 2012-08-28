@@ -299,30 +299,14 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   char *bloom_file = (char *) malloc (300 * sizeof (char));
 
   memset (bloom_file, 0, 300);
-  printf("here\n");
+
+#ifdef DEBUG
   printf("target->%s\n",target);
+#endif
+
   position1 = strrchr (filename, '/');
   position2 = strrchr (target+2, '/');
-/*
-  if (!prefix)
-    { 
-      
-      if (position1)
-	strncat (possible_prefix, filename, position1 + 1 - filename);  
-      
-    }
-*/
-  //if (prefix)
-  //  strcat (possible_prefix, prefix);
-/*  
-  strcat (bloom_file, possible_prefix);
 
-  if (position1)
-    strncat (bloom_file, position1 + 1, strrchr (filename, '.') - position1);
-  else
-    strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
-*/
-  //printf("position2->%s\n",position2);
   if (prefix)
     strcat (bloom_file, prefix);
   else
