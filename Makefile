@@ -14,5 +14,10 @@ tests:
 	mkdir -p tests/data
 	test -s tests/data/ecoli_K12.fasta||wget http://togows.dbcls.jp/entry/ncbi-nucleotide/U00096.2.fasta -O tests/data/ecoli_K12.fasta
 	./tests/fastq_dummy.py 50 tests/data/ecoli_dummy.fastq
+	test -s tests/data/ecoli_dummy.fastq.gz||gzip tests/data/ecoli_dummy.fastq
 	./bloom_build -r tests/data/ecoli_K12.fasta -o tests/data/ecoli.bloom
+	test -e tests/data/ecoli_dummy.fastq.gz.fifo||mkfifo tests/data/ecoli_dummy.fastq.gz.fifo
+	gunzip -c tests/data/ecoli_dummy.fastq.gz > tests/data/ecoli_dummy.fastq.gz.fifo &
 	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -r tests/data/ecoli.bloom
+	@echo Checking contamination against gz fifo file...
+	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/ecoli.bloom
