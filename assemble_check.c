@@ -36,6 +36,7 @@ float error_rate, sampling_rate, contamination_rate, tole_rate;
 /*-------------------------------------*/
 int k_mer = 21, mode, mytask, ntask, type = 2, excel1, excel2, last_piece =
   0, extra_piece = 0;
+int last = 0;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix;
 /*-------------------------------------*/
@@ -112,22 +113,26 @@ main (int argc, char **argv)
 
       get_parainfo (position);
 
+      head = head->next;
+
 #pragma omp parallel
       {
 #pragma omp single nowait
 	{
 	  while (head != tail)
 	    {
-                head = head->next;
+                //head = head->next;
 #pragma omp task firstprivate(head)
 	      {
 		//printf ("position->%0.20s\n", head->location);
-		//printf ("next->%0.20s\n",head->next->location);
+		//printf ("next->%0.20s\n",head->next->location); 
 		   if (type == 1)
 		   fasta_process(bl_2,head);
 		   else
 		   fastq_process(bl_2,head);
+                   
 	      }
+              head = head->next;
 	      
 	    }
 	}
@@ -630,9 +635,13 @@ fasta_process (bloom * bl, Queue * info)
 
   else
     {
-      printf ("last_piece  %d\n", last_piece);
+      last=1;
+
+      printf ("last_piece %d\n", last_piece);
       
       temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
+
+      memset(temp_piece,0,last_piece+1);
 
       memcpy (temp_piece, info->location, last_piece);
 
@@ -650,6 +659,12 @@ fasta_process (bloom * bl, Queue * info)
 
   while (p != next)
     {
+/*      
+      if (last == 1){
+         //printf ("p->%0.20s\n",p);
+         printf("loop\n");
+      }
+*/
       //printf("here\n");
       temp = jump (p);		//generate random number and judge if need to scan this read
       if (p != temp)
@@ -659,30 +674,47 @@ fasta_process (bloom * bl, Queue * info)
 	}
 #pragma omp atomic
       reads_num++;
+      //if (last == 1)
       //printf("before\n");
 
       temp_next = strchr (p + 1, '>');
+      
+      //if (last == 1)
+      //if (temp_next)
+      //printf("temp_next->%0.20s\n",temp_next);
+      //else
+      //printf("boom\n");
+      
       if (!temp_next)
 	temp_next = next;
-
+      
       if (!fasta_read_check (p, temp_next, "normal", bl))
 	{
           #pragma omp atomic
 	  reads_contam++;
 	}
+
       p = temp_next;
-      
+      /*
+      if (last == 1)
+      {
+      printf ("p->%0.20s\n", p);
+      printf ("temp_next->%0.20s\n",temp_next);
+      if (p == next)
+      printf("ja\n");
+      }
+      */
+      }
       if (temp_piece)
 	free (temp_piece);
-    }
 }
 
 /*-------------------------------------*/
 int
 fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 {
-
-printf("fasta read check...\n");
+ //if (last == 1)
+ //printf("fasta read check...\n");
 
 //begin = strchr(begin+1,'\n')+1;
 
@@ -705,10 +737,24 @@ printf("fasta read check...\n");
 
   while (p != next)
     {
-      //printf("here))\n");
+            
+      //if (last == 1)
+      //{
+      //printf("p->%0.30s\n",p);
+      //printf("next->%0.30s\n",next);
+      /*
+      printf("next->%0.30s\n",next);
+      char *mov=p;
+      while (mov != next)
+            {
+            printf("(((->%0.30s\n",mov);
+            mov = strchr(mov,'>')+1;
+            }
+      */      
+      //}
+      
       while (n < k_mer)
 	{
-	  //printf("?\n");
 	  if (p[m] == '>' || p[m] == '\0')
 	    {
 	      m--;
@@ -721,8 +767,6 @@ printf("fasta read check...\n");
 	    count_enter++;
 	  m++;
 	}			//inner while
-      //printf("m->%d\n",m);
-
 
       if (m == 0)
 	break;
@@ -733,41 +777,37 @@ printf("fasta read check...\n");
       else
 	{
 	  char *temp_key = (char *) malloc (k_mer * sizeof (char));
-	  //int xt = k_mer-strlen(key)-1;
+	  
 	  memcpy (temp_key, pre_key + strlen (key), k_mer - strlen (key));
 	  memcpy (temp_key + k_mer - strlen (key), key,
 		  sizeof (char) * (strlen (key) + 1));
 	  free (key);
 	  key = temp_key;
-	  //printf("switched\n");
+	  
 	}
-      //printf("key->%s\n",key);
+      
       p += m;
 
       n = 0;
 
       m = 0;
 
+      //if (last == 1)
+      //printf("key->%s\n",key);
+
       if (model == "reverse")
 	rev_trans (key);
 
       if (mode == 1)
-	{
-	  //printf("in\n");
-	  //char *temp_key = "AGCTTTTCATTCTGACTGCAA";
-	  //printf("%d\n",bloom_check(bl,temp_key));
-	  //printf("temp_key->%s\nlength->%d\n",temp_key,strlen(temp_key));
-	  //printf("key->%s\nlength->%d\n",key,strlen(key));
+	{ 
+          //printf("in\n");
 	  if (bloom_check (bl, key))
 	    {
-	      //printf("hit\n");
-	      //printf("key->%s\n",key);
 	      //printf("in\n");
 	      return fasta_full_check (bl, begin, next, model);
 	      //return 0;
 	    }
 	  //else
-	  //printf("unhit\n"); 
 	}			//outside if
 
       else
@@ -807,7 +847,6 @@ label_m+=(next-start-count_enter+1);
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 {
-
 
   #pragma omp atomic
   checky++;
@@ -872,7 +911,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 		  }
 	      }
 	    else
-	      {
+		      {
 		label_m += k_mer;
 		match_s += k_mer - 1;
 	      }
