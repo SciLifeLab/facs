@@ -1,5 +1,5 @@
 CFLAGS=-O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp# -g -DDEBUG
-.PHONY: tests clean
+.PHONY: mpibuild tests clean
 
 all:
 	${CC} -c *.c ${CFLAGS}

@@ -70,8 +70,6 @@ main (int argc, char *argv[])
     capacity = strlen (position);
   else
     capacity = strlen (position) / 2;
-  
-  init_bloom (bl_2);
 
   init_bloom (bl_2);
   fasta_add(bl_2, position);
