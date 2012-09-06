@@ -559,6 +559,7 @@ help ()
   printf
     ("    Bloom::Faster object goes out of scope, the vector pointed to by the c\n");
   printf
+ptions:\n");
     ("    structure will be free()d. to manually do this, the DESTROY builtin\n");
   printf ("    method can be called.\n");
   printf ("\n");
@@ -591,17 +592,14 @@ build_help ()
   printf ("USAGE\n");
   printf
     ("##########################################################################\n");
-  printf ("#   For Bloom build:\n");
-  printf ("#   ./simple_check -m 1 -k 21 -e 0.005 -l file_list -p test/\n");
+  printf ("---Bloom build----\n") 
+  printf ("#  ./simple_check [option] [option] [option] [option]\n");
   printf ("#\n");
-  printf ("#   Arguments:\n");
-  printf ("#   -m mode (default 1)\n");
-  printf ("#   1--> build one filter for each file in the list\n");
-  printf ("#   2--> build one filter for every file in the list\n");
-  printf ("#   -k k_mer size (default 1)\n");
-  printf ("#   -e error rate (default 0.0005)\n");
-  printf ("#   -l list containing all references files. One file per line\n");
-  printf ("#   -p prefix (default same path as the script)\n");
+  printf ("#  Options:\n");
+  printf ("#  -r reference file name\n");
+  printf ("#  -k k_mer size (default size 21)\n");
+  printf ("#  -e error rate (default rate 0.0005)\n");
+  printf ("#  -o output file name (default file is saved as the same as binary file)\n"); 
   printf
     ("##########################################################################\n");
   exit (1);
@@ -613,24 +611,15 @@ check_help ()
   printf ("USAGE\n");
   printf
     ("##########################################################################\n");
-  printf ("#   For Bloom check:\n");
-  printf
-    ("#   ./simple_check -m 1 -t 0.8 -s 1 -q test.fna -l bloom_list -p test/\n");
+  printf ("---contamination check---\n");
+  printf ("#  ./simple_check [option] [option] [option] [option] \n");
   printf ("#\n");
-  printf ("#   Arguments:\n");
-  printf ("#   -m mode (default 1)\n");
-  printf ("#   1--> Bloom check\n");
-  printf ("#   2--> Currently under evaluation\n");
-  printf ("#   -t tolerant rate (default 0.8)\n");
-  printf
-    ("#   tolerant_rate is a threshold number between 0 and 1. Any read with a hit score more than tolerant_rate with be considered \n");
-  printf ("#   as captured.\n");
-  printf ("#   -s sampling rate (default 1)\n");
-  printf
-    ("#   sample_rate is a percentage. e.g. 0.2 means you only want to exam 20% reads out of total.\n");
-  printf ("#   -q query file.\n");
-  printf ("#   -l list containing all references files. One file per line\n");
-  printf ("#   -p prefix (default same path as the script)\n");
+  printf ("#  Options:\n");
+  printf ("#  -t tolerant rate (default rate 0.8)\n");
+  printf ("#  -s sampling rate (default rate 1)\n");
+  printf ("#  -q query file\n");
+  printf ("#  -r reference bloom filter file\n");
+  printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
 //printf("#\n");   
 //printf("#   *'1' is mode 1. For instance, when you use a ecoli filter and want to capture every contaminated read that caused by\n"); 
 //printf("#   ecoli in the 'human.fna' query file, use mode 1. Mode 2 is currently under evaluation\n");
@@ -649,21 +638,13 @@ remove_help ()
   printf ("USAGE\n");
   printf
     ("##########################################################################\n");
-  printf ("#   For Bloom remove:\n");
-  printf
-    ("#   ./simple_remove -m 1 -t 0.8 -q test.fna -l bloom_list -p test/\n");
+  printf ("---contamination remove---\n");
+  printf ("#  ./simple_remove [option] [option] [option]\n");
   printf ("#\n");
-  printf ("#   Arguments:\n");
-  printf ("#   -m mode (default 1)\n");
-  printf ("#   1--> Bloom remove\n");
-  printf ("#   2--> Currently under evaluation\n");
-  printf ("#   -t tolerant rate (default 0.8)\n");
-  printf
-    ("#   tolerant_rate is a threshold number between 0 and 1. Any read with a hit score more than tolerant_rate with be considered \n");
-  printf ("#   as captured.\n");
-  printf ("#   -q query file.\n");
-  printf ("#   -l list containing all references files. One file per line\n");
-  printf ("#   -p prefix (default same path as the script)\n");
+  printf ("#  Options:\n");
+  printf ("#  -t tolerant rate (default rate 0.8)\n");
+  printf ("#  -r reference bloom filter name\n");
+  printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf
     ("##########################################################################\n");
   exit (1);
