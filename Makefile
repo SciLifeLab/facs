@@ -1,18 +1,15 @@
 CFLAGS=-O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp# -g -DDEBUG
-.PHONY: mpibuild tests clean
+.PHONY:  tests clean
+
 
 all:
-	${CC} -c *.c ${CFLAGS}
-	${CC} -o bloom_build good_build.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
-	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
-	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
-
-
-mpibuild:
 	@echo Make sure you have MPI support on your cluster (hint: module load openmpi)
 	mpicc -c *.c ${CFLAGS}
 	mpicc -c mpi_bloom.c -O3 ${CFLAGS}
 	mpicc -o mpi_bloom mpi_bloom.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
+        ${CC} -o bloom_build good_build.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
+        ${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
+        ${CC} -o simple_remove simple_remove.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 
 clean:
 	rm -f core.* *.o bloom_build simple_check simple_remove
