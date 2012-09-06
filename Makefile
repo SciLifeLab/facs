@@ -9,9 +9,10 @@ all:
 
 
 mpibuild:
-	module add openmpi
-	mpicc -c assemble_check.c -O3 ${CFLAGS}
-	mpicc -o assemble_check assemble_check.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
+	@echo Make sure you have MPI support on your cluster (hint: module load openmpi)
+	mpicc -c *.c ${CFLAGS}
+	mpicc -c mpi_bloom.c -O3 ${CFLAGS}
+	mpicc -o mpi_bloom mpi_bloom.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 
 clean:
 	rm -f core.* *.o bloom_build simple_check simple_remove
@@ -29,5 +30,4 @@ tests:
 	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/ecoli.bloom
 
 mpirun:
-	module add openmpi
-	mpirun -np $2 ./assemble_check -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq    
+	mpirun -np $2 ./mpi_bloom -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq    
