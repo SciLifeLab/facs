@@ -556,10 +556,8 @@ help ()
     ("    The allocation of memory for the bit vector is handled in the c layer,\n");
   printf
     ("    but perl's oo capability handles the garbage collection. when a\n");
+  printf("   Bloom::Faster object goes out of scope, the vector pointed to by the c\n");
   printf
-    ("    Bloom::Faster object goes out of scope, the vector pointed to by the c\n");
-  printf
-ptions:\n");
     ("    structure will be free()d. to manually do this, the DESTROY builtin\n");
   printf ("    method can be called.\n");
   printf ("\n");
@@ -592,7 +590,7 @@ build_help ()
   printf ("USAGE\n");
   printf
     ("##########################################################################\n");
-  printf ("---Bloom build----\n") 
+  printf ("---Bloom build----\n");
   printf ("#  ./simple_check [option] [option] [option] [option]\n");
   printf ("#\n");
   printf ("#  Options:\n");
@@ -649,3 +647,64 @@ remove_help ()
     ("##########################################################################\n");
   exit (1);
 }
+
+char *
+large_load (char *filename)
+{
+  struct stat temp;
+  stat (filename, &temp);
+
+  int fd;
+
+#ifdef DEBUG
+  printf ("queryname->%s\n", filename);
+#endif
+
+#ifdef __APPLE__
+  fd = open(filename, O_RDWR|O_CREAT, 0644); 
+#else
+  fd = open(filename, O_RDWR|O_CREAT|O_LARGEFILE, 0644); 
+#endif
+
+  if (fd < 0) {
+      perror (filename);
+      return NULL;
+  }
+
+/*
+  (strstr (filename, ".fasta") || strstr (filename, ".fna"))
+    && ((total_size = get_size (filename)), 1)
+    || (total_size = (get_size (filename) * 2));
+*/
+/*
+#ifdef __APPLE__
+  if (ftruncate(fd, temp.st_size) < 0)
+#else
+  if (ftruncate64(fd, temp.st_size) < 0)
+#endif
+    {
+      printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
+      close (fd);
+      return 0;
+    }
+*/
+  printf ("total_size->%lld\n", temp.st_size);
+
+  char *data = (char *) malloc ((temp.st_size + 1) * sizeof (char));
+
+  data[temp.st_size]='\0';
+
+  read (fd, data, temp.st_size);
+
+  printf("data length->%lld\n",strlen(data)); 
+
+  close (fd);
+
+//#ifdef DEBUG
+// Too verbose
+// // printf("data->%s\n",data);
+// #endif
+//
+   return data;
+   }
+

@@ -64,11 +64,10 @@ main (int argc, char *argv[])
 
   char *program_path = (char *) malloc (200 * sizeof (char));
 
-#ifdef FIFO
-  position = large_load(source);
-#else
+//#ifdef FIFO
+  //position = large_load(source);
+
   position = mmaping(source);
-#endif
   
   if (*position == '>')
     capacity = strlen (position);
@@ -85,9 +84,7 @@ main (int argc, char *argv[])
 
   save_bloom (source, bl_2, prefix, argv[0]);
 
-#ifndef FIFO
   munmap (position, statbuf.st_size);
-#endif
 
   gettimeofday (&tv2, &tz);
 
@@ -139,6 +136,7 @@ mmaping (char *source)
 }
 
 /*-------------------------------------*/
+/*
 char *
 large_load (char *filename)
 {
@@ -190,7 +188,7 @@ large_load (char *filename)
 
   return data;
 }
-
+*/
 /*-------------------------------------*/
 void
 init (int argc, char **argv)

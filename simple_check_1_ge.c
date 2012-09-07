@@ -75,8 +75,13 @@ main (int argc, char **argv)
   init (argc, argv);		//initialize 
   struc_init ();
 
+#ifdef FIFO
+  position = large_load (source);
+#else
   position = mmaping (source);
-  get_parainfo (position);
+#endif
+
+get_parainfo (position);
 
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
   memset (detail, 0, 1000 * 1000);
@@ -110,7 +115,9 @@ main (int argc, char **argv)
 
   evaluate (detail, source);
   statistic_save (detail, source);
+#ifndef FIFO
   munmap (position, statbuf.st_size);
+#endif
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
