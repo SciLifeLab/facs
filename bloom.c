@@ -649,56 +649,35 @@ remove_help ()
 }
 
 char *
-large_load (char *filename)
+large_load (char *fifoname, char *filename)
 {
   struct stat temp;
   stat (filename, &temp);
 
-  int fd;
+  FILE *fd;
 
-#ifdef DEBUG
+#ifdef 	FIFO
   printf ("queryname->%s\n", filename);
+  printf ("fifoname->%s\n", fifoname);
 #endif
 
 #ifdef __APPLE__
-  fd = open(filename, O_RDWR|O_CREAT, 0644); 
+  fd = fopen(fifoname, "r"); 
 #else
-  fd = open(filename, O_RDWR|O_CREAT|O_LARGEFILE, 0644); 
+  fd = fopen64(fifoname, "r"); 
 #endif
 
-  if (fd < 0) {
-      perror (filename);
-      return NULL;
-  }
-
-/*
-  (strstr (filename, ".fasta") || strstr (filename, ".fna"))
-    && ((total_size = get_size (filename)), 1)
-    || (total_size = (get_size (filename) * 2));
-*/
-/*
-#ifdef __APPLE__
-  if (ftruncate(fd, temp.st_size) < 0)
-#else
-  if (ftruncate64(fd, temp.st_size) < 0)
-#endif
-    {
-      printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
-      close (fd);
-      return 0;
-    }
-*/
   printf ("total_size->%lld\n", temp.st_size);
 
   char *data = (char *) malloc ((temp.st_size + 1) * sizeof (char));
 
   data[temp.st_size]='\0';
 
-  read (fd, data, temp.st_size);
+  fread (data, temp.st_size,1,fd);
 
   printf("data length->%lld\n",strlen(data)); 
 
-  close (fd);
+  fclose (fd);
 
 //#ifdef DEBUG
 // Too verbose

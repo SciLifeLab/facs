@@ -33,7 +33,7 @@ int k_mer = 0, mode, mytask, ntask, type = 2, reads_num =
   0, reads_contam = 0, checky = 0;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
-  *contam2, *query_list;
+  *contam2, *fifoname;
 /*-------------------------------------*/
 Queue *head, *tail, *head2, *tail2;
 /*-------------------------------------*/
@@ -76,7 +76,7 @@ main (int argc, char **argv)
   struc_init ();
 
 #ifdef FIFO
-  position = large_load (source);
+  position = large_load (fifoname,source);
 #else
   position = mmaping (source);
 #endif
@@ -146,7 +146,7 @@ init (int argc, char **argv)
 /*-------default-------*/
 
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:f:")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
@@ -175,6 +175,10 @@ init (int argc, char **argv)
 	case 'q':
 	  (optarg) && (source = optarg, 1);
 	  break;
+        case 'f':
+          (optarg) && (fifoname = optarg, 1);
+          printf("fifo-->%s\n",fifoname);
+          break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
