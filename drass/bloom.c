@@ -186,7 +186,6 @@ BIGNUM
 bloom_hash (bloom * bloom, char *str, int i, int length)
 {
   BIGNUM ret = 0;
-  BIGNUM hash;
 
   ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
 
@@ -297,6 +296,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *position1,*position2;
   char *bloom_file = (char *) malloc (300 * sizeof (char));
+  int fd, fq;
 
   memset (bloom_file, 0, 300);
 
@@ -323,8 +323,6 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       strcat (bloom_file, "bloom");
     }
   printf ("bloom name->%s\n", bloom_file);
-
-  int fd, fq;
 
 #ifdef __APPLE__
   fd = open(bloom_file, O_RDWR|O_CREAT, 0644);
@@ -411,8 +409,9 @@ load_bloom (char *filename, bloom * bl)
   close (fd);
 
   printf ("successful bloom read...\n");
-
   close (fd);
+
+  return 0;
 }
 
 void

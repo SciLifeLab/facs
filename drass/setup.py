@@ -4,7 +4,9 @@ import sys, os
 
 version = '0.1'
 
-c_ext = Extension("_bloom", ["_bloom.c", "bloom.c"])
+c_ext = Extension("_bloom", ["bloom.c", "good_build.c", "suggestions.c", "lookup8.c"])
+#define_macros=[('NDEBUG', '1'),
+#                 ('FIFO', '1)])
 
 setup(name='drass',
       version=version,

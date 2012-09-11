@@ -96,10 +96,10 @@ extern void get_rec (struct bloomstat *stat);
 extern BIGNUM report_capacity(bloom *bloom);
 
 extern void write_result (char *filename, char *detail);
-extern void help();
-extern void build_help();
-extern void check_help();
-extern void remove_help();
+extern void help(void);
+extern void build_help(void);
+extern void check_help(void);
+extern void remove_help(void);
 extern int save_bloom (char *filename, bloom *bl, char *prefix, char *target);
 extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);

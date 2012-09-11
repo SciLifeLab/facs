@@ -10,6 +10,8 @@ int get_suggestion(struct bloomstat *stats, BIGNUM n,double e)
         stats->capacity = n;
         stats->e = e;
         get_rec(stats);
+
+        return 0;
 }
 
 BIGNUM find_close_prime(BIGNUM m) {

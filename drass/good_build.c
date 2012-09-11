@@ -51,7 +51,7 @@ char *fasta_data (bloom * bl_2, char *data);
 
 long long get_size (char *strFileName);
 
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
   gettimeofday (&tv, &tz);	// time test
   bloom *bl_2;
@@ -62,8 +62,6 @@ main (int argc, char *argv[])
  
   init (argc, argv);
 
-  char *program_path = (char *) malloc (200 * sizeof (char));
-
   position = mmaping(source);
   
   if (*position == '>')
@@ -73,11 +71,6 @@ main (int argc, char *argv[])
 
   init_bloom (bl_2);
   fasta_add(bl_2, position);
-
-#ifdef DEBUG
-  strcat (program_path, argv[0]);
-  printf ("program_path->%s\n",program_path);
-#endif
 
   save_bloom (source, bl_2, prefix, argv[0]);
 
@@ -180,22 +173,15 @@ init (int argc, char **argv)
 	  printf("Unknown option: -%c\n",(char)optopt);
 	  exit (0);
 	}
-
   }
-
 }
 
 /*-------------------------------------*/
 void
 init_bloom (bloom * bl)
 {
-  BIGNUM size;
-
-  int status, hashes, flags;
-
+  int flags = 3;
   hash_t hash = NULL;
-
-  flags = 3;
 
   get_suggestion(&bl->stat, capacity, error_rate);
 
@@ -249,7 +235,6 @@ fastq_add (bloom * bl, char *position)
 {
 
   char *key = (char *) malloc (k_mer * sizeof (char) + 1);
-  char *position2;
 
   while (position[0] != '\0')
     {
