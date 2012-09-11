@@ -649,41 +649,33 @@ remove_help ()
 }
 
 char *
-large_load (char *fifoname, char *filename)
+large_load (char *fifoname)
 {
-  struct stat temp;
-  stat (filename, &temp);
-
   FILE *fd;
+  int x;
+  char ch;
 
-#ifdef 	FIFO
-  printf ("queryname->%s\n", filename);
   printf ("fifoname->%s\n", fifoname);
-#endif
-
 #ifdef __APPLE__
   fd = fopen(fifoname, "r"); 
 #else
   fd = fopen64(fifoname, "r"); 
 #endif
 
-  printf ("total_size->%lld\n", temp.st_size);
+  char *data = (char *) malloc ((TWOG/2 + 1) * sizeof (char));
 
-  char *data = (char *) malloc ((temp.st_size + 1) * sizeof (char));
+  data[TWOG/2]='\0';
 
-  data[temp.st_size]='\0';
-
-  fread (data, temp.st_size,1,fd);
+    while ((ch=fgetc(fd))!=EOF)
+  {
+        data[x] = ch;
+        x++;
+  }
 
   printf("data length->%lld\n",strlen(data)); 
 
   fclose (fd);
 
-//#ifdef DEBUG
-// Too verbose
-// // printf("data->%s\n",data);
-// #endif
-//
-   return data;
+  return data;
    }
 

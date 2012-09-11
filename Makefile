@@ -25,9 +25,9 @@ tests:
 	test -s tests/data/ecoli_dummy.fastq.gz||gzip tests/data/ecoli_dummy.fastq
 	test -e tests/data/ecoli_dummy.fastq.gz.fifo||mkfifo tests/data/ecoli_dummy.fastq.gz.fifo
 	gunzip -c tests/data/ecoli_dummy.fastq.gz > tests/data/ecoli_dummy.fastq.gz.fifo &
-	#./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -f tests/data/ecoli.bloom
-	#@echo Checking contamination against gz fifo file...
-	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -f tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/ecoli.bloom
+	@echo Checking contamination against gz fifo file...
+	./simple_check -m 1 -f tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/ecoli.bloom 
+	#./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -r tests/data/ecoli.bloom
 
 mpirun:
 	mpirun -np $1 ./mpi_bloom -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq    

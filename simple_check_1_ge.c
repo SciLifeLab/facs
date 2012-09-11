@@ -75,11 +75,10 @@ main (int argc, char **argv)
   init (argc, argv);		//initialize 
   struc_init ();
 
-#ifdef FIFO
-  position = large_load (fifoname,source);
-#else
+if (fifoname)
+  position = large_load (fifoname);
+else
   position = mmaping (source);
-#endif
 
 get_parainfo (position);
 
@@ -109,15 +108,17 @@ get_parainfo (position);
     }				// End of single - no implied barrier (nowait)
   }				// End of parallel region - implied barrier
 
-#ifdef DEBUG
-  printf ("finish processing...\n");
-#endif
-
+if (fifoname)
+  {
+  source = (char *) malloc (500 * sizeof (char));
+  strncpy(source,fifoname,(strrchr(fifoname,'.')-fifoname));
+  }
   evaluate (detail, source);
   statistic_save (detail, source);
-#ifndef FIFO
+  
+if (!fifoname)
   munmap (position, statbuf.st_size);
-#endif
+
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
@@ -177,7 +178,6 @@ init (int argc, char **argv)
 	  break;
         case 'f':
           (optarg) && (fifoname = optarg, 1);
-          printf("fifo-->%s\n",fifoname);
           break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
@@ -185,14 +185,14 @@ init (int argc, char **argv)
 	}
     }
 
-  if (strstr (source, ".fasta") || strstr (source, ".fna"))
-    type = 1;
-
-  if ((!all_ref) || (!source))
+  if ((!all_ref) || ((!source) && (!fifoname)))
     {
       perror ("No source.");
       exit (0);
     }
+
+  //if (strstr (source, ".fasta") || strstr (source, ".fna"))
+  //type = 1;
 
   if (mode != 1 && mode != 2)
     {
@@ -220,13 +220,16 @@ get_parainfo (char *full)
 
   char *temp=full;
   int cores = omp_get_num_procs ();
-  int offsett = statbuf.st_size / cores;
+  int offsett = strlen(full)/cores;
   int add = 0;
-
+  
   printf ("task->%d\n", offsett);
-
+ 
   Queue *pos = head;
 
+  if (*full=='>')
+     type = 1;
+ 
   if (type == 1) {
       for (add = 0; add < cores; add++)
 	{
@@ -849,7 +852,7 @@ statistic_save (char *detail, char *filename)
 
   strcat (save_file, "info");
 
-  printf ("bloom name->%s\n", save_file);
+  printf ("Info name->%s\n", save_file);
 
   write_result (save_file, detail);
 }

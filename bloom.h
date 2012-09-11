@@ -105,5 +105,5 @@ extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);
 //extern void cat_print(char *merge, char *remove);
 //
-extern char *large_load (char *fifoname, char *filename);
+extern char *large_load (char *fifoname);
 #endif
