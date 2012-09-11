@@ -64,9 +64,6 @@ main (int argc, char *argv[])
 
   char *program_path = (char *) malloc (200 * sizeof (char));
 
-//#ifdef FIFO
-  //position = large_load(source);
-
   position = mmaping(source);
   
   if (*position == '>')
@@ -135,61 +132,6 @@ mmaping (char *source)
   return sm;
 }
 
-/*-------------------------------------*/
-/*
-char *
-large_load (char *filename)
-{
-
-  int fd;
-
-#ifdef DEBUG
-  printf ("queryname->%s\n", filename);
-#endif
-
-#ifdef __APPLE__
-  fd = open(filename, O_RDWR|O_CREAT, 0644); 
-#else
-  fd = open(filename, O_RDWR|O_CREAT|O_LARGEFILE, 0644); 
-#endif
-
-  if (fd < 0) {
-      perror (filename);
-      return NULL;
-  }
-
-  (strstr (filename, ".fasta") || strstr (filename, ".fna"))
-    && ((total_size = get_size (filename)), 1)
-    || (total_size = (get_size (filename) * 2));
-
-
-#ifdef __APPLE__
-  if (ftruncate(fd, total_size) < 0)
-#else
-  if (ftruncate64(fd, total_size) < 0)
-#endif
-    {
-      printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
-      close (fd);
-      return 0;
-    }
-
-  printf ("total_size->%lld\n", total_size);
-
-  char *data = (char *) malloc ((total_size + 1) * sizeof (char));
-
-  read (fd, data, total_size);
-  close (fd);
-
-#ifdef DEBUG
-// Too verbose
-// printf("data->%s\n",data);
-#endif
-
-  return data;
-}
-*/
-/*-------------------------------------*/
 void
 init (int argc, char **argv)
 {
