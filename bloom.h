@@ -106,4 +106,5 @@ extern void rev_trans (char *s);
 //extern void cat_print(char *merge, char *remove);
 //
 extern char *large_load (char *fifoname);
+extern char *mmaping (char *source);
 #endif

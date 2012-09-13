@@ -18,6 +18,7 @@
 /*-------------------------------------*/
 #include "bloom.h"
 #include "hashes.h"
+#include "file_dir.h"
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
@@ -33,13 +34,13 @@ int k_mer = 0, mode, mytask, ntask, type = 2, reads_num =
   0, reads_contam = 0, checky = 0;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
-  *contam2, *fifoname;
+  *contam2, *list;
 /*-------------------------------------*/
-Queue *head, *tail, *head2, *tail2;
+Queue *head, *tail, *head2;
 /*-------------------------------------*/
 bloom *bl_2;
 /*-------------------------------------*/
-struct stat statbuf;
+F_set *File_head;
 /*-------------------------------------*/
 void struc_init ();
 void get_parainfo (char *full);
@@ -75,17 +76,21 @@ main (int argc, char **argv)
   init (argc, argv);		//initialize 
   struc_init ();
 
-if (fifoname)
-  position = large_load (fifoname);
-else
-  position = mmaping (source);
+  if (strstr(source,".fifo"))
+      position = large_load (source);
+  else
+      position = mmaping (source);
 
-get_parainfo (position);
+  get_parainfo (position);
 
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
+
+  while(File_head)
+  {
   memset (detail, 0, 1000 * 1000);
 
-  load_bloom (all_ref, bl_2);
+  load_bloom (File_head->filename, bl_2);
+
   k_mer = bl_2->k_mer;
 
 #pragma omp parallel
@@ -108,16 +113,24 @@ get_parainfo (position);
     }				// End of single - no implied barrier (nowait)
   }				// End of parallel region - implied barrier
 
-if (fifoname)
-  {
-  source = (char *) malloc (500 * sizeof (char));
-  strncpy(source,fifoname,(strrchr(fifoname,'.')-fifoname));
-  }
+//if (strstr(source,".fifo"))
+//  {
+  //source = (char *) malloc (500 * sizeof (char));
+//  strncpy(source,fifoname,(strrchr(fifoname,'.')-fifoname));
+//  }
+
   evaluate (detail, source);
+
+  File_head = File_head->next;
+
+  head = head2;
+
+  bloom_destroy (bl_2);
+  } //end while
   statistic_save (detail, source);
   
-if (!fifoname)
-  munmap (position, statbuf.st_size);
+if (!strstr(source,".fifo"))
+  munmap (position, strlen(position));
 
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
@@ -176,16 +189,19 @@ init (int argc, char **argv)
 	case 'q':
 	  (optarg) && (source = optarg, 1);
 	  break;
-        case 'f':
-          (optarg) && (fifoname = optarg, 1);
-          break;
+        case 'l':
+	  (optarg) && (list = optarg, 1);
+	  break;
+        //case 'f':
+        //  (optarg) && (fifoname = optarg, 1);
+        //  break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
 	}
     }
 
-  if ((!all_ref) || ((!source) && (!fifoname)))
+  if ((!all_ref) || (!source))
     {
       perror ("No source.");
       exit (0);
@@ -210,6 +226,10 @@ struc_init ()
   head = NEW (Queue);
   tail = NEW (Queue);
   head->next = tail;
+  head2 = head;
+  File_head = NEW (F_set);
+  File_head = make_list(all_ref,list);
+  File_head = File_head->next;
 }
 
 /*-------------------------------------*/
@@ -281,9 +301,13 @@ get_parainfo (char *full)
 }
 
 /*-------------------------------------*/
+/*
 char *
 mmaping (char *source)
 {
+
+  struct stat statbuf;
+
   int src;
   char *sm;
 
@@ -311,7 +335,7 @@ mmaping (char *source)
 
   return sm;
 }
-
+*/
 /*-------------------------------------*/
 void
 fastq_process (bloom * bl, Queue * info)

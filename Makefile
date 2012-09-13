@@ -8,7 +8,7 @@ all:
 	#mpicc -c mpi_bloom.c -O3 ${CFLAGS}
 	mpicc -o mpi_bloom mpi_bloom.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 	${CC} -o bloom_build good_build.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
-	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
+	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 
 clean:
@@ -27,7 +27,7 @@ tests:
 	gunzip -c tests/data/ecoli_dummy.fastq.gz > tests/data/ecoli_dummy.fastq.gz.fifo &
 	@echo Checking contamination against gz fifo file...
 	./simple_check -m 1 -f tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/ecoli.bloom 
-	#./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -r tests/data/ecoli.bloom
+	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -r tests/data/ecoli.bloom
 
 mpirun:
 	mpirun -np $1 ./mpi_bloom -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq    

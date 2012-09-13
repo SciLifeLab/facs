@@ -477,6 +477,40 @@ rev_trans (char *s)
 
 }
 
+char *
+mmaping (char *source)
+{
+
+  struct stat statbuf;
+
+  int src;
+  char *sm;
+
+  if ((src = open (source, O_RDONLY)) < 0)
+    {
+      perror (" open source ");
+      exit (EXIT_FAILURE);
+    }
+
+  if (fstat (src, &statbuf) < 0)
+    {
+      perror (" fstat source ");
+      exit (EXIT_FAILURE);
+    }
+
+  sm =
+    mmap (0, (size_t) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE,
+	  src, 0);
+
+  if (MAP_FAILED == sm)
+    {
+      perror (" mmap source ");
+      exit (EXIT_FAILURE);
+    }
+
+  return sm;
+}
+
 /*
 void instruction(){
 printf("pod\n");
