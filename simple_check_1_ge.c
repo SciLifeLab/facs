@@ -85,9 +85,10 @@ main (int argc, char **argv)
 
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
 
+  memset (detail, 0, 1000 * 1000);
+
   while(File_head)
   {
-  memset (detail, 0, 1000 * 1000);
 
   load_bloom (File_head->filename, bl_2);
 
@@ -119,7 +120,7 @@ main (int argc, char **argv)
 //  strncpy(source,fifoname,(strrchr(fifoname,'.')-fifoname));
 //  }
 
-  evaluate (detail, source);
+  evaluate (detail, File_head->filename);
 
   File_head = File_head->next;
 
@@ -127,6 +128,7 @@ main (int argc, char **argv)
 
   bloom_destroy (bl_2);
   } //end while
+
   statistic_save (detail, source);
   
 if (!strstr(source,".fifo"))
@@ -160,7 +162,7 @@ init (int argc, char **argv)
 /*-------default-------*/
 
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:f:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:l:")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
@@ -201,7 +203,7 @@ init (int argc, char **argv)
 	}
     }
 
-  if ((!all_ref) || (!source))
+  if (((!all_ref) && (!list))|| (!source))
     {
       perror ("No source.");
       exit (0);
@@ -778,7 +780,7 @@ evaluate (char *detail, char *filename)
 
   printf ("contam->%d\n", reads_contam);
 
-//printf("possbile->%d\n",checky);
+  printf("bloomname->%s\n",filename);
 
   contamination_rate = (double) (reads_contam) / (double) (reads_num);
 
@@ -819,6 +821,8 @@ evaluate (char *detail, char *filename)
   reads_contam = 0;
   checky = 0;
   contamination_rate = 0;
+
+  printf("detail->%s\n",detail);
 }
 
 /*-------------------------------------*/

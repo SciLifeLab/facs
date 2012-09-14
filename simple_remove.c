@@ -106,7 +106,7 @@ main (int argc, char **argv)
 
       save_result (source, all_ref);
 
-  munmap (position, statbuf.st_size);
+  munmap (position, strlen(position));
 
   printf ("finish processing...\n");
 
@@ -210,6 +210,7 @@ struc_init ()
 }
 
 /*-------------------------------------*/
+/*
 char *
 mmaping (char *source)
 {
@@ -248,7 +249,7 @@ mmaping (char *source)
 
   return sm;
 }
-
+*/
 /*-------------------------------------*/
 void
 get_parainfo (char *full)
@@ -259,7 +260,7 @@ get_parainfo (char *full)
 
   int cores = omp_get_num_procs ();
 
-  int offsett = statbuf.st_size / cores;
+  int offsett = strlen(full) / cores;
 
   int add = 0;
 

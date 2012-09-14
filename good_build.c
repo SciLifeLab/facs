@@ -44,7 +44,7 @@ void init (int argc, char **argv);
 void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
-char *mmaping (char *filename);
+//char *mmaping (char *filename);
 char *fasta_title (char *full);
 //char *large_load (char *filename);
 char *fasta_data (bloom * bl_2, char *data);
@@ -101,6 +101,7 @@ main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
+/*
 char *
 mmaping (char *source)
 {
@@ -134,7 +135,7 @@ mmaping (char *source)
 
   return sm;
 }
-
+*/
 /*-------------------------------------*/
 /*
 char *

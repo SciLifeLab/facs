@@ -62,7 +62,7 @@ int fastq_read_check (char *begin, int length, char *model, bloom * bl);
 int fasta_read_check (char *begin, char *next, char *model, bloom * bl);
 /*-------------------------------------*/
 char *jump (char *target);
-char *mmaping (char *source);
+char *ammaping (char *source);
 //char* reallocate(Queue *info);
 /*-------------------------------------*/
 main (int argc, char **argv)
@@ -109,7 +109,7 @@ main (int argc, char **argv)
   while (share > 0)
     {
 
-      position = mmaping (source);
+      position = ammaping (source);
 
       get_parainfo (position);
 
@@ -278,7 +278,7 @@ struc_init ()
 
 /*-------------------------------------*/
 char *
-mmaping (char *source)
+ammaping (char *source)
 {
   int src;
   char *sm;
