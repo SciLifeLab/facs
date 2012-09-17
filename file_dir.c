@@ -51,7 +51,8 @@ F_set *make_list(char *file_user, char *list_user)
    
    F_set *head = NEW(F_set);
    F_set *head1 = head;
-   //printf("dick-->%d\n",is_file(file_user));
+   int number = 0; 
+
   if (list_user)
   	  {
                 printf ("in make list\n");
@@ -73,11 +74,12 @@ F_set *make_list(char *file_user, char *list_user)
 
                  printf("mimi->%s\n",mimi);
   	         crap->filename = mimi;
+                 crap->number = number;
   	         crap->next = head->next;
   	         head->next = crap;
                  head = head->next;
   	         list_user = pos+1;
-                 
+                 number++;
   	         }	
   	  }
 
@@ -109,13 +111,18 @@ F_set *make_list(char *file_user, char *list_user)
             
             if(is_special_dir(dir_info->d_name))
                 continue;
-                  printf("file_path->%s\n",file_path);
+              
+            if(!strstr(dir_info->d_name,".bloom"))
+                continue;
+              printf("file_path->%s\n",file_path);
 	      F_set *crap = NEW (F_set);
 	      crap->filename = file_path;
+              crap->number = number;
 	      crap->next = head->next;
 	      head->next = crap; 
               head = head->next;  
-        }
+              number++;
+        }   
 		  }
 		  
 return head1;

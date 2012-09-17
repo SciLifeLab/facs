@@ -162,7 +162,7 @@ init (int argc, char **argv)
 /*-------default-------*/
 
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:l:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:l:h")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
@@ -194,9 +194,10 @@ init (int argc, char **argv)
         case 'l':
 	  (optarg) && (list = optarg, 1);
 	  break;
-        //case 'f':
-        //  (optarg) && (fifoname = optarg, 1);
-        //  break;
+        case 'h':
+          help();
+          check_help();
+          break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
@@ -822,7 +823,7 @@ evaluate (char *detail, char *filename)
   checky = 0;
   contamination_rate = 0;
 
-  printf("detail->%s\n",detail);
+  //printf("detail->%s\n",detail);
 }
 
 /*-------------------------------------*/

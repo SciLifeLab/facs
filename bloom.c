@@ -649,9 +649,9 @@ check_help ()
   printf ("#  Options:\n");
   printf ("#  -t tolerant rate (default rate 0.8)\n");
   printf ("#  -s sampling rate (default rate 1)\n");
-  printf ("#  -q single query file or query dir\n");
-  printf ("#  -l a list containing all query files\n");
-  printf ("#  -r reference bloom filter file\n");
+  printf ("#  -q single query file\n");
+  printf ("#  -l a list containing all bloom files\n");
+  printf ("#  -r single reference bloom filter file or directory\n");
   printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf ("!  Either '-q' or '-l' is used at one run.\n");
 //printf("#\n");   
