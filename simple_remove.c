@@ -18,6 +18,7 @@
 /*-------------------------------------*/
 #include "bloom.h"
 #include "hashes.h"
+#include "file_dir.h"
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
@@ -26,20 +27,18 @@
 #define PERMS 0600
 #define NEW(type) (type *) malloc(sizeof(type))
 /*-------------------------------------*/
-long long share, offset, CHUNK, total_size;
-/*-------------------------------------*/
 float error_rate, tole_rate, contamination_rate;
 /*-------------------------------------*/
 int k_mer, mode, mytask, ntask, type = 2;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
-  *contam2;
+  *contam2, *list;
 /*-------------------------------------*/
-Queue *head, *tail;
+Queue *head, *tail, *head2;
 /*-------------------------------------*/
 bloom *bl_2;
 /*-------------------------------------*/
-struct stat statbuf;
+F_set *File_head;
 /*-------------------------------------*/
 void struc_init ();
 void get_parainfo (char *full);
@@ -49,7 +48,7 @@ void fasta_process (bloom * bl, Queue * info);
 void fastq_process (bloom * bl, Queue * info);
 void save_result (char *source, char *obj_file);
 /*-------------------------------------*/
-char *mmaping (char *source);
+//char *mmaping (char *source);
 /*-------------------------------------*/
 int fastq_full_check (bloom * bl, char *p, int distance);
 int fasta_full_check (bloom * bl, char *begin, char *next, char *model);
@@ -67,23 +66,29 @@ main (int argc, char **argv)
 
   gettimeofday (&tv, &tz);
 
-  Queue *head1;
-
   init (argc, argv);		//initialize 
 
   struc_init ();		//structure init   
 
-  position = mmaping (source);
+  if (strstr(source,".fifo"))
+      position = large_load (source);
+  else
+      position = mmaping (source);
 
   get_parainfo (position);
+  
+  clean = (char *) malloc (strlen(position) * sizeof (char));
+  contam = (char *) malloc (strlen(position) * sizeof (char));
+  clean2 = clean;
+  contam2 = contam;
 
-  char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
+  while(File_head)
+  {
+  
+  memset(clean2,0,strlen(position));
+  memset(contam2,0,strlen(position));
 
-  memset (detail, 0, 1000 * 1000);
-
-  load_bloom (all_ref, bl_2);
-
-      k_mer = bl_2->k_mer;
+  load_bloom (File_head->filename, bl_2);
 
 #pragma omp parallel
       {
@@ -102,9 +107,17 @@ main (int argc, char **argv)
 	      head = head->next;
 	    }
 	}			// End of single - no implied barrier (nowait)
-      }				// End of parallel region - implied barrier
+      }		// End of parallel region - implied barrier
 
-      save_result (source, all_ref);
+  File_head = File_head->next;
+
+  head = head2;
+
+  bloom_destroy (bl_2);
+
+  save_result (source, all_ref);
+  
+  } //end while
 
   munmap (position, strlen(position));
 
@@ -138,7 +151,7 @@ init (int argc, char **argv)
   prefix = NULL;
 /*-------default-------*/
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:l:h")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
@@ -171,6 +184,13 @@ init (int argc, char **argv)
 	  //printf ("Query : \nThe argument of -q is %s\n", optarg);
 	  (optarg) && (source = optarg, 1);
 	  break;
+  case 'l':
+	  (optarg) && (list = optarg, 1);
+	  break;
+	case 'h':
+		help ();
+    remove_help ();
+    break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
@@ -178,11 +198,11 @@ init (int argc, char **argv)
 
     }
 
-  if (strstr (source, ".fasta") || strstr (source, ".fna"))
-    type = 1;
-
-  if ((!all_ref) || (!source))
-    exit (0);
+  if (((!all_ref) && (!list))|| (!source))
+    {
+      perror ("No source.");
+      exit (0);
+    }
 
   if (mode != 1 && mode != 2)
     {
@@ -190,24 +210,23 @@ init (int argc, char **argv)
       exit (0);
     }
 
-  printf ("all_ref->%s\n", all_ref);
-
 }
 
 /*-------------------------------------*/
 void
 struc_init ()
 {
-
   bl_2 = NEW (bloom);
-
   head = NEW (Queue);
-
   tail = NEW (Queue);
-
   head->next = tail;
-
+  head2 = head;
+  File_head = NEW (F_set);
+  File_head = make_list(all_ref,list);
+  File_head = File_head->next;
+  
 }
+
 
 /*-------------------------------------*/
 /*
@@ -267,6 +286,16 @@ get_parainfo (char *full)
   printf ("task->%d\n", offsett);
 
   Queue *pos = head;
+
+    if (*full=='>')
+     type = 1;
+  else if(*full=='@')
+     type = 2;
+  else{
+     perror("wrong format\n");
+     exit(-1);
+      }
+
 
   if (type == 1)
     {

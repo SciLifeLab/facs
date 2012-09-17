@@ -1,4 +1,4 @@
-CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp# -g -DDEBUG
+CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DDEBUG
 .PHONY:  tests clean
 
 
@@ -9,7 +9,7 @@ all:
 	mpicc -o mpi_bloom mpi_bloom.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 	${CC} -o bloom_build good_build.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
 	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
-	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o lookup8.o -lm ${CFLAGS}
+	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
 
 clean:
 	rm -f core.* *.o bloom_build simple_check simple_remove
@@ -31,4 +31,7 @@ tests:
 	#./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -l tzcoolman
 
 mpirun:
-	mpirun -np $1 ./mpi_bloom -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq    
+	mpirun -np $1 ./mpi_bloom -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq   
+
+L_remove:
+	./simple_remove -q ~/test/test.fna -r tests/data/ecoli.bloom 

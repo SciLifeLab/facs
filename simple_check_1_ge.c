@@ -252,7 +252,12 @@ get_parainfo (char *full)
 
   if (*full=='>')
      type = 1;
- 
+  else if(*full=='@')
+     type = 2;
+  else{
+     perror("wrong format\n");
+     exit(-1);
+      }
   if (type == 1) {
       for (add = 0; add < cores; add++)
 	{
