@@ -63,7 +63,9 @@ F_set *make_list(char *file_user, char *list_user)
   	    while(list_user!='\0')
   	         {
 
-  	         char *mimi = (char *)malloc(100 * sizeof(char) + 1);
+  	         char *mimi = (char *)malloc(300 * sizeof(char) + 1);
+                 memset(mimi,0,300);
+                 
   	         F_set *crap = NEW(F_set);
                  crap->next = NULL;
 
@@ -71,7 +73,7 @@ F_set *make_list(char *file_user, char *list_user)
   	             strncat(mimi,list_user,pos-list_user);
   	         else
                      break;
-
+                 //mimi[strlen(mimi)] = '\0';
                  printf("mimi->%s\n",mimi);
   	         crap->filename = mimi;
                  crap->number = number;
@@ -105,8 +107,8 @@ F_set *make_list(char *file_user, char *list_user)
                   }
         while((dir_info = readdir(dir)) != NULL)
         {
-            char *file_path =(char *)malloc(100 * sizeof(char));
-        	
+            char *file_path =(char *)malloc(300 * sizeof(char));
+            memset(file_path,0,300);	
             get_file_path(file_user, dir_info->d_name, file_path);
             
             if(is_special_dir(dir_info->d_name))

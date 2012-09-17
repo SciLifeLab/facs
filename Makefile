@@ -11,8 +11,12 @@ all:
 	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
 
+sb:
+	mpicc -c *.c ${CFLAGS}
+	${CC} -o simple_remove_l simple_remove_l.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
+
 clean:
-	rm -f core.* *.o bloom_build simple_check simple_remove
+	rm -f core.* *.o bloom_build simple_check simple_remove simple_remove_l
 
 tests:
 	mkdir -p tests/data
