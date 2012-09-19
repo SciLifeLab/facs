@@ -375,8 +375,8 @@ fastq_process (bloom * bl, Queue * info)
 	  continue;
 	}
 
-      if (*p == '\0' || !p)
-	break;
+      //if (*p == '\0' || !p)
+      //break;
 
 #pragma omp atomic
       reads_num++;

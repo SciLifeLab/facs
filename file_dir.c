@@ -74,9 +74,10 @@ F_set *make_list(char *file_user, char *list_user)
   	         else
                      break;
                  //mimi[strlen(mimi)] = '\0';
-                 printf("mimi->%s\n",mimi);
+                 //printf("mimi->%s\n",mimi);
   	         crap->filename = mimi;
-                 crap->number = number;
+                 crap->number = &number;
+                 //printf("crap->%d\n",crap->number);
   	         crap->next = head->next;
   	         head->next = crap;
                  head = head->next;
@@ -119,7 +120,8 @@ F_set *make_list(char *file_user, char *list_user)
               printf("file_path->%s\n",file_path);
 	      F_set *crap = NEW (F_set);
 	      crap->filename = file_path;
-              crap->number = number;
+              crap->number = &number;
+              printf("crap->%d\n",crap->number);
 	      crap->next = head->next;
 	      head->next = crap; 
               head = head->next;  

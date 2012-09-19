@@ -677,7 +677,9 @@ remove_help ()
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -t tolerant rate (default rate 0.8)\n");
-  printf ("#  -r reference bloom filter name\n");
+  printf ("#  -q query name\n");
+  printf ("#  -l list name\n");
+  printf ("#  -r reference bloom filter file or dir\n");
   printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf
     ("##########################################################################\n");

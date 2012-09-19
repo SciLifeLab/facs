@@ -18,6 +18,8 @@
 /*-------------------------------------*/
 #include "bloom.h"
 #include "hashes.h"
+#include "file_dir.h"
+
 #define PERMS 0600
 #define NEW(type) (type *) malloc(sizeof(type))
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -29,63 +31,62 @@ struct stat statbuf;
 /*-------------------------------------*/
 float error_rate, tole_rate, contamination_rate;
 BIGNUM total_size = 0;
-int k_mer = 21, mode = 0, count = 0;
+int k_mer = 21, mode = 0, count = 0,type;
 long long hit = 0, un_hit = 0;
 
 BIGNUM capacity;
 
-char *dm, *dst, *mis_dm, *mis_dst, *source,
-     *obj, *temp_title, *position, *prefix;
+char *source, *position, *prefix, *list;
 
-Queue *head, *tail;
+Queue *head, *tail, *head2;
 
+F_set *File_head, *File_head2;
+
+bloom *bl_2;
+
+void struc_init ();
 void init_bloom (bloom * bl);
+void init_query (char *source);
 void init (int argc, char **argv);
+void ref_add(bloom *bl, char *position);
 void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
-//char *mmaping (char *filename);
 char *fasta_title (char *full);
-//char *large_load (char *filename);
 char *fasta_data (bloom * bl_2, char *data);
 
-long long get_size (char *strFileName);
+//long long get_size (char *strFileName);
 
 main (int argc, char *argv[])
 {
-  gettimeofday (&tv, &tz);	// time test
-  bloom *bl_2;
-  bl_2 = NEW (bloom);
-  head = NEW (Queue);
-  tail = NEW (Queue);
-  head->next = tail;
+  //gettimeofday (&tv, &tz);
  
   init (argc, argv);
-
-  char *program_path = (char *) malloc (200 * sizeof (char));
-
-//#ifdef FIFO
-  //position = large_load(source);
-
-  position = mmaping(source);
   
-  if (*position == '>')
-    capacity = strlen (position);
-  else
-    capacity = strlen (position) / 2;
+  struc_init();
+  
+  while(File_head)
+  {  
+  printf("File_head->%s\n",File_head->filename);
+
+  init_query (File_head->filename);
 
   init_bloom (bl_2);
-  fasta_add(bl_2, position);
+  
+  ref_add(bl_2, position);
 
-#ifdef DEBUG
-  strcat (program_path, argv[0]);
-  printf ("program_path->%s\n",program_path);
-#endif
-
-  save_bloom (source, bl_2, prefix, argv[0]);
-
-  munmap (position, statbuf.st_size);
-
+  save_bloom (File_head->filename, bl_2, prefix, argv[0]);
+  
+  bloom_destroy (bl_2);
+  
+  if (!strstr(File_head->filename,".fifo"))
+      munmap (position, strlen(position));
+  else
+      free(position);
+  File_head = File_head->next;  
+  }
+  
+/*
   gettimeofday (&tv2, &tz);
 
   sec = tv2.tv_sec - tv.tv_sec;
@@ -96,100 +97,35 @@ main (int argc, char *argv[])
   printf ("total=%ld sec\n", sec);
   printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
 #endif
-
+*/
   return 0;
 }
-
 /*-------------------------------------*/
-/*
-char *
-mmaping (char *source)
+void
+struc_init ()
 {
-
-  int src;
-  char *sm;
-
-
-#ifdef __APPLE__
-  src = open (source, O_RDONLY,0644);
-#else
-  src = open (source, O_RDONLY|O_LARGEFILE,0644);
-#endif
-  if (src < 0) {
-      perror (" open source ");
-      exit (EXIT_FAILURE);
-  }
-
-  if (fstat (src, &statbuf) < 0) {
-      perror (" fstat source ");
-      exit (EXIT_FAILURE);
-  }
-
-  sm = mmap (0, (long long) statbuf.st_size, PROT_READ,
-	   MAP_SHARED | MAP_NORESERVE, src, 0);
-
-  if (MAP_FAILED == sm) {
-      perror (" mmap source ");
-      exit (EXIT_FAILURE);
-  }
-
-  return sm;
+  bl_2 = NEW (bloom);
+  head = NEW (Queue);
+  tail = NEW (Queue);
+  head->next = tail;
+  head2 = head;
+  File_head = NEW (F_set);
+  File_head = make_list(source,list);
+  File_head = File_head->next;
 }
-*/
 /*-------------------------------------*/
-/*
-char *
-large_load (char *filename)
+void init_query (char *source)
 {
-
-  int fd;
-
-#ifdef DEBUG
-  printf ("queryname->%s\n", filename);
-#endif
-
-#ifdef __APPLE__
-  fd = open(filename, O_RDWR|O_CREAT, 0644); 
-#else
-  fd = open(filename, O_RDWR|O_CREAT|O_LARGEFILE, 0644); 
-#endif
-
-  if (fd < 0) {
-      perror (filename);
-      return NULL;
-  }
-
-  (strstr (filename, ".fasta") || strstr (filename, ".fna"))
-    && ((total_size = get_size (filename)), 1)
-    || (total_size = (get_size (filename) * 2));
-
-
-#ifdef __APPLE__
-  if (ftruncate(fd, total_size) < 0)
-#else
-  if (ftruncate64(fd, total_size) < 0)
-#endif
-    {
-      printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
-      close (fd);
-      return 0;
-    }
-
-  printf ("total_size->%lld\n", total_size);
-
-  char *data = (char *) malloc ((total_size + 1) * sizeof (char));
-
-  read (fd, data, total_size);
-  close (fd);
-
-#ifdef DEBUG
-// Too verbose
-// printf("data->%s\n",data);
-#endif
-
-  return data;
+  if (strstr(source,".fifo"))
+      position = large_load (source);
+  else
+      position = mmaping (source);
+  
+  if (*position == '>')
+    capacity = strlen (position);
+  else
+    capacity = strlen (position) / 2;
 }
-*/
 /*-------------------------------------*/
 void
 init (int argc, char **argv)
@@ -200,13 +136,14 @@ init (int argc, char **argv)
       build_help ();
     }
 /*-------default-------*/
+  type = 2;
   mode = 1;
   k_mer = 21;
   error_rate = 0.0005;
   prefix = NULL;
 /*-------default-------*/
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:o:r:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:o:r:l:h")) != -1)
     {
       switch (x)
 	{
@@ -218,7 +155,7 @@ init (int argc, char **argv)
 	  break;
 	case 'm':
 	  (optarg) && ((mode = atoi (optarg)), 1);
-	  if (mode != 1 && mode != 2)
+	  if (mode >2 || mode <1)
 	    {
 	      perror ("Mode select error.");
 	      exit (0);
@@ -229,18 +166,26 @@ init (int argc, char **argv)
 	  break;
 	case 'r':
 	  (optarg) && ((source = optarg), 1);
-	  if (!source)
-	    {
-	      perror ("error, no resource.");
-	      exit (0);
-	    }
 	  break;
+        case 'l':
+	  (optarg) && (list = optarg, 1);
+	  break;
+	case 'h':
+	   help ();
+           remove_help ();
+           break;
 	case '?':
 	  printf("Unknown option: -%c\n",(char)optopt);
 	  exit (0);
 	}
 
   }
+  
+    if ((!source) && (!list))
+    {
+      perror ("No source.");
+      exit (0);
+    }
 
 }
 
@@ -282,9 +227,9 @@ fasta_title (char *full)
 
   ptr = strchr (full, '\n');
 
-  temp_title = (char *) malloc ((ptr - full + 1) * sizeof (char));
+  //temp_title = (char *) malloc ((ptr - full + 1) * sizeof (char));
 
-  strncpy (temp_title, full, ptr - full + 1);	//include '\n'
+  //strncpy (temp_title, full, ptr - full + 1);	//include '\n'
 
   return ptr + 1;
 }
@@ -293,9 +238,9 @@ fasta_title (char *full)
 void
 fasta_add (bloom * bl, char *position)
 {
-  while (strlen (position) > k_mer + 2)
+  while (*position!='\0')
     {
-      if (position[0] == '>')
+      if (*position == '>')
 	position = fasta_title (position);
       else
 	position = fasta_data (bl, position);
@@ -342,19 +287,6 @@ fastq_add (bloom * bl, char *position)
 
     }
   free (key);
-}
-
-/*-------------------------------------*/
-long long
-get_size (char *strFileName)
-{
-  struct stat temp;
-  stat (strFileName, &temp);
-  if (strstr (strFileName, ".fna") || strstr (strFileName, ".fasta"))
-    return (temp.st_size);
-  else
-    return (temp.st_size / 2);
-
 }
 
 /*-------------------------------------*/
@@ -405,3 +337,15 @@ fasta_data (bloom * bl_2, char *data)
 }
 
 /*-------------------------------------*/
+void ref_add(bloom *bl, char *position)
+{
+	if(*position=='>')
+		fasta_add(bl,position);
+	else if (*position=='@')
+		fastq_add(bl,position);
+	else
+		{
+		perror("wrong format\n");
+	  exit(-1);
+	  }
+}

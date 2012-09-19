@@ -94,6 +94,7 @@ main (int argc, char **argv)
   //load_bloom (File_head->filename, bl_2);
 
   printf("File name->%s\n",File_head->filename);
+  printf("File number->%d\n",File_head->filename);
 /*
 #pragma omp parallel
       {

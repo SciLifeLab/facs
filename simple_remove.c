@@ -184,11 +184,11 @@ init (int argc, char **argv)
 	  //printf ("Query : \nThe argument of -q is %s\n", optarg);
 	  (optarg) && (source = optarg, 1);
 	  break;
-  case 'l':
+        case 'l':
 	  (optarg) && (list = optarg, 1);
 	  break;
 	case 'h':
-		help ();
+        help ();
     remove_help ();
     break;
 	case '?':

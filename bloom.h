@@ -57,8 +57,8 @@ typedef struct
 typedef struct info
 {
      char *location;
-     int *sorce;
-     int *number;                     			
+     short *sorce;
+     short *number;                     			
      struct info *next;          
 } Queue;
 
