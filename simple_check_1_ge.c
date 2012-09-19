@@ -780,7 +780,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 void
 evaluate (char *detail, char *filename)
 {
-  char buffer[100] = { 0 };
+  char buffer[200] = { 0 };
 
   printf ("all->%d\n", reads_num);
 
@@ -800,28 +800,29 @@ evaluate (char *detail, char *filename)
     printf ("contamination rate->%f\n", 1 - contamination_rate);
 
   strcat (detail, "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
-  strcat (detail, "bloom->");
+  strcat (detail, "Bloomfile<->All<->Contam<->contam_rate\n");
 
   strcat (detail, filename);
-  strcat (detail, "   \n");
-
-  sprintf (buffer, "all->%d ", reads_num);
+  //strcat (detail, "  ");
+  //strcat (detail, "   \n");
+  
+  sprintf (buffer, "  %d  %d  %f\n", reads_num,reads_contam,contamination_rate);
   strcat (detail, buffer);
 
-  memset (buffer, 0, 100);
-  sprintf (buffer, "contam->%d ", reads_contam);
+  //memset (buffer, 0, 100);
+  //sprintf (buffer, "contam->%d ", reads_contam);
 
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
+  //strcat (detail, buffer);
+  //memset (buffer, 0, 100);
 
-  sprintf (buffer, "possbile->%d ", checky);
-  strcat (detail, buffer);
+  //sprintf (buffer, "possbile->%d ", checky);
+  //strcat (detail, buffer);
 
-  memset (buffer, 0, 100);
-  sprintf (buffer, "contamination rate->%f", contamination_rate);
+  //memset (buffer, 0, 100);
+  //sprintf (buffer, "contamination rate->%f", contamination_rate);
 
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
+  //strcat (detail, buffer);
+  //memset (buffer, 0, 100);
 
   reads_num = 0;
   reads_contam = 0;

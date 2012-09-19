@@ -625,7 +625,7 @@ build_help ()
   printf
     ("##########################################################################\n");
   printf ("---Bloom build----\n");
-  printf ("#  ./simple_check [option] [option] [option] [option]\n");
+  printf ("#  ./bloom_build [option] [option] [option] [option]\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -r reference file name\n");
