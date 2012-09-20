@@ -309,7 +309,7 @@ get_parainfo (char *full)
 
 	  if (add != 0)
 
-	    temp = strchr (full + offsett, '>');
+	    temp = strchr (full + offsett*add, '>');
 
 	  //printf ("full->%0.20s\n", full);
 

@@ -11,8 +11,9 @@ all:
 	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
 
-sb:
-	mpicc -c *.c ${CFLAGS}
+classi:
+	#mpicc -c *.c ${CFLAGS}
+	gcc -c simple_remove_l.c -O3 -lm
 	${CC} -o simple_remove_l simple_remove_l.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
 
 clean:
@@ -37,5 +38,5 @@ tests:
 mpirun:
 	mpirun -np $1 ./mpi_bloom -r ~/test/mouse.bloom -q /proj/b2012037/private/datasets/12gb.fastq   
 
-L_remove:
-	./simple_remove -q ~/test/test.fna -r tests/data/ecoli.bloom 
+classi_t:
+	./simple_remove_l -q ~/test/test.fna -r tests/data/ecoli.bloom 

@@ -46,18 +46,14 @@ typedef struct
 	char *vector;
 	hash_t hash;
  	BIGNUM inserts;
-  //	int ideal_hashes;
         struct bloomstat stat;
-	//randoms random_nums;
         int k_mer;
 } bloom;
-
-//int verbose;
 
 typedef struct info
 {
      char *location;
-     short *sorce;
+     short *score;
      short *number;                     			
      struct info *next;          
 } Queue;
