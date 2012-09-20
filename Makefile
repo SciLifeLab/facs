@@ -13,7 +13,7 @@ all:
 
 classi:
 	#mpicc -c *.c ${CFLAGS}
-	gcc -c simple_remove_l.c -O3 -lm
+	gcc -c simple_remove_l.c ${CFLAGS}
 	${CC} -o simple_remove_l simple_remove_l.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
 
 clean:

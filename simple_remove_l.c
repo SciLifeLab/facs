@@ -46,6 +46,7 @@ void query_init ();
 void struc_init ();
 void get_parainfo (char *full);
 void init (int argc, char **argv);
+void all_save (char *source);
 void fasta_process (bloom * bl, Queue * info);
 void fastq_process (bloom * bl, Queue * info);
 void save_result (char *source, char *obj_file, char *data, char *data2, int flag);
@@ -97,15 +98,14 @@ main (int argc, char **argv)
 	    }
 	}			// End of single - no implied barrier (nowait)
 }		                // End of parallel region - implied barrier
-
-  //File_head = File_head->next;
-
   head = head2;
 
   bloom_destroy (bl_2);
   
   File_head = File_head->next;
   }     // End outside while
+
+  all_save(source);
 
   if (!strstr(source,".fifo"))
   munmap (position, strlen(position));
@@ -252,8 +252,6 @@ get_parainfo (char *full)
 	  if (add != 0)
 
 	    temp = strchr (full + offsett*add, '>');
-
-	  //printf ("full->%0.20s\n", full);
 
 	  x->location = temp;
 
@@ -783,16 +781,16 @@ save_result (char *source, char *obj_file, char *data, char *data2, int flag)
   strcat (match, so_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
-  strcat (match, "&&");
+  strcat (match, "_AND_");
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   strcat (match, obj_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   if (flag == 0)
-      strcat (match, "<clean>");
+      strcat (match, "~clean");
   else
-  	  strcat (match, "<contam>");
+  	  strcat (match, "~contam");
   if (type == 1)
     {
       strcat (match, ".fasta");
@@ -834,14 +832,13 @@ void query_init ()
   memset(contam2,0,strlen(position));
 }
 /*-------------------------------------*/
-int count_read (char *dick, char *next)
+int count_read (char *data, char *next)
 {
 printf("count_read\n");
 int number = 1;
 char *pos, *temp_next;
-pos = dick;
-printf("start->%0.20s\n",pos);
-printf("next->%0.20s\n",next);
+pos = data;
+
 while(pos!=next)
     {
     if (type == 1)
@@ -849,53 +846,59 @@ while(pos!=next)
     else	
     	  temp_next = strstr(pos+1,"\n@");
     number++;
-    if (!pos)
-    	  break;
     pos = temp_next;
+    if (!pos)
+    	 break;
     }
 return number;
 }
 /*-------------------------------------*/
-void all_save (char *source, char *obj_file)
+void all_save (char *source)
 {
 char *pos, *next, *temp_next;
 int countup;
 	
-save_result (source,obj_file,clean,clean2,0); // save the clean data
+save_result (source,"",clean,clean2,0); // save the clean data
 free(clean2);
 
-File_head2 = File_head2->next;
-
+//File_head2 = File_head2->next;
+//printf("1_dollar_%s\n",File_head2->filename);
 while (File_head2)
     {
     head = head2;
+    head = head->next;
     while (head!=tail)
         {
         	countup = 0;
         	pos = head->location;
-          if (head->next->location==NULL)
+          if (head->next->location!=NULL)
         	    next = head->next->location;
         	else
-        		  next = strchr(head->location,'\0');
-        		  
+                    next = strchr(head->location,'\0');
+                //printf("head->%0.20s\n",head->location);		  
         	while (pos!=next)
         	    {
         	    if (type == 1)
         	    	  temp_next = strchr(pos+1,'>');
         	    else
         	    	  temp_next = strstr(pos+1,"\n@");
-        	    
+        	    //printf("temp_next->%0.10s\n",temp_next);
+                    //printf("next->%0.10s\n",next);
         	    if (temp_next == NULL)
         	    	  temp_next = next;
-        	    if (head->score[countup]>0&&head->number[countup]==File_head->number)
+                    //printf("???->%d---%d\n",head->score[countup],head->number[countup]);
+        	    if (head->score[countup]>0&&(head->number[countup]==File_head2->number))
         	    	  {
         	          memcpy(contam,pos,temp_next-pos);
         	          contam+=temp_next-pos;
         	    	  }	
         	    countup++;
+                    pos= temp_next;
         	    }
         	head = head->next;
-        	save_result (source,obj_file,contam,contam2,0);
+        	//save_result (source,File_head2->filename,contam,contam2,1);
         }
+     save_result (source,File_head2->filename,contam,contam2,1);
+     File_head2 = File_head2->next; 
     }
 }
