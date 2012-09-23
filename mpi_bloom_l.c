@@ -141,13 +141,13 @@ main (int argc, char **argv)
 
   MPI_Barrier (MPI_COMM_WORLD);	//wait until all threads finish jobs
   
-  //gather ();	
+  gather ();	
 
   File_head = File_head->next;		//gather all matched and missed info
 
 }                               //outside while
 
-  gather();
+  //gather();
 
   if (mytask == 0)		//finishing time
     {
@@ -429,6 +429,10 @@ gather ()
       MPI_Send (&reads_contam, 5, MPI_INT, 0, 1, MPI_COMM_WORLD);
       MPI_Send (&checky, 7, MPI_INT, 0, 1, MPI_COMM_WORLD);
     }
+
+  reads_num = 0;
+  reads_contam = 0;
+  checky = 0;
   return 1;
 }
 
@@ -989,10 +993,10 @@ evaluate (char *detail, char *filename)
   //strcat (detail, buffer);
   //memset (buffer, 0, 100);
 
-  reads_num = 0;
-  reads_contam = 0;
-  checky = 0;
-  contamination_rate = 0;
+  //reads_num = 0;
+  //reads_contam = 0;
+  //checky = 0;
+  //contamination_rate = 0;
 
   //printf("detail->%s\n",detail);
 }
