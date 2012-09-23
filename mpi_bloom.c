@@ -49,7 +49,7 @@ struct stat statbuf;
 void struc_init ();
 void get_parainfo (char *full);
 void get_size (char *strFileName);
-void init (int atgc, char **argv);
+void init (int argc, char **argv);
 void fasta_process (bloom * bl, Queue * info);
 void fastq_process (bloom * bl, Queue * info);
 void evaluate (char *detail, char *filename);
@@ -108,7 +108,6 @@ main (int argc, char **argv)
 
   while (share > 0)
     {
-
       position = ammaping (source);
 
       get_parainfo (position);
@@ -643,7 +642,7 @@ fasta_process (bloom * bl, Queue * info)
 
       memset(temp_piece,0,last_piece+1);
 
-      memcpy (temp_piece, info->location, last_piece);
+      memcpy (temp_piece, info->location, last_piece-PAGE/2);
 
       temp_piece[last_piece] = '\0';
 
