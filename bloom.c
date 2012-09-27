@@ -391,13 +391,13 @@ load_bloom (char *filename, bloom * bl)
   fd = open64(filename, O_RDONLY, 0644); 
 #endif
   x = read (fd, bl, sizeof (bloom));
-
+  
   bl->vector =
     (char *) malloc (sizeof (char) *
 		     ((long long) (bl->stat.elements / 8) + 1));
 
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
-
+  
   while (total_size > TWOG)
     {
       x = read (fd, bl->vector + off, sizeof (char) * TWOG);

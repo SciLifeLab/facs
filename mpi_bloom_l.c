@@ -39,7 +39,7 @@ long long total_piece, PAGE, buffer, share, offset, reads_num =
 /*-------------------------------------*/
 float error_rate, sampling_rate, contamination_rate, tole_rate;
 /*-------------------------------------*/
-int k_mer, mode, mytask, ntask, type = 0, excel1, excel2, last_piece = 0, extra_piece = 0;
+int k_mer, mode, mytask, ntask, type = 0, excel1, excel2, last_piece = 0;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix, *detail, *list;
 /*-------------------------------------*/
@@ -458,9 +458,9 @@ fastq_process (bloom * bl, Queue * info)
 
       temp = temp_piece;
 
-      while ((temp = strchr(temp,'@')))
+      while ((temp = strstr(temp,"\n@")))
       {
-      next = temp;
+      next = temp+1;
       temp++;
       }
       p = temp_piece;

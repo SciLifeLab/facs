@@ -40,12 +40,13 @@ int last = 0;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix;
 /*-------------------------------------*/
-Queue *head, *tail;
+Queue *head, *head2, *tail;
 /*-------------------------------------*/
 bloom *bl_2;
 /*-------------------------------------*/
 struct stat statbuf;
 /*-------------------------------------*/
+void list_init();
 void struc_init ();
 void get_parainfo (char *full);
 void get_size (char *strFileName);
@@ -109,6 +110,8 @@ main (int argc, char **argv)
   while (share > 0)
     {
       position = ammaping (source);
+      
+      list_init();
 
       get_parainfo (position);
 
@@ -120,18 +123,18 @@ main (int argc, char **argv)
 	{
 	  while (head != tail)
 	    {
-                //head = head->next;
+                
 #pragma omp task firstprivate(head)
 	      {
-		//printf ("position->%0.20s\n", head->location);
-		//printf ("next->%0.20s\n",head->next->location); 
+		printf ("position->%0.10s\n", head->location);
+		   
 		   if (type == 1)
 		   fasta_process(bl_2,head);
 		   else
 		   fastq_process(bl_2,head);
-                   
+       
 	      }
-              head = head->next;
+        head = head->next;
 	      
 	    }
 	}
@@ -141,6 +144,8 @@ main (int argc, char **argv)
       share -= buffer;
 
       offset += buffer;
+
+      //head = head2;
     }
   printf ("finish processing...\n");
 
@@ -255,17 +260,11 @@ struc_init ()
 
   bl_2 = NEW (bloom);
 
-  head = NEW (Queue);
-
-  tail = NEW (Queue);
-
-  head->next = tail;
+  //head2 = head;
 
   get_size (source);		//get total size of file
 
   share = total_piece / ntask;	//every task gets an euqal piece
-
-  //printf("share----%d\n",share);
 
   if (total_piece % ntask != 0 && mytask == (ntask - 1))
 
@@ -431,7 +430,6 @@ void
 fastq_process (bloom * bl, Queue * info)
 {
   printf ("fastq processing...\n");
-
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
 
@@ -439,24 +437,22 @@ fastq_process (bloom * bl, Queue * info)
     next = info->next->location;
 
   else
-    {
+    { 
       printf ("last_piece  %d\n", last_piece);
       temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
-      memcpy (temp_piece, info->location, last_piece);
-      //printf ("piece\n...");
+      memset(temp_piece,0,last_piece+1);
+      memcpy (temp_piece, info->location, last_piece-PAGE);
       temp_piece[last_piece] = '\0';
 
       temp = temp_piece;
-
-      while ((temp = strchr(temp,'@')))
+      while ((temp = strstr(temp,"\n@")))
       {
-      next = temp;
+      next = temp+1;
       temp++;
       }
       p = temp_piece;
     }
 
-//printf("info->next %c\n",next[0]);
   while (p != next)
     {
 
@@ -481,7 +477,7 @@ fastq_process (bloom * bl, Queue * info)
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
-//printf("finish process...\n");
+printf("finish process...\n");
   if (temp_piece)
     free (temp_piece);
 }
@@ -642,7 +638,8 @@ fasta_process (bloom * bl, Queue * info)
 
       memset(temp_piece,0,last_piece+1);
 
-      memcpy (temp_piece, info->location, last_piece-PAGE/2);
+      memcpy (temp_piece, info->location, last_piece-PAGE);
+
 
       temp_piece[last_piece] = '\0';
 
@@ -1034,6 +1031,14 @@ statistic_save (char *detail, char *filename)
   write_result (save_file, detail);
 }
 
+void list_init()
+{
+  head = NEW (Queue);
+
+  tail = NEW (Queue);
+
+  head->next = tail;	
+}
 /*
 
 char* reallocate(Queue *info)
