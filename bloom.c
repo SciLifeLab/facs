@@ -24,7 +24,7 @@
 int seed[20] =
   { 152501029, 152501717, 152503097, 152500171, 152500157, 152504837,
   10161313, 10371313, 10431313, 10501313, 10581313, 10611313, 10641313,
-    10651313,
+  10651313,
   10671313, 10731313, 10821313, 10881313, 10951313, 11001313
 };
 
@@ -36,7 +36,9 @@ bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, float error_rate,
     {
       fprintf (stderr, "overflow1\n");
       return -1;
-    } else {
+    }
+  else
+    {
       /* this may waste a little time, but we need to ensure
        * that our array has a prime number of elements, even
        * if we have been requested to do otherwise */
@@ -295,25 +297,25 @@ to_bitstr (bloom * bm)
 int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
-  char *position1,*position2;
+  char *position1, *position2;
   char *bloom_file = (char *) malloc (300 * sizeof (char));
 
   memset (bloom_file, 0, 300);
 
 #ifdef DEBUG
-  printf("target->%s\n",target);
+  printf ("target->%s\n", target);
 #endif
 
   position1 = strrchr (filename, '/');
-  position2 = strrchr (target+2, '/');
+  position2 = strrchr (target + 2, '/');
 
   if (prefix)
     strcat (bloom_file, prefix);
   else
     {
       if (position2)
-      strncat (bloom_file,target+2,position2+1-(target+2));   
-    
+	strncat (bloom_file, target + 2, position2 + 1 - (target + 2));
+
       if (position1)
 	strncat (bloom_file, position1 + 1,
 		 strrchr (filename, '.') - position1);
@@ -327,9 +329,9 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   int fd, fq;
 
 #ifdef __APPLE__
-  fd = open(bloom_file, O_RDWR|O_CREAT, 0644);
+  fd = open (bloom_file, O_RDWR | O_CREAT, 0644);
 #else // assume linux
-  fd = open(bloom_file, O_RDWR|O_CREAT|O_LARGEFILE, 0644);
+  fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
 #endif
   if (fd < 0)
     {
@@ -343,9 +345,9 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
     sizeof (int) * (bl->stat.ideal_hashes + 1);
 
 #ifdef __APPLE__
-  if (ftruncate(fd, total_size) < 0)
+  if (ftruncate (fd, total_size) < 0)
 #else
-  if (ftruncate64(fd, total_size) < 0)
+  if (ftruncate64 (fd, total_size) < 0)
 #endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
@@ -386,18 +388,18 @@ load_bloom (char *filename, bloom * bl)
   printf ("bloom name->%s\n", filename);
 
 #ifdef __APPLE__
-  fd = open(filename, O_RDONLY, 0644); 
+  fd = open (filename, O_RDONLY, 0644);
 #else
-  fd = open64(filename, O_RDONLY, 0644); 
+  fd = open64 (filename, O_RDONLY, 0644);
 #endif
   x = read (fd, bl, sizeof (bloom));
-  
+
   bl->vector =
     (char *) malloc (sizeof (char) *
 		     ((long long) (bl->stat.elements / 8) + 1));
 
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
-  
+
   while (total_size > TWOG)
     {
       x = read (fd, bl->vector + off, sizeof (char) * TWOG);
@@ -590,7 +592,8 @@ help ()
     ("    The allocation of memory for the bit vector is handled in the c layer,\n");
   printf
     ("    but perl's oo capability handles the garbage collection. when a\n");
-  printf("   Bloom::Faster object goes out of scope, the vector pointed to by the c\n");
+  printf
+    ("   Bloom::Faster object goes out of scope, the vector pointed to by the c\n");
   printf
     ("    structure will be free()d. to manually do this, the DESTROY builtin\n");
   printf ("    method can be called.\n");
@@ -631,7 +634,8 @@ build_help ()
   printf ("#  -r reference file name\n");
   printf ("#  -k k_mer size (default size 21)\n");
   printf ("#  -e error rate (default rate 0.0005)\n");
-  printf ("#  -o output file name (default file is saved as the same as binary file)\n"); 
+  printf
+    ("#  -o output file name (default file is saved as the same as binary file)\n");
   printf
     ("##########################################################################\n");
   exit (1);
@@ -652,7 +656,8 @@ check_help ()
   printf ("#  -q single query file\n");
   printf ("#  -l a list containing all bloom files\n");
   printf ("#  -r single reference bloom filter file or directory\n");
-  printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
+  printf
+    ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf ("!  Either '-q' or '-l' is used at one run.\n");
 //printf("#\n");   
 //printf("#   *'1' is mode 1. For instance, when you use a ecoli filter and want to capture every contaminated read that caused by\n"); 
@@ -680,7 +685,8 @@ remove_help ()
   printf ("#  -q query name\n");
   printf ("#  -l list name\n");
   printf ("#  -r reference bloom filter file or dir\n");
-  printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
+  printf
+    ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf
     ("##########################################################################\n");
   exit (1);
@@ -695,25 +701,24 @@ large_load (char *fifoname)
 
   printf ("fifoname->%s\n", fifoname);
 #ifdef __APPLE__
-  fd = fopen(fifoname, "r"); 
+  fd = fopen (fifoname, "r");
 #else
-  fd = fopen64(fifoname, "r"); 
+  fd = fopen64 (fifoname, "r");
 #endif
 
-  char *data = (char *) malloc ((TWOG/2 + 1) * sizeof (char));
+  char *data = (char *) malloc ((TWOG / 2 + 1) * sizeof (char));
 
-  data[TWOG/2]='\0';
+  data[TWOG / 2] = '\0';
 
-    while ((ch=fgetc(fd))!=EOF)
-  {
-        data[x] = ch;
-        x++;
-  }
+  while ((ch = fgetc (fd)) != EOF)
+    {
+      data[x] = ch;
+      x++;
+    }
 
-  printf("data length->%lld\n",strlen(data)); 
+  printf ("data length->%lld\n", strlen (data));
 
   fclose (fd);
 
   return data;
-   }
-
+}

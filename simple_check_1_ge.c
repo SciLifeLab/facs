@@ -76,10 +76,10 @@ main (int argc, char **argv)
   init (argc, argv);		//initialize 
   struc_init ();
 
-  if (strstr(source,".fifo"))
-      position = large_load (source);
+  if (strstr (source, ".fifo"))
+    position = large_load (source);
   else
-      position = mmaping (source);
+    position = mmaping (source);
 
   get_parainfo (position);
 
@@ -87,52 +87,52 @@ main (int argc, char **argv)
 
   memset (detail, 0, 1000 * 1000);
 
-  while(File_head)
-  {
+  while (File_head)
+    {
 
-  load_bloom (File_head->filename, bl_2);
+      load_bloom (File_head->filename, bl_2);
 
-  k_mer = bl_2->k_mer;
+      k_mer = bl_2->k_mer;
 
 #pragma omp parallel
-  {
+      {
 #pragma omp single nowait
-    {
-      while (head != tail)
 	{
+	  while (head != tail)
+	    {
 #pragma omp task firstprivate(head)
-	  {
-	    if (head->location)
+	      {
+		if (head->location)
 
-	      if (type == 1)
-		fasta_process (bl_2, head);
-	      else
-		fastq_process (bl_2, head);
-	  }
-	  head = head->next;
-	}
-    }				// End of single - no implied barrier (nowait)
-  }				// End of parallel region - implied barrier
+		  if (type == 1)
+		    fasta_process (bl_2, head);
+		  else
+		    fastq_process (bl_2, head);
+	      }
+	      head = head->next;
+	    }
+	}			// End of single - no implied barrier (nowait)
+      }				// End of parallel region - implied barrier
 
 //if (strstr(source,".fifo"))
 //  {
-  //source = (char *) malloc (500 * sizeof (char));
+      //source = (char *) malloc (500 * sizeof (char));
 //  strncpy(source,fifoname,(strrchr(fifoname,'.')-fifoname));
 //  }
 
-  evaluate (detail, File_head->filename);
+      evaluate (detail, File_head->filename);
 
-  File_head = File_head->next;
+      File_head = File_head->next;
 
-  head = head2;
+      head = head2;
 
-  bloom_destroy (bl_2);
-  } //end while
+      bloom_destroy (bl_2);
+    }				//end while
 
   statistic_save (detail, source);
-  
-if (!strstr(source,".fifo"))
-  munmap (position, strlen(position));
+
+  if (!strstr (source, ".fifo"))
+    munmap (position, strlen (position));
 
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
@@ -191,20 +191,20 @@ init (int argc, char **argv)
 	case 'q':
 	  (optarg) && (source = optarg, 1);
 	  break;
-        case 'l':
+	case 'l':
 	  (optarg) && (list = optarg, 1);
 	  break;
-        case 'h':
-          help();
-          check_help();
-          break;
+	case 'h':
+	  help ();
+	  check_help ();
+	  break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
 	}
     }
 
-  if (((!all_ref) && (!list))|| (!source))
+  if (((!all_ref) && (!list)) || (!source))
     {
       perror ("No source.");
       exit (0);
@@ -231,7 +231,7 @@ struc_init ()
   head->next = tail;
   head2 = head;
   File_head = NEW (F_set);
-  File_head = make_list(all_ref,list);
+  File_head = make_list (all_ref, list);
   File_head = File_head->next;
 }
 
@@ -241,34 +241,36 @@ get_parainfo (char *full)
 {
   printf ("distributing...\n");
 
-  char *temp=full;
+  char *temp = full;
   int cores = omp_get_num_procs ();
-  int offsett = strlen(full)/cores;
+  int offsett = strlen (full) / cores;
   int add = 0;
-  
+
   printf ("task->%d\n", offsett);
- 
+
   Queue *pos = head;
 
-  if (*full=='>')
-     type = 1;
-  else if(*full=='@')
-     type = 2;
-  else{
-     perror("wrong format\n");
-     exit(-1);
-      }
-  if (type == 1) {
+  if (*full == '>')
+    type = 1;
+  else if (*full == '@')
+    type = 2;
+  else
+    {
+      perror ("wrong format\n");
+      exit (-1);
+    }
+  if (type == 1)
+    {
       for (add = 0; add < cores; add++)
 	{
 	  Queue *x = NEW (Queue);
 
-          if (add == 0 && *full != '>')
+	  if (add == 0 && *full != '>')
 
-	  temp = strchr (full, '>');	//drop the possible fragment
+	    temp = strchr (full, '>');	//drop the possible fragment
 
 	  if (add != 0)
-            temp = strchr (full + offsett*add, '>');
+	    temp = strchr (full + offsett * add, '>');
 
 
 	  x->location = temp;
@@ -277,7 +279,9 @@ get_parainfo (char *full)
 	  pos->next = x;
 	  pos = pos->next;
 	}
-  } else {
+    }
+  else
+    {
 
       for (add = 0; add < cores; add++)
 	{
@@ -287,23 +291,23 @@ get_parainfo (char *full)
 
 	    temp = strstr (full, "\n@") + 1;	//drop the fragment
 
-          //printf("offset->%d\n",offsett*add);
+	  //printf("offset->%d\n",offsett*add);
 
 	  if (add != 0)
 
-	    temp = strstr (full + offsett*add, "\n@");
+	    temp = strstr (full + offsett * add, "\n@");
 
-          if (temp)
-          temp++;
+	  if (temp)
+	    temp++;
 
 	  x->location = temp;
 	  x->number = add;
 	  x->next = pos->next;
 	  pos->next = x;
 	  pos = pos->next;
-	} 
+	}
 
-   }
+    }
 
   return;
 }
@@ -350,13 +354,13 @@ fastq_process (bloom * bl, Queue * info)
 {
 
 #ifdef DEBUG
-  printf("fastq processing...\n");
+  printf ("fastq processing...\n");
 #endif
 
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
 
-  if (info->next==NULL)
+  if (info->next == NULL)
     return;
 
   else if (info->next != tail)
@@ -429,16 +433,20 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl)
       if (model == "reverse")
 	rev_trans (key);
 
-          if (mode == 1) {
-              if (bloom_check (bl, key))
-                  return fastq_full_check (bl, begin, length);
-	  } else {
-
-          if (!bloom_check (bl, key)) {
-              return fastq_full_check (bl, begin, length);
-          }
+      if (mode == 1)
+	{
+	  if (bloom_check (bl, key))
+	    return fastq_full_check (bl, begin, length);
 	}
-  }				// inner while
+      else
+	{
+
+	  if (!bloom_check (bl, key))
+	    {
+	      return fastq_full_check (bl, begin, length);
+	    }
+	}
+    }				// inner while
 
   free (key);
 
@@ -479,38 +487,41 @@ fastq_full_check (bloom * bl, char *p, int distance)
       previous = p;
       p += 1;
 
-      if (bloom_check (bl, key)) {
+      if (bloom_check (bl, key))
+	{
 
-          count++;
+	  count++;
 
-          if (pre_kmer == 1)
-            {
-              label_m++;
+	  if (pre_kmer == 1)
+	    {
+	      label_m++;
 
-              if (count < 20)
-            match_s++;
-              else
+	      if (count < 20)
+		match_s++;
+	      else
 
-            {
-              match_s += count;
-              count = 0;
-            }
-            }
+		{
+		  match_s += count;
+		  count = 0;
+		}
+	    }
 
-          else
+	  else
 
-            {
-              label_m += k_mer;
-              match_s += k_mer - 1;
-            }
+	    {
+	      label_m += k_mer;
+	      match_s += k_mer - 1;
+	    }
 
-          pre_kmer = 1;
-        } else {
-          count = 0;
-          pre_kmer = 0;
-        }
-          distance--;
-        }				// end while
+	  pre_kmer = 1;
+	}
+      else
+	{
+	  count = 0;
+	  pre_kmer = 0;
+	}
+      distance--;
+    }				// end while
 
   free (key);
   label_mis = length - label_m;
@@ -527,13 +538,13 @@ fasta_process (bloom * bl, Queue * info)
 {
 
 #ifdef DEBUG
-  printf("fasta processing...\n");
+  printf ("fasta processing...\n");
 #endif
 
   char *p = info->location;
   char *temp_next, *next, *temp, *temp_piece = NULL;
 
-  if (info->next==NULL)
+  if (info->next == NULL)
     return;
   else if (info->next != tail)
     next = info->next->location;
@@ -578,7 +589,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
   char *p = strchr (begin + 1, '\n') + 1;
 
   if (!p || *p == '>')
-     return 1;
+    return 1;
 
   char *start = p;
 
@@ -786,7 +797,7 @@ evaluate (char *detail, char *filename)
 
   printf ("contam->%d\n", reads_contam);
 
-  printf("bloomname->%s\n",filename);
+  printf ("bloomname->%s\n", filename);
 
   contamination_rate = (double) (reads_contam) / (double) (reads_num);
 
@@ -805,8 +816,9 @@ evaluate (char *detail, char *filename)
   strcat (detail, filename);
   //strcat (detail, "  ");
   //strcat (detail, "   \n");
-  
-  sprintf (buffer, "  %d  %d  %f\n", reads_num,reads_contam,contamination_rate);
+
+  sprintf (buffer, "  %d  %d  %f\n", reads_num, reads_contam,
+	   contamination_rate);
   strcat (detail, buffer);
 
   //memset (buffer, 0, 100);

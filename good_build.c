@@ -31,7 +31,7 @@ struct stat statbuf;
 /*-------------------------------------*/
 float error_rate, tole_rate, contamination_rate;
 BIGNUM total_size = 0;
-int k_mer = 21, mode = 0, count = 0,type;
+int k_mer = 21, mode = 0, count = 0, type;
 long long hit = 0, un_hit = 0;
 
 BIGNUM capacity;
@@ -48,7 +48,7 @@ void struc_init ();
 void init_bloom (bloom * bl);
 void init_query (char *source);
 void init (int argc, char **argv);
-void ref_add(bloom *bl, char *position);
+void ref_add (bloom * bl, char *position);
 void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
@@ -60,32 +60,32 @@ char *fasta_data (bloom * bl_2, char *data);
 main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
- 
+
   init (argc, argv);
-  
-  struc_init();
-  
-  while(File_head)
-  {  
-  printf("File_head->%s\n",File_head->filename);
 
-  init_query (File_head->filename);
+  struc_init ();
 
-  init_bloom (bl_2);
-  
-  ref_add(bl_2, position);
+  while (File_head)
+    {
+      printf ("File_head->%s\n", File_head->filename);
 
-  save_bloom (File_head->filename, bl_2, prefix, argv[0]);
-  
-  bloom_destroy (bl_2);
-  
-  if (!strstr(File_head->filename,".fifo"))
-      munmap (position, strlen(position));
-  else
-      free(position);
-  File_head = File_head->next;  
-  }
-  
+      init_query (File_head->filename);
+
+      init_bloom (bl_2);
+
+      ref_add (bl_2, position);
+
+      save_bloom (File_head->filename, bl_2, prefix, argv[0]);
+
+      bloom_destroy (bl_2);
+
+      if (!strstr (File_head->filename, ".fifo"))
+	munmap (position, strlen (position));
+      else
+	free (position);
+      File_head = File_head->next;
+    }
+
 /*
   gettimeofday (&tv2, &tz);
 
@@ -100,6 +100,7 @@ main (int argc, char *argv[])
 */
   return 0;
 }
+
 /*-------------------------------------*/
 void
 struc_init ()
@@ -110,22 +111,25 @@ struc_init ()
   head->next = tail;
   head2 = head;
   File_head = NEW (F_set);
-  File_head = make_list(source,list);
+  File_head = make_list (source, list);
   File_head = File_head->next;
 }
+
 /*-------------------------------------*/
-void init_query (char *source)
+void
+init_query (char *source)
 {
-  if (strstr(source,".fifo"))
-      position = large_load (source);
+  if (strstr (source, ".fifo"))
+    position = large_load (source);
   else
-      position = mmaping (source);
-  
+    position = mmaping (source);
+
   if (*position == '>')
     capacity = strlen (position);
   else
     capacity = strlen (position) / 2;
 }
+
 /*-------------------------------------*/
 void
 init (int argc, char **argv)
@@ -148,14 +152,14 @@ init (int argc, char **argv)
       switch (x)
 	{
 	case 'e':
-	  (optarg) && ((error_rate = strtod(optarg, NULL)));
+	  (optarg) && ((error_rate = strtod (optarg, NULL)));
 	  break;
 	case 'k':
 	  (optarg) && ((k_mer = atoi (optarg)), 1);
 	  break;
 	case 'm':
 	  (optarg) && ((mode = atoi (optarg)), 1);
-	  if (mode >2 || mode <1)
+	  if (mode > 2 || mode < 1)
 	    {
 	      perror ("Mode select error.");
 	      exit (0);
@@ -167,21 +171,21 @@ init (int argc, char **argv)
 	case 'r':
 	  (optarg) && ((source = optarg), 1);
 	  break;
-        case 'l':
+	case 'l':
 	  (optarg) && (list = optarg, 1);
 	  break;
 	case 'h':
-	   help ();
-           remove_help ();
-           break;
+	  help ();
+	  remove_help ();
+	  break;
 	case '?':
-	  printf("Unknown option: -%c\n",(char)optopt);
+	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
 	}
 
-  }
-  
-    if ((!source) && (!list))
+    }
+
+  if ((!source) && (!list))
     {
       perror ("No source.");
       exit (0);
@@ -201,7 +205,7 @@ init_bloom (bloom * bl)
 
   flags = 3;
 
-  get_suggestion(&bl->stat, capacity, error_rate);
+  get_suggestion (&bl->stat, capacity, error_rate);
 
 #ifdef DEBUG
   printf ("Capacity: %lld\n", bl->stat.capacity);
@@ -211,8 +215,8 @@ init_bloom (bloom * bl)
   printf ("Real size: %lld\n", bl->stat.elements / 8);
 #endif
 
-  bloom_init(bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	         bl->stat.ideal_hashes, hash, flags);
+  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
+	      bl->stat.ideal_hashes, hash, flags);
 
   bl->k_mer = k_mer;
 
@@ -229,7 +233,7 @@ fasta_title (char *full)
 
   //temp_title = (char *) malloc ((ptr - full + 1) * sizeof (char));
 
-  //strncpy (temp_title, full, ptr - full + 1);	//include '\n'
+  //strncpy (temp_title, full, ptr - full + 1); //include '\n'
 
   return ptr + 1;
 }
@@ -238,7 +242,7 @@ fasta_title (char *full)
 void
 fasta_add (bloom * bl, char *position)
 {
-  while (*position!='\0')
+  while (*position != '\0')
     {
       if (*position == '>')
 	position = fasta_title (position);
@@ -337,15 +341,16 @@ fasta_data (bloom * bl_2, char *data)
 }
 
 /*-------------------------------------*/
-void ref_add(bloom *bl, char *position)
+void
+ref_add (bloom * bl, char *position)
 {
-	if(*position=='>')
-		fasta_add(bl,position);
-	else if (*position=='@')
-		fastq_add(bl,position);
-	else
-		{
-		perror("wrong format\n");
-	  exit(-1);
-	  }
+  if (*position == '>')
+    fasta_add (bl, position);
+  else if (*position == '@')
+    fastq_add (bl, position);
+  else
+    {
+      perror ("wrong format\n");
+      exit (-1);
+    }
 }

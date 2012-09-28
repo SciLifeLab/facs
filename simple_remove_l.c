@@ -26,7 +26,7 @@
 long sec, usec, i;
 struct timezone tz;
 struct timeval tv, tv2;
-/*-------------------------------------*/ 
+/*-------------------------------------*/
 #define PERMS 0600
 #define NEW(type) (type *) malloc(sizeof(type))
 /*-------------------------------------*/
@@ -34,7 +34,8 @@ float error_rate, tole_rate, contamination_rate;
 /*-------------------------------------*/
 int k_mer, mode, type;
 /*-------------------------------------*/
-char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2, *contam2, *list;
+char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
+  *contam2, *list;
 /*-------------------------------------*/
 Queue *head, *tail, *head2;
 /*-------------------------------------*/
@@ -49,7 +50,8 @@ void init (int argc, char **argv);
 void all_save (char *source);
 void fasta_process (bloom * bl, Queue * info);
 void fastq_process (bloom * bl, Queue * info);
-void save_result (char *source, char *obj_file, char *data, char *data2, int flag);
+void save_result (char *source, char *obj_file, char *data, char *data2,
+		  int flag);
 /*-------------------------------------*/
 int count_read (char *dick, char *next);
 int fastq_full_check (bloom * bl, char *p, int distance);
@@ -62,23 +64,23 @@ main (int argc, char **argv)
 
   gettimeofday (&tv, &tz);
 
-  init (argc, argv);		    //flag initialize 
+  init (argc, argv);		//flag initialize 
 
-  struc_init ();		    //structure init   
-  
-  query_init ();                    //query file load
+  struc_init ();		//structure init   
 
-  while(File_head)
-  {
-  load_bloom (File_head->filename, bl_2);
-  
-  k_mer = bl_2->k_mer; 
+  query_init ();		//query file load
 
-  printf("File name->%s ",File_head->filename);
-  printf("File number->%d\n",File_head->number);
+  while (File_head)
+    {
+      load_bloom (File_head->filename, bl_2);
+
+      k_mer = bl_2->k_mer;
+
+      printf ("File name->%s ", File_head->filename);
+      printf ("File number->%d\n", File_head->number);
 
 #pragma omp parallel
-{
+      {
 #pragma omp single nowait
 	{
 	  while (head != tail)
@@ -86,29 +88,29 @@ main (int argc, char **argv)
 #pragma omp task firstprivate(head)
 	      {
 		if (head->location)
-                  {
-                  //printf("location->%0.20s\n",head->location);
-		  if (type == 1)
-		    fasta_process (bl_2, head);
-		  else
-		    fastq_process (bl_2, head);
-                  }
+		  {
+		    //printf("location->%0.20s\n",head->location);
+		    if (type == 1)
+		      fasta_process (bl_2, head);
+		    else
+		      fastq_process (bl_2, head);
+		  }
 	      }
 	      head = head->next;
 	    }
 	}			// End of single - no implied barrier (nowait)
-}		                // End of parallel region - implied barrier
-  head = head2;
+      }				// End of parallel region - implied barrier
+      head = head2;
 
-  bloom_destroy (bl_2);
-  
-  File_head = File_head->next;
-  }     // End outside while
+      bloom_destroy (bl_2);
 
-  all_save(source);
+      File_head = File_head->next;
+    }				// End outside while
 
-  if (!strstr(source,".fifo"))
-  munmap (position, strlen(position));
+  all_save (source);
+
+  if (!strstr (source, ".fifo"))
+    munmap (position, strlen (position));
 
   printf ("finish processing...\n");
 
@@ -172,13 +174,13 @@ init (int argc, char **argv)
 	  //printf ("Query : \nThe argument of -q is %s\n", optarg);
 	  (optarg) && (source = optarg, 1);
 	  break;
-        case 'l':
+	case 'l':
 	  (optarg) && (list = optarg, 1);
 	  break;
 	case 'h':
-	   help ();
-     remove_help ();
-     break;
+	  help ();
+	  remove_help ();
+	  break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  exit (0);
@@ -186,7 +188,7 @@ init (int argc, char **argv)
 
     }
 
-  if (((!all_ref) && (!list))|| (!source))
+  if (((!all_ref) && (!list)) || (!source))
     {
       perror ("No source.");
       exit (0);
@@ -210,34 +212,36 @@ struc_init ()
   head->next = tail;
   head2 = head;
   File_head = NEW (F_set);
-  File_head = make_list(all_ref,list);
+  File_head = make_list (all_ref, list);
   File_head = File_head->next;
   File_head2 = File_head;
 }
+
 /*-------------------------------------*/
 void
 get_parainfo (char *full)
 {
   printf ("distributing...\n");
 
-  char *temp=full;
+  char *temp = full;
 
   int cores = omp_get_num_procs ();
 
-  int offsett = strlen(full) / cores;
+  int offsett = strlen (full) / cores;
 
   int add = 0;
 
   Queue *pos = head;
 
-    if (*full=='>')
-     type = 1;
-  else if(*full=='@')
-     type = 2;
-  else{
-     perror("wrong format\n");
-     exit(-1);
-      }
+  if (*full == '>')
+    type = 1;
+  else if (*full == '@')
+    type = 2;
+  else
+    {
+      perror ("wrong format\n");
+      exit (-1);
+    }
 
   if (type == 1)
     {
@@ -245,13 +249,13 @@ get_parainfo (char *full)
 	{
 	  Queue *x = NEW (Queue);
 
-          if (add == 0 && *full != '>')
+	  if (add == 0 && *full != '>')
 
-	  temp = strchr (full, '>');	//drop the possible fragment
+	    temp = strchr (full, '>');	//drop the possible fragment
 
 	  if (add != 0)
 
-	    temp = strchr (full + offsett*add, '>');
+	    temp = strchr (full + offsett * add, '>');
 
 	  x->location = temp;
 
@@ -273,14 +277,14 @@ get_parainfo (char *full)
 
 	    temp = strstr (full, "\n@") + 1;	//drop the fragment
 
-          //printf("offset->%d\n",offsett*add);
+	  //printf("offset->%d\n",offsett*add);
 
 	  if (add != 0)
 
-	    temp = strstr (full + offsett*add, "\n@");
+	    temp = strstr (full + offsett * add, "\n@");
 
-          if (temp)
-          temp++;
+	  if (temp)
+	    temp++;
 
 	  x->location = temp;
 
@@ -297,6 +301,7 @@ get_parainfo (char *full)
 
   return;
 }
+
 /*-------------------------------------*/
 void
 fastq_process (bloom * bl, Queue * info)
@@ -307,62 +312,62 @@ fastq_process (bloom * bl, Queue * info)
   char *p = info->location;
   char *next, *temp_start, *temp_end;
 
-  if (info->next==NULL)
+  if (info->next == NULL)
     return;
   else if (info->next != tail)
     next = info->next->location;
   else
     next = strchr (p, '\0');
-    
-  if (info->score==NULL)
-     {
-       read_num = count_read(p,next);
-       printf("read_num->%d\n",read_num);
-       info->score = (short *) malloc (read_num * sizeof (short));
-       info->number = (short *) malloc (read_num * sizeof (short));
-     }
+
+  if (info->score == NULL)
+    {
+      read_num = count_read (p, next);
+      printf ("read_num->%d\n", read_num);
+      info->score = (short *) malloc (read_num * sizeof (short));
+      info->number = (short *) malloc (read_num * sizeof (short));
+    }
   while (p != next)
     {
       temp_start = p;
 
       if (p == '\0' || p == NULL)
-	        break;
+	break;
 
       p = strchr (p, '\n') + 1;
 
       temp_end = strstr (p, "\n@");
 
       if (!temp_end)
-	        temp_end = strchr (p, '\0');
+	temp_end = strchr (p, '\0');
 
       result = fastq_read_check (p, strchr (p, '\n') - p, "normal", bl);
 
       if (result == 0)
-	       {
+	{
 #pragma omp critical
-        	  {
-	           memcpy (clean, temp_start, temp_end - temp_start); 
-	           clean += (temp_end - temp_start);
-	           if (*temp_end != '\0')
-	             {
-		            clean[0] = '\n';
-		            clean++;
-	             }
-	          }
-	       }
+	  {
+	    memcpy (clean, temp_start, temp_end - temp_start);
+	    clean += (temp_end - temp_start);
+	    if (*temp_end != '\0')
+	      {
+		clean[0] = '\n';
+		clean++;
+	      }
+	  }
+	}
       else if (result == -1)
-	       {
-	       	   continue;
-	       }
-      
-	    //(optarg) && (source = optarg, 1);
-	    if(info->score[countup]<result)
-	    {
-	       info->score[countup] = result;          //record score 
-	       info->number[countup] = File_head->number;    //record bloom number
-	    }
+	{
+	  continue;
+	}
+
+      //(optarg) && (source = optarg, 1);
+      if (info->score[countup] < result)
+	{
+	  info->score[countup] = result;	//record score 
+	  info->number[countup] = File_head->number;	//record bloom number
+	}
       if (*temp_end == '\0')
-	           break;
+	break;
       p = temp_end + 1;
       countup++;
     }				// end while
@@ -519,49 +524,49 @@ fasta_process (bloom * bl, Queue * info)
 
   char *temp = p;
 
-  if (info->next==NULL)
+  if (info->next == NULL)
     return;
   else if (info->next != tail)
     next = info->next->location;
   else
     next = strchr (p, '\0');
-    
-  if (info->score==NULL)
-     {
-       read_num = count_read(p,next);
-       printf("read_num->%d\n",read_num);
-       info->score = (short *) malloc (read_num * sizeof (short));
-       info->number = (short *) malloc (read_num * sizeof (short));
-     }
+
+  if (info->score == NULL)
+    {
+      read_num = count_read (p, next);
+      printf ("read_num->%d\n", read_num);
+      info->score = (short *) malloc (read_num * sizeof (short));
+      info->number = (short *) malloc (read_num * sizeof (short));
+    }
 
   while (p != next)
     {
       temp = strchr (p + 1, '>');
       if (!temp)
-	   temp = next;
-	        
+	temp = next;
+
       result = fasta_read_check (p, temp, "normal", bl);
-      
-      if (result==0)
-	       {
+
+      if (result == 0)
+	{
 #pragma omp critical
-	         {
-	          memcpy (clean, p, temp - p);
-	          clean += (temp - p);
-	         }
-	       }
+	  {
+	    memcpy (clean, p, temp - p);
+	    clean += (temp - p);
+	  }
+	}
       else if (result == -1)
-      	 continue;
-	    if(info->score[countup]<result)
-	    {
-	       info->score[countup] = result;          //record score 
-	       info->number[countup] = File_head->number;    //record bloom number
-	    }
-	    
+	continue;
+      if (info->score[countup] < result)
+	{
+	  info->score[countup] = result;	//record score 
+	  info->number[countup] = File_head->number;	//record bloom number
+	}
+
       countup++;
-  
+
       p = temp;
-    }   // end while
+    }				// end while
   //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
 }
 
@@ -573,7 +578,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
   char *p = strchr (begin + 1, '\n') + 1;
 
   if (!p || *p == '>')
-     return 1;
+    return 1;
 
   char *start = p;
 
@@ -614,7 +619,8 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 
 	  memcpy (temp_key, pre_key + strlen (key), k_mer - strlen (key));
 
-	  memcpy (temp_key + k_mer - strlen (key), key, sizeof (char) * (strlen (key) + 1));
+	  memcpy (temp_key + k_mer - strlen (key), key,
+		  sizeof (char) * (strlen (key) + 1));
 
 	  free (key);
 
@@ -634,7 +640,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 	{
 	  if (bloom_check (bl, key))
 	    {
-	      return fasta_full_check (bl, begin, next,model);
+	      return fasta_full_check (bl, begin, next, model);
 	    }
 	}			//outside if
 
@@ -642,7 +648,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 	{
 	  if (!bloom_check (bl, key))
 	    {
-	      return fasta_full_check (bl, begin, next,model);
+	      return fasta_full_check (bl, begin, next, model);
 	    }
 	}			//outside else
       memset (key, 0, k_mer);
@@ -739,6 +745,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
   else
     return 0;
 }
+
 /*-------------------------------------*/
 void
 save_result (char *source, char *obj_file, char *data, char *data2, int flag)
@@ -788,9 +795,9 @@ save_result (char *source, char *obj_file, char *data, char *data2, int flag)
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   if (flag == 0)
-      strcat (match, "~clean");
+    strcat (match, "~clean");
   else
-  	  strcat (match, "~contam");
+    strcat (match, "~contam");
   if (type == 1)
     {
       strcat (match, ".fasta");
@@ -814,91 +821,98 @@ save_result (char *source, char *obj_file, char *data, char *data2, int flag)
   data = data2;
 
 }
+
 /*-------------------------------------*/
-void query_init ()
+void
+query_init ()
 {
-  if (strstr(source,".fifo"))
-      position = large_load (source);
+  if (strstr (source, ".fifo"))
+    position = large_load (source);
   else
-      position = mmaping (source);
+    position = mmaping (source);
 
   get_parainfo (position);
-  
-  clean = (char *) malloc (strlen(position) * sizeof (char));
-  contam = (char *) malloc (strlen(position) * sizeof (char));
+
+  clean = (char *) malloc (strlen (position) * sizeof (char));
+  contam = (char *) malloc (strlen (position) * sizeof (char));
   clean2 = clean;
   contam2 = contam;
-  memset(clean2,0,strlen(position));
-  memset(contam2,0,strlen(position));
+  memset (clean2, 0, strlen (position));
+  memset (contam2, 0, strlen (position));
 }
-/*-------------------------------------*/
-int count_read (char *data, char *next)
-{
-printf("count_read\n");
-int number = 1;
-char *pos, *temp_next;
-pos = data;
 
-while(pos!=next)
-    {
-    if (type == 1)
-    	  temp_next = strchr(pos+1,'>');
-    else	
-    	  temp_next = strstr(pos+1,"\n@");
-    number++;
-    pos = temp_next;
-    if (!pos)
-    	 break;
-    }
-return number;
-}
 /*-------------------------------------*/
-void all_save (char *source)
+int
+count_read (char *data, char *next)
 {
-char *pos, *next, *temp_next;
-int countup;
-	
-save_result (source,"",clean,clean2,0); // save the clean data
-free(clean2);
+  printf ("count_read\n");
+  int number = 1;
+  char *pos, *temp_next;
+  pos = data;
+
+  while (pos != next)
+    {
+      if (type == 1)
+	temp_next = strchr (pos + 1, '>');
+      else
+	temp_next = strstr (pos + 1, "\n@");
+      number++;
+      pos = temp_next;
+      if (!pos)
+	break;
+    }
+  return number;
+}
+
+/*-------------------------------------*/
+void
+all_save (char *source)
+{
+  char *pos, *next, *temp_next;
+  int countup;
+
+  save_result (source, "", clean, clean2, 0);	// save the clean data
+  free (clean2);
 
 //File_head2 = File_head2->next;
 //printf("1_dollar_%s\n",File_head2->filename);
-while (File_head2)
+  while (File_head2)
     {
-    head = head2;
-    head = head->next;
-    while (head!=tail)
-        {
-        	countup = 0;
-        	pos = head->location;
-          if (head->next->location!=NULL)
-        	    next = head->next->location;
-        	else
-                    next = strchr(head->location,'\0');
-                //printf("head->%0.20s\n",head->location);		  
-        	while (pos!=next)
-        	    {
-        	    if (type == 1)
-        	    	  temp_next = strchr(pos+1,'>');
-        	    else
-        	    	  temp_next = strstr(pos+1,"\n@");
-        	    //printf("temp_next->%0.10s\n",temp_next);
-                    //printf("next->%0.10s\n",next);
-        	    if (temp_next == NULL)
-        	    	  temp_next = next;
-                    //printf("???->%d---%d\n",head->score[countup],head->number[countup]);
-        	    if (head->score[countup]>0&&(head->number[countup]==File_head2->number))
-        	    	  {
-        	          memcpy(contam,pos,temp_next-pos);
-        	          contam+=temp_next-pos;
-        	    	  }	
-        	    countup++;
-                    pos= temp_next;
-        	    }
-        	head = head->next;
-        	//save_result (source,File_head2->filename,contam,contam2,1);
-        }
-     save_result (source,File_head2->filename,contam,contam2,1);
-     File_head2 = File_head2->next; 
+      head = head2;
+      head = head->next;
+      while (head != tail)
+	{
+	  countup = 0;
+	  pos = head->location;
+	  if (head->next->location != NULL)
+	    next = head->next->location;
+	  else
+	    next = strchr (head->location, '\0');
+	  //printf("head->%0.20s\n",head->location);                
+	  while (pos != next)
+	    {
+	      if (type == 1)
+		temp_next = strchr (pos + 1, '>');
+	      else
+		temp_next = strstr (pos + 1, "\n@");
+	      //printf("temp_next->%0.10s\n",temp_next);
+	      //printf("next->%0.10s\n",next);
+	      if (temp_next == NULL)
+		temp_next = next;
+	      //printf("???->%d---%d\n",head->score[countup],head->number[countup]);
+	      if (head->score[countup] > 0
+		  && (head->number[countup] == File_head2->number))
+		{
+		  memcpy (contam, pos, temp_next - pos);
+		  contam += temp_next - pos;
+		}
+	      countup++;
+	      pos = temp_next;
+	    }
+	  head = head->next;
+	  //save_result (source,File_head2->filename,contam,contam2,1);
+	}
+      save_result (source, File_head2->filename, contam, contam2, 1);
+      File_head2 = File_head2->next;
     }
 }

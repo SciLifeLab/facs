@@ -12,126 +12,132 @@
 
 
 
-void get_file_path(const char *path, const char *file_name,  char *file_path)
+void
+get_file_path (const char *path, const char *file_name, char *file_path)
 {
-    strcpy(file_path, path);
-    if(file_path[strlen(path) - 1] != '/')
-        strcat(file_path, "/");
-    strcat(file_path, file_name);
+  strcpy (file_path, path);
+  if (file_path[strlen (path) - 1] != '/')
+    strcat (file_path, "/");
+  strcat (file_path, file_name);
 }
 
-int is_dir(const char *path)
+int
+is_dir (const char *path)
 {
-    struct stat statbuf;
-    if(lstat(path, &statbuf) ==0)
+  struct stat statbuf;
+  if (lstat (path, &statbuf) == 0)
     {
-        return S_ISDIR(statbuf.st_mode) != 0;
+      return S_ISDIR (statbuf.st_mode) != 0;
     }
-    return 0;
+  return 0;
 }
 
-int is_file(const char *path)
+int
+is_file (const char *path)
 {
-    struct stat statbuf;
-    if(lstat(path, &statbuf) ==0)
-        return S_ISREG(statbuf.st_mode) != 0;
-    return 0;
+  struct stat statbuf;
+  if (lstat (path, &statbuf) == 0)
+    return S_ISREG (statbuf.st_mode) != 0;
+  return 0;
 }
 
-int is_special_dir(const char *path)
+int
+is_special_dir (const char *path)
 {
-    return strcmp(path, ".") == 0 || strcmp(path, "..") == 0;
+  return strcmp (path, ".") == 0 || strcmp (path, "..") == 0;
 }
 
-F_set *make_list(char *file_user, char *list_user)
+F_set *
+make_list (char *file_user, char *list_user)
 {
-	
-   struct DIR *dir;
-   struct dirent *dir_info;
-   
-   F_set *head = NEW(F_set);
-   F_set *head1 = head;
-   int number = 0; 
+
+  struct DIR *dir;
+  struct dirent *dir_info;
+
+  F_set *head = NEW (F_set);
+  F_set *head1 = head;
+  int number = 0;
 
   if (list_user)
-  	  {
-                printf ("in make list\n");
-                list_user = mmaping(list_user);
-  	  	char *pos;
-                
+    {
+      printf ("in make list\n");
+      list_user = mmaping (list_user);
+      char *pos;
 
-  	    while(list_user!='\0')
-  	         {
 
-  	         char *mimi = (char *)malloc(300 * sizeof(char) + 1);
-                 memset(mimi,0,300);
-                 
-  	         F_set *crap = NEW(F_set);
-                 crap->next = NULL;
+      while (list_user != '\0')
+	{
 
-  	         if (pos=strchr(list_user,'\n'))
-  	             strncat(mimi,list_user,pos-list_user);
-  	         else
-                     break;
-                 //mimi[strlen(mimi)] = '\0';
-                 //printf("mimi->%s\n",mimi);
-  	         crap->filename = mimi;
-                 crap->number = &number;
-                 //printf("crap->%d\n",crap->number);
-  	         crap->next = head->next;
-  	         head->next = crap;
-                 head = head->next;
-  	         list_user = pos+1;
-                 number++;
-  	         }	
-  	  }
+	  char *mimi = (char *) malloc (300 * sizeof (char) + 1);
+	  memset (mimi, 0, 300);
 
-	else if (is_file(file_user))
-	    {
-              printf("in file\n");
-	      F_set *crap = NEW (F_set);
-	      crap->filename = file_user;
-	      crap->next = head->next;
-	      head->next = crap;
-              head = head->next;
-	    }
-	    
-	else if (is_dir(file_user))
-		  {
-        printf("in dir\n");		  	
-        //char *file_path;
-           
-        if((dir = opendir(file_user)) == NULL)
-        	  {
-            perror("Empty dir\n");
-            exit(-1);
-                  }
-        while((dir_info = readdir(dir)) != NULL)
-        {
-            char *file_path =(char *)malloc(300 * sizeof(char));
-            memset(file_path,0,300);	
-            get_file_path(file_user, dir_info->d_name, file_path);
-            
-            if(is_special_dir(dir_info->d_name))
-                continue;
-              
-            if(!strstr(dir_info->d_name,".bloom"))
-                continue;
-              printf("file_path->%s\n",file_path);
-	      F_set *crap = NEW (F_set);
-	      crap->filename = file_path;
-              crap->number = &number;
-              printf("crap->%d\n",crap->number);
-	      crap->next = head->next;
-	      head->next = crap; 
-              head = head->next;  
-              number++;
-        }   
-		  }
-		  
-return head1;
+	  F_set *crap = NEW (F_set);
+	  crap->next = NULL;
+
+	  if (pos = strchr (list_user, '\n'))
+	    strncat (mimi, list_user, pos - list_user);
+	  else
+	    break;
+	  //mimi[strlen(mimi)] = '\0';
+	  //printf("mimi->%s\n",mimi);
+	  crap->filename = mimi;
+	  crap->number = &number;
+	  //printf("crap->%d\n",crap->number);
+	  crap->next = head->next;
+	  head->next = crap;
+	  head = head->next;
+	  list_user = pos + 1;
+	  number++;
+	}
+    }
+
+  else if (is_file (file_user))
+    {
+      printf ("in file\n");
+      F_set *crap = NEW (F_set);
+      crap->filename = file_user;
+      crap->next = head->next;
+      head->next = crap;
+      head = head->next;
+    }
+
+  else if (is_dir (file_user))
+    {
+      printf ("in dir\n");
+      //char *file_path;
+
+      if ((dir = opendir (file_user)) == NULL)
+	{
+	  perror ("Empty dir\n");
+	  exit (-1);
+	}
+      while ((dir_info = readdir (dir)) != NULL)
+	{
+	  char *file_path = (char *) malloc (300 * sizeof (char));
+	  memset (file_path, 0, 300);
+	  get_file_path (file_user, dir_info->d_name, file_path);
+
+	  if (is_special_dir (dir_info->d_name))
+	    continue;
+
+	  if (!strstr (dir_info->d_name, ".bloom"))
+	    continue;
+	  printf ("file_path->%s\n", file_path);
+	  F_set *crap = NEW (F_set);
+	  crap->filename = file_path;
+	  crap->number = &number;
+	  printf ("crap->%d\n", crap->number);
+	  crap->next = head->next;
+	  head->next = crap;
+	  head = head->next;
+	  number++;
+	}
+    }
+
+  return head1;
 
 }
+
 /*
 void main()
 {

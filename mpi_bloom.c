@@ -46,7 +46,7 @@ bloom *bl_2;
 /*-------------------------------------*/
 struct stat statbuf;
 /*-------------------------------------*/
-void list_init();
+void list_init ();
 void struc_init ();
 void get_parainfo (char *full);
 void get_size (char *strFileName);
@@ -94,7 +94,7 @@ main (int argc, char **argv)
       return -1;
     }
 
-  char *detail = (char *) malloc (1000 * 1000  * sizeof (char));
+  char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
 
   memset (detail, 0, 1000 * 1000);
 
@@ -110,8 +110,8 @@ main (int argc, char **argv)
   while (share > 0)
     {
       position = ammaping (source);
-      
-      list_init();
+
+      list_init ();
 
       get_parainfo (position);
 
@@ -123,19 +123,19 @@ main (int argc, char **argv)
 	{
 	  while (head != tail)
 	    {
-                
+
 #pragma omp task firstprivate(head)
 	      {
 		printf ("position->%0.10s\n", head->location);
-		   
-		   if (type == 1)
-		   fasta_process(bl_2,head);
-		   else
-		   fastq_process(bl_2,head);
-       
+
+		if (type == 1)
+		  fasta_process (bl_2, head);
+		else
+		  fastq_process (bl_2, head);
+
 	      }
-        head = head->next;
-	      
+	      head = head->next;
+
 	    }
 	}
       }
@@ -328,7 +328,7 @@ get_size (char *strFileName)
   CHUNK = 1000 * 1000 * 1000 * 1 / PAGE;	//1GB
 
 
-  //if (statbuf.st_size % PAGE != 0)	//need one more page if total data is not a time number of a memory PAGE
+  //if (statbuf.st_size % PAGE != 0)    //need one more page if total data is not a time number of a memory PAGE
   //extra_piece = statbuf.st_size % PAGE;
   //printf ("extra_piece->%d\n", extra_piece);
 }
@@ -360,7 +360,7 @@ get_parainfo (char *full)
 	  Queue *x = NEW (Queue);
 	  temp = strchr (full, '>');	//drop the possible fragment
 	  if (add != 0)
-	    temp = strchr (full + offsett*add, '>');
+	    temp = strchr (full + offsett * add, '>');
 	  x->location = temp;
 	  x->number = add;
 	  x->next = pos->next;
@@ -377,7 +377,7 @@ get_parainfo (char *full)
 	  if (add == 0 && *full != '@')
 	    temp = strstr (full, "\n@") + 1;	//drop the fragment
 	  if (add != 0)
-	    temp = strstr (full + offsett*add, "\n@") + 1;
+	    temp = strstr (full + offsett * add, "\n@") + 1;
 	  x->location = temp;
 	  x->number = add;
 	  x->next = pos->next;
@@ -437,19 +437,19 @@ fastq_process (bloom * bl, Queue * info)
     next = info->next->location;
 
   else
-    { 
+    {
       printf ("last_piece  %d\n", last_piece);
       temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
-      memset(temp_piece,0,last_piece+1);
-      memcpy (temp_piece, info->location, last_piece-PAGE);
+      memset (temp_piece, 0, last_piece + 1);
+      memcpy (temp_piece, info->location, last_piece - PAGE);
       temp_piece[last_piece] = '\0';
 
       temp = temp_piece;
-      while ((temp = strstr(temp,"\n@")))
-      {
-      next = temp+1;
-      temp++;
-      }
+      while ((temp = strstr (temp, "\n@")))
+	{
+	  next = temp + 1;
+	  temp++;
+	}
       p = temp_piece;
     }
 
@@ -477,7 +477,7 @@ fastq_process (bloom * bl, Queue * info)
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
-printf("finish process...\n");
+  printf ("finish process...\n");
   if (temp_piece)
     free (temp_piece);
 }
@@ -569,7 +569,7 @@ fastq_full_check (bloom * bl, char *p, int distance)
 
 //printf("k_mer->%din",k_mer);
   int length = distance;
-  #pragma omp atomic
+#pragma omp atomic
   checky++;
 
   while (distance >= k_mer)
@@ -621,34 +621,34 @@ fastq_full_check (bloom * bl, char *p, int distance)
 void
 fasta_process (bloom * bl, Queue * info)
 {
-  printf("fasta processing...\n");
+  printf ("fasta processing...\n");
   char *p = info->location;
-  char *next, *temp, *temp_next, *temp_piece=NULL;
+  char *next, *temp, *temp_next, *temp_piece = NULL;
 
   if (info->next != tail)
     next = info->next->location;
 
   else
     {
-      last=1;
+      last = 1;
 
       printf ("last_piece %d\n", last_piece);
-      
+
       temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
 
-      memset(temp_piece,0,last_piece+1);
+      memset (temp_piece, 0, last_piece + 1);
 
-      memcpy (temp_piece, info->location, last_piece-PAGE);
+      memcpy (temp_piece, info->location, last_piece - PAGE);
 
 
       temp_piece[last_piece] = '\0';
 
       next = strrchr (temp_piece, '>');
 
-      printf ("temp_piece->%0.30s\n",temp_piece);
+      printf ("temp_piece->%0.30s\n", temp_piece);
       printf ("next->%0.30s\n", next);
-      printf ("length->%d\n",strlen(temp_piece));
-      printf ("test->%d\n",next-temp_piece);      
+      printf ("length->%d\n", strlen (temp_piece));
+      printf ("test->%d\n", next - temp_piece);
       p = temp_piece;
       //printf ("p->%0.20s\n", p);
     }
@@ -674,43 +674,43 @@ fasta_process (bloom * bl, Queue * info)
       //printf("before\n");
 
       temp_next = strchr (p + 1, '>');
-      
+
       //if (last == 1)
       //if (temp_next)
       //printf("temp_next->%0.20s\n",temp_next);
       //else
       //printf("boom\n");
-      
+
       if (!temp_next)
 	temp_next = next;
-      
+
       if (!fasta_read_check (p, temp_next, "normal", bl))
 	{
-          #pragma omp atomic
+#pragma omp atomic
 	  reads_contam++;
 	}
 
       p = temp_next;
       /*
-      if (last == 1)
-      {
-      printf ("p->%0.20s\n", p);
-      printf ("temp_next->%0.20s\n",temp_next);
-      if (p == next)
-      printf("ja\n");
-      }
-      */
-      }
-      if (temp_piece)
-	free (temp_piece);
+         if (last == 1)
+         {
+         printf ("p->%0.20s\n", p);
+         printf ("temp_next->%0.20s\n",temp_next);
+         if (p == next)
+         printf("ja\n");
+         }
+       */
+    }
+  if (temp_piece)
+    free (temp_piece);
 }
 
 /*-------------------------------------*/
 int
 fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 {
- //if (last == 1)
- //printf("fasta read check...\n");
+  //if (last == 1)
+  //printf("fasta read check...\n");
 
 //begin = strchr(begin+1,'\n')+1;
 
@@ -733,22 +733,22 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 
   while (p != next)
     {
-            
+
       //if (last == 1)
       //{
       //printf("p->%0.30s\n",p);
       //printf("next->%0.30s\n",next);
       /*
-      printf("next->%0.30s\n",next);
-      char *mov=p;
-      while (mov != next)
-            {
-            printf("(((->%0.30s\n",mov);
-            mov = strchr(mov,'>')+1;
-            }
-      */      
+         printf("next->%0.30s\n",next);
+         char *mov=p;
+         while (mov != next)
+         {
+         printf("(((->%0.30s\n",mov);
+         mov = strchr(mov,'>')+1;
+         }
+       */
       //}
-      
+
       while (n < k_mer)
 	{
 	  if (p[m] == '>' || p[m] == '\0')
@@ -773,15 +773,15 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
       else
 	{
 	  char *temp_key = (char *) malloc (k_mer * sizeof (char));
-	  
+
 	  memcpy (temp_key, pre_key + strlen (key), k_mer - strlen (key));
 	  memcpy (temp_key + k_mer - strlen (key), key,
 		  sizeof (char) * (strlen (key) + 1));
 	  free (key);
 	  key = temp_key;
-	  
+
 	}
-      
+
       p += m;
 
       n = 0;
@@ -795,8 +795,8 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 	rev_trans (key);
 
       if (mode == 1)
-	{ 
-          //printf("in\n");
+	{
+	  //printf("in\n");
 	  if (bloom_check (bl, key))
 	    {
 	      //printf("in\n");
@@ -844,7 +844,7 @@ int
 fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 {
 
-  #pragma omp atomic
+#pragma omp atomic
   checky++;
 
   int label_m = 0, label_mis = 0, match_s = 0, count = 0;
@@ -907,7 +907,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 		  }
 	      }
 	    else
-		      {
+	      {
 		label_m += k_mer;
 		match_s += k_mer - 1;
 	      }
@@ -1031,14 +1031,16 @@ statistic_save (char *detail, char *filename)
   write_result (save_file, detail);
 }
 
-void list_init()
+void
+list_init ()
 {
   head = NEW (Queue);
 
   tail = NEW (Queue);
 
-  head->next = tail;	
+  head->next = tail;
 }
+
 /*
 
 char* reallocate(Queue *info)
