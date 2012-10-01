@@ -599,7 +599,7 @@ fastq_full_check (bloom * bl, char *p, int distance)
 	  if (pre_kmer == 1)
 	    {
 	      label_m++;
-	      if (count < 20)
+	      if (count < (k_mer-1))
 		match_s++;
 	      else
 		{
@@ -911,7 +911,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 	    if (pre_kmer == 1)
 	      {
 		label_m++;
-		if (count < 20)
+		if (count < (k_mer-1))
 		  match_s++;
 		else
 		  {

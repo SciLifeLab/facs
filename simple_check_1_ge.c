@@ -496,7 +496,7 @@ fastq_full_check (bloom * bl, char *p, int distance)
 	    {
 	      label_m++;
 
-	      if (count < 20)
+	      if (count < (k_mer-1))
 		match_s++;
 	      else
 
@@ -752,7 +752,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 	    if (pre_kmer == 1)
 	      {
 		label_m++;
-		if (count < 20)
+		if (count <(k_mer-1))
 		  match_s++;
 		else
 		  {
@@ -780,7 +780,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
       n = 0;
       m = 0;
     }				// end of while
-
+printf("%d\n",match_s);
   if (((float) (match_s) / (float) (next - begin - count_enter)) >= (tole_rate))	//match >tole_rate considered as contaminated
     return 0;
   else

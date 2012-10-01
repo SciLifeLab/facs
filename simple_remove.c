@@ -89,7 +89,7 @@ main (int argc, char **argv)
       memset (contam2, 0, strlen (position));
 
       load_bloom (File_head->filename, bl_2);
-
+      k_mer = bl_2->k_mer;
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -151,19 +151,11 @@ init (int argc, char **argv)
   prefix = NULL;
 /*-------default-------*/
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:l:h")) != -1)
+  while ((x = getopt (argc, argv, "m:t:o:r:q:l:h")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
 	{
-	case 'e':
-	  //printf ("Error rate: \nThe argument of -e is %s\n", optarg);
-	  (optarg) && ((error_rate = atof (optarg)), 1);
-	  break;
-	case 'k':
-	  //printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
-	  (optarg) && ((k_mer = atoi (optarg)), 1);
-	  break;
 	case 'm':
 	  //printf ("Mode : \nThe argument of -m is %s\n", optarg);
 	  (optarg) && ((mode = atoi (optarg)), 1);
@@ -543,7 +535,7 @@ fastq_full_check (bloom * bl, char *p, int distance)
 	  if (pre_kmer == 1)
 	    {
 	      label_m++;
-	      if (count < 20)
+	      if (count < (k_mer-1))
 		match_s++;
 	      else
 		{
@@ -770,7 +762,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 	    if (pre_kmer == 1)
 	      {
 		label_m++;
-		if (count < 20)
+		if (count < (k_mer-1))
 		  match_s++;
 		else
 		  {
