@@ -90,6 +90,7 @@ main (int argc, char **argv)
 
       load_bloom (File_head->filename, bl_2);
       k_mer = bl_2->k_mer;
+
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -145,7 +146,6 @@ init (int argc, char **argv)
     }
 /*-------default-------*/
   mode = 1;
-  k_mer = 21;
   tole_rate = 0.8;
   error_rate = 0.0005;
   prefix = NULL;
@@ -619,14 +619,15 @@ fasta_process (bloom * bl, Queue * info)
 	}
       p = temp;
     }
-  printf ("all->%d\ncontam->%d\n", read_num, read_contam);
+  //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
 }
 
 /*-------------------------------------*/
 int
 fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 {
-
+  //printf("%0.9s  ",begin);
+  //printf("model->%s\n",model);
   char *p = strchr (begin + 1, '\n') + 1;
 
   if (!p || *p == '>')
@@ -634,7 +635,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 
   char *start = p;
 
-  int n, m, label_m, label_mis, count_enter;
+  int n, m, result, count_enter;
 
   char *key = (char *) malloc ((k_mer + 1) * sizeof (char));
 
@@ -692,7 +693,13 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 	{
 	  if (bloom_check (bl, key))
 	    {
-	      return fasta_full_check (bl, begin, next, model);
+	      result =  fasta_full_check (bl, begin, next, model);
+              if (result == 0)
+                  return result;
+              //else if (model == "normal")	//use recursion to check the sequence forward and backward
+              //    return fasta_read_check (begin, next, "reverse", bl);
+              else if (model == "normal")
+                  break;
 	    }
 	}			//outside if
 
@@ -700,25 +707,26 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 	{
 	  if (!bloom_check (bl, key))
 	    {
-	      return fasta_full_check (bl, begin, next, model);
+	      result = fasta_full_check (bl, begin, next, model);
 	    }
 	}			//outside else
       memset (key, 0, k_mer);
     }				//outside while
-
-  if (model == "normal")	//use recursion to check the sequence forward and backward
-    return fasta_read_check (begin, next, "reverse", bl);
-  else
-    return 1;
-}
+    if (model == "reverse")
+        return 1;
+    else
+        return fasta_read_check (begin, next, "reverse", bl);
+}  
 
 /*-------------------------------------*/
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 {
-  int label_m = 0, label_mis = 0, match_s = 0, count = 0;
+  int match_s = 0, count = 0, mark = 1;
 
-  int n = 0, m = 0, count_enter = 0, pre_kmer = -1;
+  int n = 0, m = 0, count_enter = 0;
+
+  printf("%0.9s\n",begin);
 
   char *key = (char *) malloc ((k_mer + 1) * sizeof (char));
 
@@ -754,43 +762,41 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 
       if (model == "reverse")
 	rev_trans (key);
-
+      //printf("key->%s\n",key);
+      if (count >= k_mer)
+         {
+           mark = 1;
+           count = 0;
+         }
       if (strlen (key) == k_mer)
+       {
 	if (bloom_check (bl, key))
-	  {
-	    count++;
-	    if (pre_kmer == 1)
-	      {
-		label_m++;
-		if (count < (k_mer-1))
-		  match_s++;
-		else
-		  {
-		    match_s += count;
-		    count = 0;
-		  }
-	      }
-	    else
-	      {
-		label_m += k_mer;
-		match_s += k_mer - 1;
-	      }
-	    pre_kmer = 1;
-	    //printf("%d----%d\n",label_m,label_mis);
+	  { 
+            //printf("hit--->\n");
+            if (mark == 1)
+                {
+                match_s+=(k_mer-1);
+                mark = 0;
+                }
+            else
+                match_s++;
 	  }
+        
 	else
 	  {
-	    count = 0;
-	    pre_kmer = 0;
+            //printf("unhit--->\n");
 	  }
-
+        
+    count++;
+        }   //outside if
+      //printf("score->%d\n",match_s);
       p++;
       if (p[0] == '\n')
 	p++;
       n = 0;
       m = 0;
     }				// end of while
-
+  //printf("match->%d length->%d\nrate->%f\n",match_s,next-begin-count_enter,(float) (match_s) / (float) (next - begin - count_enter));
   if (((float) (match_s) / (float) (next - begin - count_enter)) >= (tole_rate))	//match >tole_rate considered as contaminated
     return 0;
   else
