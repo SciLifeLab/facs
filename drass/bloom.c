@@ -476,46 +476,6 @@ rev_trans (char *s)
 
 }
 
-/*
-void instruction(){
-printf("pod\n");
-
-
-
-printf("SYNOPSIS\n");
-
-printf("\n");
-
-printf("ARGUMENTS\n");
-
-printf("./script <>");
-
-printf("The word size for K-mers used by the filter.\n");
-
-printf("<bloomfilterlistfile>\n");
-
-printf("File containing a list of Bloom filters built using I<bloombuild>\n");
-
-printf("<queryfile>\n");
-
-printf("Fasta file with reads to be filtered.\n");
-
-printf("<outprefix>\n");
-
-printf("Prefix for output filenames.\n");
-
-printf("\n");
-
-printf("DESCRIPTION\n");
-
-printf("facs interrogates queries against filters and classifies queries onto genomes. The algorithm loops trough all queries for one filter at a time.\n");
-
-printf("Results are written to three files\n");
-
-exit(1);
-
-}
-*/
 void
 help ()
 {
@@ -678,11 +638,6 @@ large_load (char *fifoname, char *filename)
 
   fclose (fd);
 
-//#ifdef DEBUG
-// Too verbose
-// // printf("data->%s\n",data);
-// #endif
-//
    return data;
    }
 
