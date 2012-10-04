@@ -46,18 +46,15 @@ typedef struct
 	char *vector;
 	hash_t hash;
  	BIGNUM inserts;
-  //	int ideal_hashes;
         struct bloomstat stat;
-	//randoms random_nums;
         int k_mer;
 } bloom;
 
-//int verbose;
-
 typedef struct info
 {
-     int number;
-     char *location;                     			
+     char *location;
+     short *score;
+     short *number;                     			
      struct info *next;          
 } Queue;
 
@@ -105,5 +102,6 @@ extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);
 //extern void cat_print(char *merge, char *remove);
 //
-extern char *large_load (char *fifoname, char *filename);
+extern char *large_load (char *fifoname);
+extern char *mmaping (char *source);
 #endif
