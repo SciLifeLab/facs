@@ -26,12 +26,17 @@ PyMODINIT_FUNC initdrass(void)
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *argv)
 {
    BIGNUM capacity;
-   const char *flags;
-   char *source,*position, *prefix;
-
+   const *flags;
+   char *source, *position, *prefix;
+   struct stat statbuf;
    bloom *bl_2;
    bl_2 = NEW (bloom);
    position = mmaping(source);
+
+/* initializes argc & argv, needs ParseTuple for each parm? */
+   init(argc, argv);
+   if (!PyArg_ParseTuple(args, "s", &flags))
+       return NULL;
 
    if (*position == '>')
        capacity = strlen (position);
@@ -41,11 +46,7 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *arg
    init_bloom (bl_2);
    fasta_add(bl_2, position);
 
-   save_bloom(source, bl_2, prefix, 0);
+   save_bloom(source, bl_2, prefix, flags);
 
-   /*munmap (position, statbuf.st_size);*/
-   
-   if (!PyArg_ParseTuple(args, "s", &flags))
-       return NULL;
-
+   munmap (position, statbuf.st_size);
 }
