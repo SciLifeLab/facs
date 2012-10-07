@@ -19,6 +19,7 @@
 #include "bloom.h"
 #include "hashes.h"
 #include "file_dir.h"
+#include "tool.h"
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
@@ -51,11 +52,6 @@ void fastq_process (bloom * bl, Queue * info);
 void evaluate (char *detail, char *filename);
 void save_result (char *source, char *obj_file);
 void statistic_save (char *detail, char *filename);
-/*-------------------------------------*/
-int fastq_full_check (bloom * bl, char *p, int distance);
-int fasta_full_check (bloom * bl, char *begin, char *next, char *model);
-int fastq_read_check (char *begin, int length, char *model, bloom * bl);
-int fasta_read_check (char *begin, char *next, char *model, bloom * bl);
 /*-------------------------------------*/
 char *jump (char *target);
 char *mmaping (char *source);
@@ -311,43 +307,6 @@ get_parainfo (char *full)
 
   return;
 }
-
-/*-------------------------------------*/
-/*
-char *
-mmaping (char *source)
-{
-
-  struct stat statbuf;
-
-  int src;
-  char *sm;
-
-  if ((src = open (source, O_RDONLY)) < 0)
-    {
-      perror (" open source ");
-      exit (EXIT_FAILURE);
-    }
-
-  if (fstat (src, &statbuf) < 0)
-    {
-      perror (" fstat source ");
-      exit (EXIT_FAILURE);
-    }
-
-  sm =
-    mmap (0, (size_t) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE,
-	  src, 0);
-
-  if (MAP_FAILED == sm)
-    {
-      perror (" mmap source ");
-      exit (EXIT_FAILURE);
-    }
-
-  return sm;
-}
-*/
 /*-------------------------------------*/
 void
 fastq_process (bloom * bl, Queue * info)
@@ -379,16 +338,12 @@ fastq_process (bloom * bl, Queue * info)
 	  continue;
 	}
 
-      //if (*p == '\0' || !p)
-      //break;
-
 #pragma omp atomic
       reads_num++;
 
       p = strchr (p, '\n') + 1;
-      int distance = strchr (p, '\n') - p;
 
-      if (!fastq_read_check (p, distance, "normal", bl))
+      if (!fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate))
 #pragma omp atomic
 	reads_contam++;
 
@@ -399,139 +354,6 @@ fastq_process (bloom * bl, Queue * info)
   if (temp_piece)
     free (temp_piece);
 }
-
-/*-------------------------------------*/
-int
-fastq_read_check (char *begin, int length, char *model, bloom * bl)
-{
-  char *p = begin;
-  int distance = length, label_m = 0, label_mis = 0;
-  int signal = 0, pre_kmer = 10, count_mis = 0;
-  char *previous, *key = (char *) malloc (k_mer * sizeof (char) + 1);
-
-  while (distance > 0)
-    {
-      if (signal == 1)
-	break;
-
-      if (distance >= k_mer)
-	{
-	  memcpy (key, p, sizeof (char) * k_mer);	//need to be tested
-	  key[k_mer] = '\0';
-	  previous = p;
-	  p += k_mer;
-	  distance -= k_mer;
-	}
-
-      else
-	{
-	  memcpy (key, previous + distance, sizeof (char) * k_mer);
-	  p += (k_mer - distance);
-	  signal = 1;
-	}
-
-      if (model == "reverse")
-	rev_trans (key);
-
-      if (mode == 1)
-	{
-	  if (bloom_check (bl, key))
-	    return fastq_full_check (bl, begin, length);
-	}
-      else
-	{
-
-	  if (!bloom_check (bl, key))
-	    {
-	      return fastq_full_check (bl, begin, length);
-	    }
-	}
-    }				// inner while
-
-  free (key);
-
-  if (model == "normal")	//use recursion to check the sequence forward and backward
-    return fastq_read_check (begin, length, "reverse", bl);
-  else
-    {
-      if (mode == 1)
-	label_mis += distance;
-      else
-	label_m += distance;
-      return 1;
-    }
-}
-
-/*-------------------------------------*/
-int
-fastq_full_check (bloom * bl, char *p, int distance)
-{
-
-  //printf("fastq full check...\n");
-
-  int signal = 0, pre_kmer = -1;
-
-  int count_mis = 0, label_m = 0, label_mis = 0, count = 0, match_s = 0;
-
-  char *previous, *key = (char *) malloc (k_mer * sizeof (char) + 1);
-
-#pragma omp atomic
-  checky++;
-
-  int length = distance;
-
-  while (distance >= k_mer)
-    {
-      memcpy (key, p, sizeof (char) * k_mer);
-      key[k_mer] = '\0';
-      previous = p;
-      p += 1;
-
-      if (bloom_check (bl, key))
-	{
-
-	  count++;
-
-	  if (pre_kmer == 1)
-	    {
-	      label_m++;
-
-	      if (count < (k_mer-1))
-		match_s++;
-	      else
-
-		{
-		  match_s += count;
-		  count = 0;
-		}
-	    }
-
-	  else
-
-	    {
-	      label_m += k_mer;
-	      match_s += k_mer - 1;
-	    }
-
-	  pre_kmer = 1;
-	}
-      else
-	{
-	  count = 0;
-	  pre_kmer = 0;
-	}
-      distance--;
-    }				// end while
-
-  free (key);
-  label_mis = length - label_m;
-
-  if (((float) match_s / (float) (length)) >= tole_rate)
-    return 0;
-  else
-    return 1;
-}
-
 /*-------------------------------------*/
 void
 fasta_process (bloom * bl, Queue * info)
@@ -569,7 +391,7 @@ fasta_process (bloom * bl, Queue * info)
       if (!temp_next)
 	temp_next = next;
 
-      if (!fasta_read_check (p, temp_next, "normal", bl))
+      if (!fasta_read_check (p, temp_next, "normal", bl, tole_rate))
 	{
 #pragma omp atomic
 	  reads_contam++;
@@ -578,215 +400,6 @@ fasta_process (bloom * bl, Queue * info)
       p = temp_next;
     }
 }
-
-/*-------------------------------------*/
-int
-fasta_read_check (char *begin, char *next, char *model, bloom * bl)
-{
-
-//printf("fasta read check...\n");
-
-  char *p = strchr (begin + 1, '\n') + 1;
-
-  if (!p || *p == '>')
-    return 1;
-
-  char *start = p;
-
-  char *key = (char *) malloc ((k_mer + 1) * sizeof (char));
-
-  char *pre_key = (char *) malloc ((k_mer + 1) * sizeof (char));
-
-  int n = 0, m = 0, count_enter = 0, result = 0;
-
-  int label_m = 0, label_mis = 0;
-
-  key[k_mer] = '\0';
-
-
-  while (p != next)
-    {
-
-      while (n < k_mer)
-	{
-
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-	  else
-	    count_enter++;
-
-	  m++;
-	}			//inner while
-
-      if (m == 0)
-	break;
-
-      if (strlen (key) == k_mer)
-	memcpy (pre_key, key, sizeof (char) * (k_mer + 1));
-
-      else
-	{
-	  char *temp_key = (char *) malloc (k_mer * sizeof (char));
-
-	  memcpy (temp_key, pre_key + strlen (key), k_mer - strlen (key));
-
-	  memcpy (temp_key + k_mer - strlen (key), key,
-		  sizeof (char) * (strlen (key) + 1));
-
-	  free (key);
-
-	  key = temp_key;
-	}
-
-      p += m;
-
-      n = 0;
-
-      m = 0;
-
-      if (model == "reverse")
-
-	rev_trans (key);
-
-      if (mode == 1)
-	{
-	  if (bloom_check (bl, key))
-	    {
-
-	      return fasta_full_check (bl, begin, next, model);
-
-	    }
-
-	}			//outside if
-
-      else
-	{
-	  if (!bloom_check (bl, key))
-	    {
-
-	      return fasta_full_check (bl, begin, next, model);
-
-	    }
-
-	}			//outside else
-      memset (key, 0, k_mer);
-    }				//outside while
-
-  free (pre_key);
-
-  free (key);
-
-  if (model == "normal")	//use recursion to check the sequence forward and backward
-    return fasta_read_check (begin, next, "reverse", bl);
-  else
-    {
-//printf("in\n");
-/*
-if (mode==1)
-label_mis+=(next-start-count_enter+1);
-else
-label_m+=(next-start-count_enter+1);
-*/
-      return 1;
-    }
-}
-
-/*-------------------------------------*/
-int
-fasta_full_check (bloom * bl, char *begin, char *next, char *model)
-{
-#pragma omp atomic
-  checky++;
-  int label_m = 0, label_mis = 0, match_s = 0, count = 0;
-
-  //printf("fasta full check...\n");
-
-  int n = 0, m = 0, count_enter = 0, pre_kmer = -1;
-
-  char *key = (char *) malloc ((k_mer + 1) * sizeof (char));
-
-  begin = strchr (begin + 1, '\n') + 1;
-
-  char *p = begin;
-
-  while (p != next)
-    {
-      if (*p == '\n')
-	count_enter++;
-      p++;
-    }
-
-  p = begin;
-
-  while (*p != '>' && *p != '\0')
-    {
-      while (n < k_mer)
-	{
-	  //printf("k_mer...\n");
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-
-	  m++;
-	}
-      key[n] = '\0';
-
-      if (model == "reverse")
-	rev_trans (key);
-
-      if (strlen (key) == k_mer)
-	if (bloom_check (bl, key))
-	  {
-	    count++;
-	    if (pre_kmer == 1)
-	      {
-		label_m++;
-		if (count <(k_mer-1))
-		  match_s++;
-		else
-		  {
-		    match_s += count;
-		    count = 0;
-		  }
-	      }
-	    else
-	      {
-		label_m += k_mer;
-		match_s += k_mer - 1;
-	      }
-	    pre_kmer = 1;
-	    //printf("%d----%d\n",label_m,label_mis);
-	  }
-	else
-	  {
-	    count = 0;
-	    pre_kmer = 0;
-	  }
-
-      p++;
-      if (p[0] == '\n')
-	p++;
-      n = 0;
-      m = 0;
-    }				// end of while
-printf("%d\n",match_s);
-  if (((float) (match_s) / (float) (next - begin - count_enter)) >= (tole_rate))	//match >tole_rate considered as contaminated
-    return 0;
-  else
-    return 1;
-}
-
 /*-------------------------------------*/
 void
 evaluate (char *detail, char *filename)
@@ -811,13 +424,13 @@ evaluate (char *detail, char *filename)
     printf ("contamination rate->%f\n", 1 - contamination_rate);
 
   strcat (detail, "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
-  strcat (detail, "Bloomfile<->All<->Contam<->contam_rate\n");
+  strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
 
   strcat (detail, filename);
   //strcat (detail, "  ");
   //strcat (detail, "   \n");
 
-  sprintf (buffer, "  %d  %d  %f\n", reads_num, reads_contam,
+  sprintf (buffer, "  %d\t%d\t%f\n", reads_num, reads_contam,
 	   contamination_rate);
   strcat (detail, buffer);
 

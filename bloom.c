@@ -631,7 +631,8 @@ build_help ()
   printf ("#  ./bloom_build [option] [option] [option] [option]\n");
   printf ("#\n");
   printf ("#  Options:\n");
-  printf ("#  -r reference file name\n");
+  printf ("#  -r reference file name or directory name\n");
+  printf ("#  -l a list containing multiple reference filenames\n");
   printf ("#  -k k_mer size (default size 21)\n");
   printf ("#  -e error rate (default rate 0.0005)\n");
   printf

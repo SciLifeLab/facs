@@ -9,8 +9,8 @@ all:
 	mpicc -o mpi_bloom mpi_bloom.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	mpicc -o mpi_bloom_l mpi_bloom_l.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	${CC} -o bloom_build good_build.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
-	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
-	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
+	${CC} -o simple_check simple_check_1_ge.o bloom.o suggestions.o lookup8.o file_dir.o tool.o -lm ${CFLAGS}
+	${CC} -o simple_remove simple_remove.o bloom.o suggestions.o file_dir.o lookup8.o tool.o -lm ${CFLAGS}
 	mpicc -o mpi_decon mpi_decon.o bloom.o suggestions.o lookup8.o  -lm ${CFLAGS}
 
 classi:
@@ -33,7 +33,7 @@ tests:
 	test -e tests/data/ecoli_dummy.fastq.gz.fifo||mkfifo tests/data/ecoli_dummy.fastq.gz.fifo
 	gunzip -c tests/data/ecoli_dummy.fastq.gz > tests/data/ecoli_dummy.fastq.gz.fifo &
 	@echo Checking contamination against gz fifo file...
-	./simple_check -m 1 -q tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/
+	./simple_remove -m 1 -q tests/data/ecoli_dummy.fastq.gz.fifo -r tests/data/
 	#./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -r tests/data -help
 	#./simple_check -m 1 -q tests/data/ecoli_dummy.fastq -l tzcoolman
 
