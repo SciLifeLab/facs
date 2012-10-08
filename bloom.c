@@ -315,7 +315,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
     {
       if (position2)
 	strncat (bloom_file, target + 2, position2 + 1 - (target + 2));
-
+    }
       if (position1)
 	strncat (bloom_file, position1 + 1,
 		 strrchr (filename, '.') - position1);
@@ -323,7 +323,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 	strncat (bloom_file, filename,
 		 strrchr (filename, '.') - filename + 1);
       strcat (bloom_file, "bloom");
-    }
+    
   printf ("bloom name->%s\n", bloom_file);
 
   int fd, fq;
