@@ -19,6 +19,7 @@
 #include "bloom.h"
 #include "hashes.h"
 #include "file_dir.h"
+#include "tool.h"
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
@@ -54,10 +55,12 @@ void save_result (char *source, char *obj_file, char *data, char *data2,
 		  int flag);
 /*-------------------------------------*/
 int count_read (char *dick, char *next);
+/*
 int fastq_full_check (bloom * bl, char *p, int distance);
 int fasta_full_check (bloom * bl, char *begin, char *next, char *model);
 int fastq_read_check (char *begin, int length, char *model, bloom * bl);
 int fasta_read_check (char *begin, char *next, char *model, bloom * bl);
+*/
 /*-------------------------------------*/
 main (int argc, char **argv)
 {
@@ -340,7 +343,7 @@ fastq_process (bloom * bl, Queue * info)
       if (!temp_end)
 	temp_end = strchr (p, '\0');
 
-      result = fastq_read_check (p, strchr (p, '\n') - p, "normal", bl);
+      result = fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
 
       if (result == 0)
 	{
@@ -374,6 +377,7 @@ fastq_process (bloom * bl, Queue * info)
 }
 
 /*-------------------------------------*/
+/*
 int
 fastq_read_check (char *begin, int length, char *model, bloom * bl)
 {
@@ -444,8 +448,9 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl)
   else
     return 0;
 }
-
+*/
 /*-------------------------------------*/
+/*
 int
 fastq_full_check (bloom * bl, char *p, int distance)
 {
@@ -509,7 +514,7 @@ fastq_full_check (bloom * bl, char *p, int distance)
   else
     return 0;
 }
-
+*/
 /*-------------------------------------*/
 void
 fasta_process (bloom * bl, Queue * info)
@@ -545,8 +550,8 @@ fasta_process (bloom * bl, Queue * info)
       if (!temp)
 	temp = next;
 
-      result = fasta_read_check (p, temp, "normal", bl);
-
+      result = fasta_read_check (p, temp, "normal", bl, tole_rate);
+      //printf ("result->%d\n",result);
       if (result == 0)
 	{
 #pragma omp critical
@@ -571,6 +576,7 @@ fasta_process (bloom * bl, Queue * info)
 }
 
 /*-------------------------------------*/
+/*
 int
 fasta_read_check (char *begin, char *next, char *model, bloom * bl)
 {
@@ -659,8 +665,9 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl)
   else
     return 0;
 }
-
+*/
 /*-------------------------------------*/
+/*
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 {
@@ -745,7 +752,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
   else
     return 0;
 }
-
+*/
 /*-------------------------------------*/
 void
 save_result (char *source, char *obj_file, char *data, char *data2, int flag)

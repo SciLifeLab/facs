@@ -350,7 +350,7 @@ fastq_process (bloom * bl, Queue * info)
 	temp_end = strchr (p, '\0');
       int result = fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
 
-      if (result == 1)
+      if (result == 0)
 	{
 #pragma omp critical
 	  {
@@ -363,7 +363,7 @@ fastq_process (bloom * bl, Queue * info)
 	      }
 	  }
 	}
-      else if (result == 0)
+      else if (result > 0)
 	{
 #pragma omp critical
 	  {
@@ -419,7 +419,7 @@ fasta_process (bloom * bl, Queue * info)
 	temp = next;
 	  
       int result = fasta_read_check (p, temp, "normal", bl, tole_rate);
-      if (result)
+      if (result==0)
 	{
 #pragma omp critical
 	  {
@@ -427,7 +427,7 @@ fasta_process (bloom * bl, Queue * info)
 	    clean += (temp - p);
 	  }
 	}
-      else if (result == 0)
+      else if (result > 0)
 	{
 #pragma omp atomic
 	  read_contam++;

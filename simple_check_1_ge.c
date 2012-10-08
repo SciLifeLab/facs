@@ -342,8 +342,7 @@ fastq_process (bloom * bl, Queue * info)
       reads_num++;
 
       p = strchr (p, '\n') + 1;
-
-      if (!fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate))
+      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)>0)
 #pragma omp atomic
 	reads_contam++;
 
@@ -391,7 +390,7 @@ fasta_process (bloom * bl, Queue * info)
       if (!temp_next)
 	temp_next = next;
 
-      if (!fasta_read_check (p, temp_next, "normal", bl, tole_rate))
+      if (fasta_read_check (p, temp_next, "normal", bl, tole_rate)>0)
 	{
 #pragma omp atomic
 	  reads_contam++;
