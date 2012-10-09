@@ -113,13 +113,13 @@ main (int argc, char **argv)
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
 
+      save_result (source,File_head->filename);
+
       File_head = File_head->next;
 
       head = head2;
 
       bloom_destroy (bl_2);
-
-      save_result (source, all_ref);
 
     }				//end while
 
@@ -483,6 +483,7 @@ save_result (char *source, char *obj_file)
       strncat (match, source, so - source);
       strncat (mismatch, source, so - source);
     }
+  //printf ("objname->%s\n",obj_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   strcat (match, so_name);
