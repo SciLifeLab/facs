@@ -490,16 +490,16 @@ save_result (char *source, char *obj_file)
   strcat (mismatch, so_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
-  strcat (match, "__");
-  strcat (mismatch, "__");
+  strcat (match, "_");
+  strcat (mismatch, "_");
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   strcat (match, obj_name);
   strcat (mismatch, obj_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
-  strcat (match, "_contam_");
-  strcat (mismatch, "_clean_");
+  strcat (match, "_contam");
+  strcat (mismatch, "_clean");
 
   if (type == 1)
     {
