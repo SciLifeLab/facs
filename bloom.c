@@ -314,7 +314,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   else
     {
       if (position2)
-	strncat (bloom_file, target + 2, position2 + 1 - (target + 2));
+	strncat (bloom_file, target, position2 + 1 - (target));
     }
       if (position1)
 	strncat (bloom_file, position1 + 1,
