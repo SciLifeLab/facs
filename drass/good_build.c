@@ -56,7 +56,6 @@ char *fasta_data (bloom * bl_2, char *data);
 int sp_build (char *ref_name, int k_mer, float error_rate, char *target_path);
 
 
-
 int main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
