@@ -52,15 +52,16 @@ void ref_add (bloom * bl, char *position);
 void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
-char *fasta_title (char *full);
 char *fasta_data (bloom * bl_2, char *data);
+int sp_build (char *ref_name, int k_mer, float error_rate, char *target_path);
 
-//long long get_size (char *strFileName);
+
 
 int main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
-
+  sp_build ("k_12.fasta", 21, 0.0005, argv[0]);
+/*
   init (argc, argv);
   struc_init ();
 
@@ -83,7 +84,6 @@ int main (int argc, char *argv[])
       File_head = File_head->next;
     }
 
-/*
   gettimeofday (&tv2, &tz);
 
   sec = tv2.tv_sec - tv.tv_sec;
@@ -99,6 +99,24 @@ int main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
+int sp_build (char *ref_name, int k_mer, float error_rate, char *target_path)
+{
+	char *position = mmaping (ref_name);
+	
+	bloom *bl = NEW (bloom);
+	bl->k_mer = k_mer;
+	
+	get_suggestion (&bl->stat, strlen(position), error_rate);
+	
+	bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,bl->stat.ideal_hashes, NULL, 3);
+	
+	ref_add (bl, position);
+	
+	save_bloom (ref_name, bl, NULL, target_path);
+	
+	return 0;
+}
+
 void
 struc_init ()
 {
