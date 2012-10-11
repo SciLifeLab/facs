@@ -231,10 +231,6 @@ fasta_title (char *full)
 
   ptr = strchr (full, '\n');
 
-  //temp_title = (char *) malloc ((ptr - full + 1) * sizeof (char));
-
-  //strncpy (temp_title, full, ptr - full + 1); //include '\n'
-
   return ptr + 1;
 }
 
