@@ -5,7 +5,7 @@ import sys, os
 version = '0.1'
 
 c_ext = Extension("drass", define_macros = [('DEBUG', '1'), ('FIFO', '1')],
-                           sources = ["drass.c", "bloom.c", "good_build.c", "suggestions.c", "lookup8.c"])
+                           sources = ["drass.c", "bloom.c", "good_build.c", "suggestions.c", "lookup8.c", "file_dir.c"])
 
 setup(name='drass',
       version=version,
