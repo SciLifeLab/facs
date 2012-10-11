@@ -251,9 +251,9 @@ fasta_add (bloom * bl, char *position)
   while (*position != '\0')
     {
       if (*position == '>')
-	position = fasta_title (position);
+	position = fasta_title(position);
       else
-	position = fasta_data (bl, position);
+	position = fasta_data(bl, position);
     }
 }
 
@@ -262,17 +262,17 @@ void
 fastq_add (bloom * bl, char *position)
 {
 
-  char *key = (char *) malloc (k_mer * sizeof (char) + 1);
+  char *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
   while (position[0] != '\0')
     {
       position = strchr (position, '\n') + 1;
 
-      while (position[k_mer - 1] != '\n')
+      while (position[bl->k_mer - 1] != '\n')
 	{
-	  memcpy (key, position, sizeof (char) * k_mer);
+	  memcpy (key, position, sizeof (char) * bl->k_mer);
 
-	  key[k_mer] = '\0';
+	  key[bl->k_mer] = '\0';
 
 	  if (bloom_add (bl, key))
 	    hit++;
@@ -282,7 +282,7 @@ fastq_add (bloom * bl, char *position)
 	  position++;
 	}
 
-      position += k_mer;
+      position += bl->k_mer;
 
       position = strchr (position, '\n') + 1;
 
@@ -303,45 +303,40 @@ char *
 fasta_data (bloom * bl_2, char *data)
 {
 
-  char *key = (char *) malloc (k_mer * sizeof (char) + 1);
-
+  char *key = (char *) malloc (bl_2->k_mer * sizeof (char) + 1);
   char *p = data;
-
   int n = 0, m = 0;
 
-  while (*p != '>' && *p != '\0')
-    {
-
-      while (n < k_mer)
-	{
-
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-
+  while (*p != '>' && *p != '\0') {
+      while (n < bl_2->k_mer) {
+	    if (p[m] == '>' || p[m] == '\0') {
 	      m--;
 	      break;
 	    }
 
 	  if (p[m] != '\r' && p[m] != '\n')
 	    key[n++] = p[m];
+	    m++;
+      }
 
-	  m++;
-	}
       key[n] = '\0';
 
-      if (strlen (key) == k_mer)
-	{
+
+      printf("%d %d\n", strlen(key), bl_2->k_mer);
+      if (strlen(key) == bl_2->k_mer) {
 
 	  if (bloom_add (bl_2, key))
 	    hit++;
 	  else
 	    un_hit++;
-	}
+      }
+
       p += 1;
       n = 0;
       m = 0;
-    }
-  free (key);
+      }
+
+  free(key);
   return p;
 }
 

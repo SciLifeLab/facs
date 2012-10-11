@@ -31,7 +31,7 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *arg
    if (!PyArg_ParseTuple(args, "ss", &source, &bloom_filter))
        return NULL;
 
-   sp_build(source, 12, 0.0005, bloom_filter);
+   sp_build(source, 21, 0.0005, bloom_filter);
 
    return NULL;
 }
