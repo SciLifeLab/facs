@@ -26,27 +26,39 @@ PyMODINIT_FUNC initdrass(void)
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *argv)
 {
    BIGNUM capacity;
-   const *flags;
+   char* bloom_filter;
+   char* mmaping (char* bloom);
    char *source, *position, *prefix;
    struct stat statbuf;
+/* int argc; */
+   char **argv_drass;
    bloom *bl_2;
-   bl_2 = NEW (bloom);
+   bl_2 = NEW(bloom);
+
+
+   if (!PyArg_ParseTuple(args, "ss", &source, &bloom_filter))
+       return NULL;
+
+   printf("From drass bloom: %s\n", bloom_filter);
    position = mmaping(source);
+   printf("From drass: %s\n", source);
+   printf("From drass after mmaping: %s\n", source);
 
 /* initializes argc & argv, needs ParseTuple for each parm? */
-   init(argc, argv);
-   if (!PyArg_ParseTuple(args, "s", &flags))
-       return NULL;
+/*   init(argc, argv_drass); */
 
    if (*position == '>')
        capacity = strlen (position);
    else
        capacity = strlen (position) / 2;
 
-   init_bloom (bl_2);
+   printf("What da fuck!? Capacity is: %d\n", capacity);
+   init_bloom(bl_2);
    fasta_add(bl_2, position);
 
-   save_bloom(source, bl_2, prefix, flags);
+   save_bloom(source, bl_2, prefix, &bloom_filter);
 
    munmap (position, statbuf.st_size);
+
+   return NULL;
 }

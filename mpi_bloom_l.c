@@ -18,6 +18,7 @@
 /*-------------------------------------*/
 #include "bloom.h"
 #include "hashes.h"
+#include "file_dir.h"
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
@@ -27,6 +28,10 @@
 #define PERMS 0600
 #define NEW(type) (type *) malloc(sizeof(type))
 /*-------------------------------------*/
+long sec, usec, i;
+struct timezone tz;
+struct timeval tv, tv2;
+/*-------------------------------------*/
 int ntask = 0, mytask = 0;
 /*-------------------------------------*/
 long long total_piece, PAGE, buffer, share, offset, reads_num =
@@ -34,23 +39,24 @@ long long total_piece, PAGE, buffer, share, offset, reads_num =
 /*-------------------------------------*/
 float error_rate, sampling_rate, contamination_rate, tole_rate;
 /*-------------------------------------*/
-int k_mer = 21, mode, mytask, ntask, type = 2, excel1, excel2, last_piece =
-  0, extra_piece = 0;
-int last = 0;
+int k_mer, mode, mytask, ntask, type = 0, excel1, excel2, last_piece = 0;
 /*-------------------------------------*/
-char *source, *all_ref, *position, *prefix;
+char *source, *all_ref, *position, *prefix, *detail, *list;
 /*-------------------------------------*/
 Queue *head, *head2, *tail;
 /*-------------------------------------*/
 bloom *bl_2;
 /*-------------------------------------*/
-struct stat statbuf;
+F_set *File_head;
 /*-------------------------------------*/
-void list_init ();
+/*-------------------------------------*/
+void task_init ();
 void struc_init ();
+void distribut_init ();
 void get_parainfo (char *full);
 void get_size (char *strFileName);
 void init (int argc, char **argv);
+void para_init (int argc, char **argv);
 void fasta_process (bloom * bl, Queue * info);
 void fastq_process (bloom * bl, Queue * info);
 void evaluate (char *detail, char *filename);
@@ -69,89 +75,79 @@ char *ammaping (char *source);
 main (int argc, char **argv)
 {
 
-  MPI_Init (&argc, &argv);
-
-  MPI_Comm_size (MPI_COMM_WORLD, &ntask);
-
-  MPI_Comm_rank (MPI_COMM_WORLD, &mytask);
-
-  long sec, usec, i;
-
-  struct timezone tz;
-
-  struct timeval tv, tv2;
-
-  if (mytask == 0)		//starting time
-    {
-      gettimeofday (&tv, &tz);
-    }
+  para_init (argc, argv);
 
   init (argc, argv);		//initialize 
 
-  if (mode != 1 && mode != 2)
-    {
-      perror ("Mode select error.");
-      return -1;
-    }
-
-  char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
-
-  memset (detail, 0, 1000 * 1000);
-
-  strcat (detail, "query-->");
-  strcat (detail, source);
-
   struc_init ();		//structure init
 
-  load_bloom (all_ref, bl_2);
-
-  k_mer = bl_2->k_mer;
-
-  while (share > 0)
+  while (File_head && File_head->filename != NULL)
     {
-      position = ammaping (source);
+      if (File_head->next != NULL)
+	printf ("File_head->%s\n", File_head->filename);
 
-      list_init ();
+      distribut_init ();
 
-      get_parainfo (position);
+      task_init ();
 
-      head = head->next;
+      load_bloom (File_head->filename, bl_2);
+
+      k_mer = bl_2->k_mer;
+
+      while (share > 0)
+	{
+	  if (strstr (source, ".fifo"))
+	    position = large_load (source);
+	  else
+	    position = ammaping (source);
+
+	  get_parainfo (position);
 
 #pragma omp parallel
-      {
+	  {
 #pragma omp single nowait
-	{
-	  while (head != tail)
 	    {
-
+	      while (head != tail)
+		{
+		  //head = head->next;
 #pragma omp task firstprivate(head)
-	      {
-		printf ("position->%0.10s\n", head->location);
+		  {
+		    if (type == 1)
+		      fasta_process (bl_2, head);
+		    else
+		      fastq_process (bl_2, head);
+		  }
+		  head = head->next;
 
-		if (type == 1)
-		  fasta_process (bl_2, head);
-		else
-		  fastq_process (bl_2, head);
-
-	      }
-	      head = head->next;
-
+		}
 	    }
-	}
-      }
-      munmap (position, buffer * PAGE);
+	  }
 
-      share -= buffer;
+	  if (!strstr (source, ".fifo"))
+	    munmap (position, buffer * PAGE);
 
-      offset += buffer;
+	  share -= buffer;
 
-      //head = head2;
-    }
-  printf ("finish processing...\n");
+	  offset += buffer;
+	}			//inner while
 
-  MPI_Barrier (MPI_COMM_WORLD);	//wait until all threads finish jobs
+      evaluate (detail, File_head->filename);
 
-  gather ();			//gather all matched and missed info
+      head = head2;
+
+      bloom_destroy (bl_2);
+
+      printf ("finish processing...\n");
+
+      MPI_Barrier (MPI_COMM_WORLD);	//wait until all threads finish jobs
+
+      gather ();
+
+      File_head = File_head->next;	//gather all matched and missed info
+
+    }				//outside while
+
+  //gather();
 
   if (mytask == 0)		//finishing time
     {
@@ -166,8 +162,6 @@ main (int argc, char **argv)
       printf ("all->%d\n", excel1);
 
       printf ("excecuted->%d\n", excel2);
-
-      evaluate (detail, all_ref);
 
       statistic_save (detail, source);
     }
@@ -195,42 +189,49 @@ init (int argc, char **argv)
   prefix = NULL;
 
   int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:")) != -1)
+  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:l:h")) != -1)
     {
       //printf("optind: %d\n", optind);
       switch (x)
 	{
 	case 'e':
-	  printf ("Error rate: \nThe argument of -e is %s\n", optarg);
+	  //printf ("Error rate: \nThe argument of -e is %s\n", optarg);
 	  (optarg) && ((error_rate = atof (optarg)), 1);
 	  break;
 	case 'k':
-	  printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
+	  //printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
 	  (optarg) && ((k_mer = atoi (optarg)), 1);
 	  break;
 	case 'm':
-	  printf ("Mode : \nThe argument of -m is %s\n", optarg);
+	  //printf ("Mode : \nThe argument of -m is %s\n", optarg);
 	  (optarg) && ((mode = atoi (optarg)), 1);
 	  break;
 	case 't':
-	  printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
+	  //printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
 	  (optarg) && ((tole_rate = atof (optarg)), 1);
 	  break;
 	case 's':
-	  printf ("Sampling rate: \nThe argument of -s is %s\n", optarg);
+	  //printf ("Sampling rate: \nThe argument of -s is %s\n", optarg);
 	  (optarg) && ((sampling_rate = atof (optarg)), 1);
 	  break;
 	case 'o':
-	  printf ("Output : \nThe argument of -o is %s\n", optarg);
+	  //printf ("Output : \nThe argument of -o is %s\n", optarg);
 	  (optarg) && ((prefix = optarg), 1);
 	  break;
 	case 'r':
-	  printf ("Bloom list : \nThe argument of -r is %s\n", optarg);
+	  //printf ("Bloom list : \nThe argument of -r is %s\n", optarg);
 	  (optarg) && (all_ref = optarg, 1);
 	  break;
 	case 'q':
-	  printf ("Query : \nThe argument of -q is %s\n", optarg);
+	  //printf ("Query : \nThe argument of -q is %s\n", optarg);
 	  (optarg) && (source = optarg, 1);
+	  break;
+	case 'l':
+	  (optarg) && (list = optarg, 1);
+	  break;
+	case 'h':
+	  help ();
+	  remove_help ();
 	  break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
@@ -239,16 +240,15 @@ init (int argc, char **argv)
 
     }
 
-  if (strstr (source, ".fasta") || strstr (source, ".fna"))
-    type = 1;
-
-  if ((!all_ref) || (!source))
-    exit (0);
-
+  if (((!all_ref) && (!list)) || (!source))
+    {
+      perror ("No source.");
+      exit (-1);
+    }
   if (mode != 1 && mode != 2)
     {
       perror ("Mode select error.");
-      exit (0);
+      exit (-1);
     }
 
 }
@@ -257,21 +257,19 @@ init (int argc, char **argv)
 void
 struc_init ()
 {
+  File_head = NEW (F_set);
+  File_head = make_list (all_ref, list);
+  File_head = File_head->next;
 
-  bl_2 = NEW (bloom);
+  detail = (char *) malloc (1000 * 1000 * sizeof (char));
+  memset (detail, 0, 1000 * 1000);
 
-  //head2 = head;
-
-  get_size (source);		//get total size of file
-
-  share = total_piece / ntask;	//every task gets an euqal piece
-
-  if (total_piece % ntask != 0 && mytask == (ntask - 1))
-
-    share += (total_piece % ntask);	//last node tasks extra job
-
-  offset = share * mytask;	//distribute the task
-
+  //while (strstr(File_head->filename,"bloom"))
+  //while (File_head)
+  //{
+  //    printf("dick_head->%s\n",File_head->filename);
+  //    File_head = File_head->next;
+  //}
 }
 
 /*-------------------------------------*/
@@ -280,6 +278,7 @@ ammaping (char *source)
 {
   int src;
   char *sm;
+  struct stat statbuf;
 
   if ((src = open (source, O_RDONLY | O_LARGEFILE)) < 0)
     {
@@ -321,6 +320,7 @@ ammaping (char *source)
 void
 get_size (char *strFileName)
 {
+  struct stat statbuf;
   stat (strFileName, &statbuf);
   PAGE = getpagesize ();	//get memory PAGE definition 
   total_piece = statbuf.st_size / PAGE;
@@ -352,6 +352,12 @@ get_parainfo (char *full)
   printf ("last piece->%d\n", last_piece);
 
   Queue *pos = head;
+
+  if (type == 0)
+    if (*full == '>')
+      type = 1;
+    else if (*full == '@')
+      type = 2;
 
   if (type == 1)
     {
@@ -385,7 +391,7 @@ get_parainfo (char *full)
 	  pos = pos->next;
 	}			//end else  
     }
-
+  head = head->next;
 }
 
 /*-------------------------------------*/
@@ -400,7 +406,8 @@ gather ()
       // MPI_Recv(void *buf, int count, MPI_DAtatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
       // We need to go and receive the data from all other threads.
       // The arbitrary tag we choose is 1, for now.
-      int i = 0;
+      //printf("????\n");
+      int i;
       for (i = 1; i < ntask; i++)
 	{
 	  long long temp, temp2, temp3;
@@ -417,11 +424,16 @@ gather ()
     {
       // We are finished with the results in this thread, and need to send the data to thread 1.
       // MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
-      // The destination is thread 0, and the arbitrary tag we choose for now is 1.
+      // The destination is thread 0, and the arbitrary tag we choose for now is 1.  
+      //printf("???\n");
       MPI_Send (&reads_num, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
       MPI_Send (&reads_contam, 5, MPI_INT, 0, 1, MPI_COMM_WORLD);
       MPI_Send (&checky, 7, MPI_INT, 0, 1, MPI_COMM_WORLD);
     }
+
+  reads_num = 0;
+  reads_contam = 0;
+  checky = 0;
   return 1;
 }
 
@@ -430,6 +442,7 @@ void
 fastq_process (bloom * bl, Queue * info)
 {
   printf ("fastq processing...\n");
+
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
 
@@ -440,11 +453,12 @@ fastq_process (bloom * bl, Queue * info)
     {
       printf ("last_piece  %d\n", last_piece);
       temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
-      memset (temp_piece, 0, last_piece + 1);
-      memcpy (temp_piece, info->location, last_piece - PAGE);
+      memcpy (temp_piece, info->location, last_piece - PAGE / 2);
+      //printf ("piece\n...");
       temp_piece[last_piece] = '\0';
 
       temp = temp_piece;
+
       while ((temp = strstr (temp, "\n@")))
 	{
 	  next = temp + 1;
@@ -453,6 +467,7 @@ fastq_process (bloom * bl, Queue * info)
       p = temp_piece;
     }
 
+//printf("info->next %c\n",next[0]);
   while (p != next)
     {
 
@@ -477,7 +492,7 @@ fastq_process (bloom * bl, Queue * info)
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
-  printf ("finish process...\n");
+//printf("finish process...\n");
   if (temp_piece)
     free (temp_piece);
 }
@@ -630,7 +645,6 @@ fasta_process (bloom * bl, Queue * info)
 
   else
     {
-      last = 1;
 
       printf ("last_piece %d\n", last_piece);
 
@@ -638,8 +652,7 @@ fasta_process (bloom * bl, Queue * info)
 
       memset (temp_piece, 0, last_piece + 1);
 
-      memcpy (temp_piece, info->location, last_piece - PAGE);
-
+      memcpy (temp_piece, info->location, last_piece - PAGE / 2);
 
       temp_piece[last_piece] = '\0';
 
@@ -937,38 +950,57 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model)
 void
 evaluate (char *detail, char *filename)
 {
-  char buffer[100] = { 0 };
+  char buffer[200] = { 0 };
+
   printf ("all->%d\n", reads_num);
+
   printf ("contam->%d\n", reads_contam);
-  printf ("possbile->%d\n", checky);
+
+  printf ("bloomname->%s\n", filename);
+
   contamination_rate = (double) (reads_contam) / (double) (reads_num);
+
   if ((mode == 1 && contamination_rate == 0)
       || (mode == 2 && contamination_rate == 1))
     printf ("clean data...\n");
+
   else if (mode == 1)
     printf ("contamination rate->%f\n", contamination_rate);
   else
     printf ("contamination rate->%f\n", 1 - contamination_rate);
 
   strcat (detail, "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
-  strcat (detail, "bloom->");
+  strcat (detail, "Bloomfile<->All<->Contam<->contam_rate\n");
+
   strcat (detail, filename);
-  strcat (detail, "   \n");
-  sprintf (buffer, "all->%d\n", reads_num);
+  //strcat (detail, "  ");
+  //strcat (detail, "   \n");
+
+  sprintf (buffer, "  %d  %d  %f\n", reads_num, reads_contam,
+	   contamination_rate);
   strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  sprintf (buffer, "contam->%d\n", reads_contam);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  sprintf (buffer, "possbile->%d\n", checky);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  sprintf (buffer, "contamination rate->%f", contamination_rate);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  reads_num = 0;
-  reads_contam = 0;
-  contamination_rate = 0;
+
+  //memset (buffer, 0, 100);
+  //sprintf (buffer, "contam->%d ", reads_contam);
+
+  //strcat (detail, buffer);
+  //memset (buffer, 0, 100);
+
+  //sprintf (buffer, "possbile->%d ", checky);
+  //strcat (detail, buffer);
+
+  //memset (buffer, 0, 100);
+  //sprintf (buffer, "contamination rate->%f", contamination_rate);
+
+  //strcat (detail, buffer);
+  //memset (buffer, 0, 100);
+
+  //reads_num = 0;
+  //reads_contam = 0;
+  //checky = 0;
+  //contamination_rate = 0;
+
+  //printf("detail->%s\n",detail);
 }
 
 /*-------------------------------------*/
@@ -1026,19 +1058,49 @@ statistic_save (char *detail, char *filename)
 
   strcat (save_file, "info");
 
-  printf ("bloom name->%s\n", save_file);
+  printf ("Info name->%s\n", save_file);
 
   write_result (save_file, detail);
 }
 
+/*-------------------------------------*/
+
 void
-list_init ()
+para_init (int argc, char **argv)
 {
+  MPI_Init (&argc, &argv);
+
+  MPI_Comm_size (MPI_COMM_WORLD, &ntask);
+
+  MPI_Comm_rank (MPI_COMM_WORLD, &mytask);
+
+  if (mytask == 0)		//starting time
+    {
+      gettimeofday (&tv, &tz);
+    }
+}
+
+/*-------------------------------------*/
+void
+distribut_init ()
+{
+
+  get_size (source);		//get total size of file
+  share = total_piece / ntask;	//every task gets an euqal piece
+  if (total_piece % ntask != 0 && mytask == (ntask - 1))
+    share += (total_piece % ntask);	//last node tasks extra job
+  offset = share * mytask;
+}
+
+/*-------------------------------------*/
+void
+task_init ()
+{
+  bl_2 = NEW (bloom);
   head = NEW (Queue);
-
   tail = NEW (Queue);
-
   head->next = tail;
+  head2 = head;
 }
 
 /*
