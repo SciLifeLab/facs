@@ -38,7 +38,7 @@ typedef struct bloomstat
 	BIGNUM elements; /* size of array */
 	int ideal_hashes; /* num hash functions */
 	BIGNUM capacity; /* number of elements */
-	float e; /* max error rate */
+	double e; /* max error rate */
 } bl_stat;
 
 typedef struct
@@ -72,12 +72,13 @@ typedef struct info
 BIGNUM mkprime(BIGNUM startval);
 
 
-extern int bloom_init(bloom *bloom,BIGNUM size,BIGNUM capacity, float error_rate,int hashes,hash_t hash,int flags);
+extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity,
+                      double error_rate, int hashes, hash_t hash, int flags);
+
 extern int bloom_check(bloom *bloom,char *str);
 extern int bloom_add(bloom *bloom,char *str);
 extern int bloom_test(bloom *bloom,char *str,int MODE);
 extern void bloom_destroy(bloom *bloom);
-
 
 extern int sketchy_randoms(randoms *rands,int cnt);
 extern int finder (BIGNUM index,deref *dr);

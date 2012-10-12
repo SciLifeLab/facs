@@ -53,7 +53,7 @@ void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
 char *fasta_data (bloom * bl_2, char *data);
-int build(char *ref_name, char *target_path, int k_mer, float error_rate);
+int build(char *ref_name, char *target_path, int k_mer, double error_rate);
 
 
 int main (int argc, char *argv[])
@@ -98,18 +98,14 @@ int main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
-int build(char *ref_name, char *target_path, int k_mer, float error_rate)
+int build(char *ref_name, char *target_path, int k_mer, double error_rate)
 {
+    printf("ERROR RATE, just coming from python iface: %d %f\n", k_mer, error_rate);
 	char *position = mmaping (ref_name);
 	
 	bloom *bl = NEW (bloom);
 	bl->k_mer = k_mer;
-    //XXX: @tzcoolman: Why this float does not persist during build?
-    // it turns -(BIGINT) if the following statement is removed
-    error_rate=0.0005;
     bl->stat.e = error_rate;
-    printf("ERROR RATE: %f", error_rate);
-    //printf("error_rate  %d  times  %d\n",error_rate,times);
 
     bl->stat.capacity = strlen(position);
     get_rec(&bl->stat);

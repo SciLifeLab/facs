@@ -37,9 +37,9 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
 
    //DRASS operational defaults
    int k_mer=21;
-   float error_rate=0.0005;
+   double error_rate=0.0005;
 
-   if (!PyArg_ParseTuple(args, "ss|if", &source, &bloom_filter, &k_mer, &error_rate))
+   if (!PyArg_ParseTuple(args, "ss|id", &source, &bloom_filter, &k_mer, &error_rate))
        return NULL;
   
    ret = build(source, bloom_filter, k_mer, error_rate);

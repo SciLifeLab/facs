@@ -29,7 +29,7 @@ int seed[20] =
 };
 
 int
-bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, float error_rate,
+bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
 	    int hashes, hash_t hash, int flags)
 {
   if (size < 1) {
