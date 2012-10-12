@@ -26,7 +26,7 @@ PyMODINIT_FUNC initdrass(void)
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *argv)
 {
 
-   char* source, bloom_filter;
+   char *source, *bloom_filter;
 
    if (!PyArg_ParseTuple(args, "ss", &source, &bloom_filter))
        return NULL;

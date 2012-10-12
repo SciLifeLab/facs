@@ -322,7 +322,7 @@ fasta_data (bloom * bl_2, char *data)
       key[n] = '\0';
 
 
-      printf("%d %d\n", strlen(key), bl_2->k_mer);
+      //printf("%d %d\n", strlen(key), bl_2->k_mer);
       if (strlen(key) == bl_2->k_mer) {
 
 	  if (bloom_add (bl_2, key))
