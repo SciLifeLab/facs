@@ -31,12 +31,7 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *arg
    if (!PyArg_ParseTuple(args, "ss", &source, &bloom_filter))
        return NULL;
    
-   printf("%s\n", source);
-   printf("%s\n", bloom_filter);
-   //int k_mer =21;
-   //float error_rate = 5;
-   //printf ("error_rate->%f\n",error_rate);
    sp_build(source,21,5,1000, bloom_filter);
 
-   return NULL;
+   return Py_BuildValue("");
 }

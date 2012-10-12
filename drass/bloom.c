@@ -323,8 +323,10 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 	strncat (bloom_file, filename,
 		 strrchr (filename, '.') - filename + 1);
       strcat (bloom_file, "bloom");
-    
+
+#ifdef DEBUG    
   printf ("bloom name->%s\n", bloom_file);
+#endif
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, 0644);
@@ -370,9 +372,11 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   memset (bl->vector, 0,
 	  sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
 
+#ifdef DEBUG
   printf ("big file process OK\n");
+#endif
 
-  return 1;
+  return 0;
 
 }
 
