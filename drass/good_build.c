@@ -105,13 +105,14 @@ int sp_build (char *ref_name, int k_mer, int error_rate,int times, char *target_
 	bloom *bl = NEW (bloom);
 	bl->k_mer = k_mer;
         bl->stat.e = (float)(error_rate)/(float)times;
-        printf("error_rate  %d  times  %d\n",error_rate,times);
+        //printf("error_rate  %d  times  %d\n",error_rate,times);
+
         bl->stat.capacity = strlen(position);
         get_rec(&bl->stat);
         //bl_stat *tea= NEW (bl_stat); 
         //get_suggestion (tea, strlen(position), error_rate);
         //&bl->stat = tea;
-
+/*
         #ifdef DEBUG
   printf ("Capacity: %lld\n", bl->stat.capacity);
   printf ("Vector size: %lld\n", bl->stat.elements);
@@ -119,7 +120,7 @@ int sp_build (char *ref_name, int k_mer, int error_rate,int times, char *target_
   printf ("Error rate: %f\n", bl->stat.e);
   printf ("Real size: %lld\n", bl->stat.elements / 8);
 #endif
-	
+*/	
        	//get_suggestion (&bl->stat, strlen(position), error_rate);
         //printf("k_mer->%d\n",bl->k_mer);	
 
