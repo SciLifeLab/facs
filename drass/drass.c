@@ -26,12 +26,17 @@ PyMODINIT_FUNC initdrass(void)
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *argv)
 {
 
-   char* source, bloom_filter;
+   char *source, *bloom_filter;
 
    if (!PyArg_ParseTuple(args, "ss", &source, &bloom_filter))
        return NULL;
-
-   sp_build(source, 21, 0.0005, bloom_filter);
+   
+   printf("%s\n", source);
+   printf("%s\n", bloom_filter);
+   int k_mer =21;
+   float error_rate = 5;
+   printf ("error_rate->%f\n",error_rate);
+   sp_build(source,k_mer,5,1000, bloom_filter);
 
    return NULL;
 }

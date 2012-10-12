@@ -33,13 +33,13 @@ typedef struct
 	int cnt;
 } randoms;
 
-struct bloomstat
+typedef struct bloomstat
 {
 	BIGNUM elements; /* size of array */
 	int ideal_hashes; /* num hash functions */
 	BIGNUM capacity; /* number of elements */
 	float e; /* max error rate */
-} ;
+} bl_stat;
 
 typedef struct
 {
