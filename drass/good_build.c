@@ -104,12 +104,7 @@ int build(char *ref_name, char *target_path, int k_mer, float error_rate)
 	
 	bloom *bl = NEW (bloom);
 	bl->k_mer = k_mer;
-    //XXX: @tzcoolman: Why this float does not persist during build?
-    // it turns -(BIGINT) if the following statement is removed
-    error_rate=0.0005;
     bl->stat.e = error_rate;
-    printf("ERROR RATE: %f", error_rate);
-    //printf("error_rate  %d  times  %d\n",error_rate,times);
 
     bl->stat.capacity = strlen(position);
     get_rec(&bl->stat);
