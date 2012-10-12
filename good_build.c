@@ -94,7 +94,7 @@ main (int argc, char *argv[])
 
 #ifdef DEBUG
   printf ("all finished...\n");
-  printf ("total=%ld sec\n", sec);
+  printf ("total=%ld sec\n", sec/100000000);
   printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
 #endif
 */
