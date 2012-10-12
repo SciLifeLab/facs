@@ -53,13 +53,13 @@ void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
 char *fasta_data (bloom * bl_2, char *data);
-int build (char *ref_name, int k_mer, int error_rate, int times, char *target_path);
+int build(char *ref_name, char *target_path, int k_mer, float error_rate);
 
 
 int main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
-  build("k_12.fasta", 21, 5,1000, argv[0]);
+  build("k_12.fasta", argv[0], 21, 0.0005);
 /*
   init (argc, argv);
   struc_init ();
@@ -98,19 +98,23 @@ int main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
-int build(char *ref_name, int k_mer, int error_rate,int times, char *target_path)
+int build(char *ref_name, char *target_path, int k_mer, float error_rate)
 {
 	char *position = mmaping (ref_name);
 	
 	bloom *bl = NEW (bloom);
 	bl->k_mer = k_mer;
-    bl->stat.e = (float)(error_rate)/(float)times;
+    //XXX: @tzcoolman: Why this float does not persist during build?
+    // it turns -(BIGINT) if the following statement is removed
+    error_rate=0.0005;
+    bl->stat.e = error_rate;
+    printf("ERROR RATE: %f", error_rate);
     //printf("error_rate  %d  times  %d\n",error_rate,times);
 
     bl->stat.capacity = strlen(position);
     get_rec(&bl->stat);
 
-	bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,bl->stat.ideal_hashes, NULL, 3);
+	bloom_init(bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,bl->stat.ideal_hashes, NULL, 3);
 	ref_add (bl, position);
 	save_bloom (ref_name, bl, NULL, target_path);
 	
