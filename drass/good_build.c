@@ -53,13 +53,13 @@ void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
 char *fasta_data (bloom * bl_2, char *data);
-int sp_build (char *ref_name, int k_mer, int error_rate, int times, char *target_path);
+int build (char *ref_name, int k_mer, int error_rate, int times, char *target_path);
 
 
 int main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
-  sp_build ("k_12.fasta", 21, 5,1000, argv[0]);
+  build("k_12.fasta", 21, 5,1000, argv[0]);
 /*
   init (argc, argv);
   struc_init ();
@@ -98,7 +98,7 @@ int main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
-int sp_build (char *ref_name, int k_mer, int error_rate,int times, char *target_path)
+int build(char *ref_name, int k_mer, int error_rate,int times, char *target_path)
 {
 	char *position = mmaping (ref_name);
 	
