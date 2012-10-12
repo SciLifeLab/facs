@@ -53,7 +53,7 @@ void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
 char *fasta_data (bloom * bl_2, char *data);
-int build(char *ref_name, char *target_path, int k_mer, float error_rate);
+int build(char *ref_name, char *target_path, int k_mer, double error_rate);
 
 
 int main (int argc, char *argv[])
@@ -98,8 +98,9 @@ int main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
-int build(char *ref_name, char *target_path, int k_mer, float error_rate)
+int build(char *ref_name, char *target_path, int k_mer, double error_rate)
 {
+    printf("ERROR RATE, just coming from python iface: %d %f\n", k_mer, error_rate);
 	char *position = mmaping (ref_name);
 	
 	bloom *bl = NEW (bloom);
