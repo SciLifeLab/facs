@@ -53,13 +53,13 @@ void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
 char *fasta_data (bloom * bl_2, char *data);
-int sp_build (char *ref_name, int k_mer, int error_rate, int times, char *target_path);
+int build(char *ref_name, char *target_path, int k_mer, double error_rate);
 
 
 int main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
-  sp_build ("k_12.fasta", 21, 5,1000, argv[0]);
+  build("k_12.fasta", argv[0], 21, 0.0005);
 /*
   init (argc, argv);
   struc_init ();
@@ -90,7 +90,7 @@ int main (int argc, char *argv[])
 
 #ifdef DEBUG
   printf ("all finished...\n");
-  printf ("total=%ld sec\n", sec);
+  printf ("total=%ld sec\n", sec/100000000);
   printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
 #endif
 */
@@ -98,38 +98,20 @@ int main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
-int sp_build (char *ref_name, int k_mer, int error_rate,int times, char *target_path)
+int build(char *ref_name, char *target_path, int k_mer, double error_rate)
 {
+    printf("ERROR RATE, just coming from python iface: %d %f\n", k_mer, error_rate);
 	char *position = mmaping (ref_name);
 	
 	bloom *bl = NEW (bloom);
 	bl->k_mer = k_mer;
-        bl->stat.e = (float)(error_rate)/(float)times;
-        //printf("error_rate  %d  times  %d\n",error_rate,times);
+    bl->stat.e = error_rate;
 
-        bl->stat.capacity = strlen(position);
-        get_rec(&bl->stat);
-        //bl_stat *tea= NEW (bl_stat); 
-        //get_suggestion (tea, strlen(position), error_rate);
-        //&bl->stat = tea;
-/*
-        #ifdef DEBUG
-  printf ("Capacity: %lld\n", bl->stat.capacity);
-  printf ("Vector size: %lld\n", bl->stat.elements);
-  printf ("Ideal hashes: %d\n", bl->stat.ideal_hashes);
-  printf ("Error rate: %f\n", bl->stat.e);
-  printf ("Real size: %lld\n", bl->stat.elements / 8);
-#endif
-*/	
-       	//get_suggestion (&bl->stat, strlen(position), error_rate);
-        //printf("k_mer->%d\n",bl->k_mer);	
+    bl->stat.capacity = strlen(position);
+    get_rec(&bl->stat);
 
-	bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,bl->stat.ideal_hashes, NULL, 3);
-	
-        //bloom_init (bl,tea->elements,tea->capacity,error_rate,tea->ideal_hashes,NULL,3); 
-
+	bloom_init(bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,bl->stat.ideal_hashes, NULL, 3);
 	ref_add (bl, position);
-	
 	save_bloom (ref_name, bl, NULL, target_path);
 	
 	return 0;

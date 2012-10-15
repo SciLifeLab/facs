@@ -123,11 +123,8 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_r
     return 1;
 
   char *start = p;
-
   int n, m, result, count_enter;
-
   char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
-
   char *pre_key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
 
   key[bl->k_mer] = '\0';

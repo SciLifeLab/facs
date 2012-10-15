@@ -8,11 +8,12 @@ static char bloom_docstring[] =
     "Builds a DRASS bloom filter and performs queries against it.";
 
 /* Available functions */
-static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *argv);
+static PyObject *drass_bloom_build(PyObject *self, PyObject *args);
+static PyObject *drass_bloom_query(PyObject *self, PyObject *args);
 
 static PyMethodDef module_methods[] = {
         {"build", drass_bloom_build, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
-/*        {"bloom_query", drass_bloom_query, METH_VARARGS | METH_KEYWORDS, bloom_docstring}, */
+        {"query", drass_bloom_query, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
         {NULL, NULL, 0, NULL}
 };
 
@@ -23,20 +24,26 @@ PyMODINIT_FUNC initdrass(void)
         return;
 }
 
-static PyObject *drass_bloom_build(PyObject *self, PyObject *args, PyObject *argv)
+
+static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 {
+    return Py_BuildValue("");
+}
 
+static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
+{
    char *source, *bloom_filter;
+   int ret;
 
-   if (!PyArg_ParseTuple(args, "ss", &source, &bloom_filter))
+   //DRASS operational defaults
+   int k_mer=21;
+   double error_rate=0.0005;
+
+   if (!PyArg_ParseTuple(args, "ss|id", &source, &bloom_filter, &k_mer, &error_rate))
        return NULL;
-   
-   printf("%s\n", source);
-   printf("%s\n", bloom_filter);
-   //int k_mer =21;
-   //float error_rate = 5;
-   //printf ("error_rate->%f\n",error_rate);
-   sp_build(source,21,5,1000, bloom_filter);
+  
+   ret = build(source, bloom_filter, k_mer, error_rate);
 
-   return NULL;
+   //return Py_BuildValue("");
+   return Py_BuildValue("i", ret);
 }

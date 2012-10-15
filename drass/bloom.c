@@ -29,95 +29,82 @@ int seed[20] =
 };
 
 int
-bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, float error_rate,
+bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
 	    int hashes, hash_t hash, int flags)
 {
-  if (size < 1)
-    {
+  if (size < 1) {
       fprintf (stderr, "overflow1\n");
       return -1;
-    }
-  else
-    {
+  } else {
       /* this may waste a little time, but we need to ensure
        * that our array has a prime number of elements, even
        * if we have been requested to do otherwise */
       bloom->stat.elements = find_close_prime (size);
-    }
+  }
 
-  if (hashes < 1)
-    {
+  if (hashes < 1) {
+#ifdef DEBUG
       fprintf (stderr, "hashes was %d,size %lld\n", hashes, size);
-      return -1;
-    }
-  else
-    {
-      bloom->stat.ideal_hashes = hashes;
-    }
+#endif
+    return -1;
 
-  if (hash == NULL)
-    {
+  } else {
+      bloom->stat.ideal_hashes = hashes;
+  }
+
+  if (hash == NULL) {
       bloom->hash = (hash_t) HASH_FUNC;
-    }
-  else
-    {
+  } else {
       bloom->hash = hash;
-    }
+  }
+
   bloom->inserts = 0;
 
 	/**
 	If error rate and capacity were not specified, but size and num hashes were,
 	we can calculate the missing elements.
 	**/
-  if (capacity == 0 || error_rate == 0)
-    {
+  if (capacity == 0 || error_rate == 0) {
       // From wikipedia, num hashes k that minimizes probability of error is k =~ (0.7 m) / n
       // Therefore n =~ (0.7 m) / k
       bloom->stat.capacity = 0.7 * bloom->stat.elements / hashes;
       bloom->stat.e = powf (2.0, (float) -1 * hashes);
-    }
-  else
-    {
+  } else {
       bloom->stat.capacity = capacity;
       bloom->stat.e = error_rate;
-    }
-  if ((flags & BVERBOSE) == BVERBOSE)
-    {
+  }
+
+#ifdef DEBUG
       fprintf (stderr, "bloom_init(%lld,%d) => (%lld,%d) =>%f\n",
 	       (BIGCAST) size, hashes, (BIGCAST) bloom->stat.elements,
 	       bloom->stat.ideal_hashes, bloom->stat.e);
-      //verbose = 1;
-    }
-  else
-    {
-      //verbose = 0;
-    }
-  if ((size > TOPLIMIT))
-    {
+#endif
+
+  if ((size > TOPLIMIT)) {
       fprintf (stderr, "overflow2\n");
       return -2;
-    }
+  }
 
   /* allocate our array of bytes.  where m is the size of our desired 
    * bit vector, we allocate m/8 + 1 bytes. */
-  if ((bloom->vector =
-       (char *) malloc (sizeof (char) *
-			((long long) (bloom->stat.elements / 8) + 1))) ==
-      NULL)
-    {
-      //printf("-->%d\n",strlen(bloom->vector));
+  if ((bloom->vector = (char *) malloc (sizeof (char) *
+                       ((long long) (bloom->stat.elements / 8) + 1))) == NULL)
+  {
       perror ("malloc");
       return -1;
-    }
-  else
-    memset (bloom->vector, 0,
-	    sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
+  } else
+        memset (bloom->vector, 0,
+  
+  sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
+
   /* generate a collection of random integers, to use later
    * when salting our keys before hashing them */
+
   //sketchy_randoms(&bloom->random_nums,hashes);
   //bloom->vector = "11111111";
   //printf("vector size-> %d\n",sizeof(bloom->vector));
   //memset(bloom->vector,0,sizeof(bloom->vector));
+
   return 0;
 }
 
@@ -323,29 +310,29 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 	strncat (bloom_file, filename,
 		 strrchr (filename, '.') - filename + 1);
       strcat (bloom_file, "bloom");
-    
+
+#ifdef DEBUG    
   printf ("bloom name->%s\n", bloom_file);
+#endif
 
 #ifdef __APPLE__
-  fd = open (bloom_file, O_RDWR | O_CREAT, 0644);
+  fd = open(bloom_file, O_RDWR | O_CREAT, 0644);
 #else // assume linux
-  fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
+  fd = open(bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
 #endif
-  if (fd < 0)
-    {
+
+  if (fd < 0) {
       perror (bloom_file);
       return -1;
-    }
+  }
 
-  BIGNUM total_size =
-    sizeof (bloom) + sizeof (char) * ((long long) (bl->stat.elements / 8) +
-				      1) +
-    sizeof (int) * (bl->stat.ideal_hashes + 1);
+  BIGNUM total_size =   sizeof (bloom) + sizeof (char) * ((long long) (bl->stat.elements / 8) + 1) +
+                        sizeof (int) * (bl->stat.ideal_hashes + 1);
 
 #ifdef __APPLE__
-  if (ftruncate (fd, total_size) < 0)
+  if (ftruncate(fd, total_size) < 0)
 #else
-  if (ftruncate64 (fd, total_size) < 0)
+  if (ftruncate64(fd, total_size) < 0)
 #endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
@@ -370,9 +357,11 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   memset (bl->vector, 0,
 	  sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
 
+#ifdef DEBUG
   printf ("big file process OK\n");
+#endif
 
-  return 1;
+  return 0;
 
 }
 
