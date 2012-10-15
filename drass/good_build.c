@@ -100,7 +100,6 @@ int main (int argc, char *argv[])
 /*-------------------------------------*/
 int build(char *ref_name, char *target_path, int k_mer, double error_rate)
 {
-    printf("ERROR RATE, just coming from python iface: %d %f\n", k_mer, error_rate);
 	char *position = mmaping (ref_name);
 	
 	bloom *bl = NEW (bloom);
