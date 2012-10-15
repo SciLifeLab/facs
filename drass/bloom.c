@@ -188,7 +188,6 @@ BIGNUM
 bloom_hash (bloom * bloom, char *str, int i, int length)
 {
   BIGNUM ret = 0;
-  BIGNUM hash;
 
   ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
 
@@ -299,6 +298,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *position1, *position2;
   char *bloom_file = (char *) malloc (300 * sizeof (char));
+  int fd, fq;
 
   memset (bloom_file, 0, 300);
 
@@ -325,8 +325,6 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       strcat (bloom_file, "bloom");
     
   printf ("bloom name->%s\n", bloom_file);
-
-  int fd, fq;
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, 0644);
@@ -413,8 +411,9 @@ load_bloom (char *filename, bloom * bl)
   close (fd);
 
   printf ("successful bloom read...\n");
-
   close (fd);
+
+  return 0;
 }
 
 void
@@ -513,46 +512,6 @@ mmaping (char *source)
   return sm;
 }
 
-/*
-void instruction(){
-printf("pod\n");
-
-
-
-printf("SYNOPSIS\n");
-
-printf("\n");
-
-printf("ARGUMENTS\n");
-
-printf("./script <>");
-
-printf("The word size for K-mers used by the filter.\n");
-
-printf("<bloomfilterlistfile>\n");
-
-printf("File containing a list of Bloom filters built using I<bloombuild>\n");
-
-printf("<queryfile>\n");
-
-printf("Fasta file with reads to be filtered.\n");
-
-printf("<outprefix>\n");
-
-printf("Prefix for output filenames.\n");
-
-printf("\n");
-
-printf("DESCRIPTION\n");
-
-printf("facs interrogates queries against filters and classifies queries onto genomes. The algorithm loops trough all queries for one filter at a time.\n");
-
-printf("Results are written to three files\n");
-
-exit(1);
-
-}
-*/
 void
 help ()
 {

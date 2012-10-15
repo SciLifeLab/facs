@@ -14,7 +14,8 @@
 int
 fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_rate)
 { 
-  char *p = begin;   
+  char *p = begin;
+  
   int distance = length;
   int signal = 0, result = 0;
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
@@ -182,10 +183,13 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_r
 	      result =  fasta_full_check (bl, begin, next, model, tole_rate);
               if (result > 0)
                   return result;
+              //else if (model == "normal")	//use recursion to check the sequence forward and backward
+              //    return fasta_read_check (begin, next, "reverse", bl);
               else if (model == "normal")
                   break;
 	    }
 
+      //memset (key, 0, bl->k_mer);
     }				//outside while
     if (model == "reverse")
         return 0;
@@ -197,7 +201,6 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_r
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_rate)
 {
-
   int match_s = 0, count = 0, mark = 1;
 
   int n = 0, m = 0, count_enter = 0;
@@ -238,7 +241,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
 
       if (model == "reverse")
 	rev_trans (key);
-     
+      //printf("key->%s\n",key);
       if (count >= bl->k_mer)
          {
            mark = 1;
@@ -248,6 +251,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
        {
 	if (bloom_check (bl, key))
 	  { 
+            //printf("hit--->\n");
             if (mark == 1)
                 {
                 match_s+=(bl->k_mer-1);
@@ -259,12 +263,12 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
         
 	else
 	  {
-
+            //printf("unhit--->\n");
 	  }
         
     count++;
         }   //outside if
-      
+      //printf("score->%d\n",match_s);
       p++;
       if (p[0] == '\n')
 	p++;

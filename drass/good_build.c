@@ -53,17 +53,15 @@ void fastq_add (bloom * bl, char *position);
 void fasta_add (bloom * bl, char *position);
 
 char *fasta_data (bloom * bl_2, char *data);
-int sp_build (char *ref_name, int k_mer, float error_rate, char *target_path);
+int sp_build (char *ref_name, int k_mer, int error_rate, int times, char *target_path);
 
 
-
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
   //gettimeofday (&tv, &tz);
-  sp_build ("k_12.fasta", 21, 0.0005, argv[0]);
+  sp_build ("k_12.fasta", 21, 5,1000, argv[0]);
 /*
   init (argc, argv);
-
   struc_init ();
 
   while (File_head)
@@ -71,11 +69,9 @@ main (int argc, char *argv[])
       printf ("File_head->%s\n", File_head->filename);
 
       init_query (File_head->filename);
-
       init_bloom (bl_2);
 
       ref_add (bl_2, position);
-
       save_bloom (File_head->filename, bl_2, prefix, argv[0]);
 
       bloom_destroy (bl_2);
@@ -102,17 +98,36 @@ main (int argc, char *argv[])
 }
 
 /*-------------------------------------*/
-int sp_build (char *ref_name, int k_mer, float error_rate, char *target_path)
+int sp_build (char *ref_name, int k_mer, int error_rate,int times, char *target_path)
 {
 	char *position = mmaping (ref_name);
 	
 	bloom *bl = NEW (bloom);
 	bl->k_mer = k_mer;
-	
-	get_suggestion (&bl->stat, strlen(position), error_rate);
-	
+        bl->stat.e = (float)(error_rate)/(float)times;
+        //printf("error_rate  %d  times  %d\n",error_rate,times);
+
+        bl->stat.capacity = strlen(position);
+        get_rec(&bl->stat);
+        //bl_stat *tea= NEW (bl_stat); 
+        //get_suggestion (tea, strlen(position), error_rate);
+        //&bl->stat = tea;
+/*
+        #ifdef DEBUG
+  printf ("Capacity: %lld\n", bl->stat.capacity);
+  printf ("Vector size: %lld\n", bl->stat.elements);
+  printf ("Ideal hashes: %d\n", bl->stat.ideal_hashes);
+  printf ("Error rate: %f\n", bl->stat.e);
+  printf ("Real size: %lld\n", bl->stat.elements / 8);
+#endif
+*/	
+       	//get_suggestion (&bl->stat, strlen(position), error_rate);
+        //printf("k_mer->%d\n",bl->k_mer);	
+
 	bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,bl->stat.ideal_hashes, NULL, 3);
 	
+        //bloom_init (bl,tea->elements,tea->capacity,error_rate,tea->ideal_hashes,NULL,3); 
+
 	ref_add (bl, position);
 	
 	save_bloom (ref_name, bl, NULL, target_path);
@@ -149,6 +164,7 @@ init_query (char *source)
 }
 
 /*-------------------------------------*/
+
 void
 init (int argc, char **argv)
 {
@@ -208,22 +224,16 @@ init (int argc, char **argv)
       perror ("No source.");
       exit (0);
     }
-
 }
 
 /*-------------------------------------*/
 void
 init_bloom (bloom * bl)
 {
-  BIGNUM size;
-
-  int status, hashes, flags;
-
+  int flags = 3;
   hash_t hash = NULL;
 
-  flags = 3;
-
-  get_suggestion (&bl->stat, capacity, error_rate);
+  get_suggestion(&bl->stat, capacity, error_rate);
 
 #ifdef DEBUG
   printf ("Capacity: %lld\n", bl->stat.capacity);
@@ -259,9 +269,9 @@ fasta_add (bloom * bl, char *position)
   while (*position != '\0')
     {
       if (*position == '>')
-	position = fasta_title (position);
+	position = fasta_title(position);
       else
-	position = fasta_data (bl, position);
+	position = fasta_data(bl, position);
     }
 }
 
@@ -270,18 +280,17 @@ void
 fastq_add (bloom * bl, char *position)
 {
 
-  char *key = (char *) malloc (k_mer * sizeof (char) + 1);
-  char *position2;
+  char *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
   while (position[0] != '\0')
     {
       position = strchr (position, '\n') + 1;
 
-      while (position[k_mer - 1] != '\n')
+      while (position[bl->k_mer - 1] != '\n')
 	{
-	  memcpy (key, position, sizeof (char) * k_mer);
+	  memcpy (key, position, sizeof (char) * bl->k_mer);
 
-	  key[k_mer] = '\0';
+	  key[bl->k_mer] = '\0';
 
 	  if (bloom_add (bl, key))
 	    hit++;
@@ -291,7 +300,7 @@ fastq_add (bloom * bl, char *position)
 	  position++;
 	}
 
-      position += k_mer;
+      position += bl->k_mer;
 
       position = strchr (position, '\n') + 1;
 
@@ -312,45 +321,39 @@ char *
 fasta_data (bloom * bl_2, char *data)
 {
 
-  char *key = (char *) malloc (k_mer * sizeof (char) + 1);
-
+  char *key = (char *) malloc (bl_2->k_mer * sizeof (char) + 1);
   char *p = data;
-
   int n = 0, m = 0;
 
-  while (*p != '>' && *p != '\0')
-    {
-
-      while (n < k_mer)
-	{
-
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-
+  while (*p != '>' && *p != '\0') {
+      while (n < bl_2->k_mer) {
+	    if (p[m] == '>' || p[m] == '\0') {
 	      m--;
 	      break;
 	    }
 
 	  if (p[m] != '\r' && p[m] != '\n')
 	    key[n++] = p[m];
+	    m++;
+      }
 
-	  m++;
-	}
       key[n] = '\0';
 
-      if (strlen (key) == k_mer)
-	{
+
+      if (strlen(key) == bl_2->k_mer) {
 
 	  if (bloom_add (bl_2, key))
 	    hit++;
 	  else
 	    un_hit++;
-	}
+      }
+
       p += 1;
       n = 0;
       m = 0;
-    }
-  free (key);
+      }
+
+  free(key);
   return p;
 }
 

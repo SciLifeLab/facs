@@ -113,13 +113,13 @@ main (int argc, char **argv)
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
 
+      save_result (source,File_head->filename);
+
       File_head = File_head->next;
 
       head = head2;
 
       bloom_destroy (bl_2);
-
-      save_result (source, all_ref);
 
     }				//end while
 
@@ -350,7 +350,7 @@ fastq_process (bloom * bl, Queue * info)
 	temp_end = strchr (p, '\0');
       int result = fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
 
-      if (result == 1)
+      if (result == 0)
 	{
 #pragma omp critical
 	  {
@@ -363,7 +363,7 @@ fastq_process (bloom * bl, Queue * info)
 	      }
 	  }
 	}
-      else if (result == 0)
+      else if (result > 0)
 	{
 #pragma omp critical
 	  {
@@ -419,7 +419,7 @@ fasta_process (bloom * bl, Queue * info)
 	temp = next;
 	  
       int result = fasta_read_check (p, temp, "normal", bl, tole_rate);
-      if (result)
+      if (result==0)
 	{
 #pragma omp critical
 	  {
@@ -427,7 +427,7 @@ fasta_process (bloom * bl, Queue * info)
 	    clean += (temp - p);
 	  }
 	}
-      else if (result == 0)
+      else if (result > 0)
 	{
 #pragma omp atomic
 	  read_contam++;
@@ -483,22 +483,23 @@ save_result (char *source, char *obj_file)
       strncat (match, source, so - source);
       strncat (mismatch, source, so - source);
     }
+  //printf ("objname->%s\n",obj_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   strcat (match, so_name);
   strcat (mismatch, so_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
-  strcat (match, "__");
-  strcat (mismatch, "__");
+  strcat (match, "_");
+  strcat (mismatch, "_");
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   strcat (match, obj_name);
   strcat (mismatch, obj_name);
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
-  strcat (match, "_contam_");
-  strcat (mismatch, "_clean_");
+  strcat (match, "_contam");
+  strcat (mismatch, "_clean");
 
   if (type == 1)
     {
