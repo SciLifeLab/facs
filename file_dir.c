@@ -60,7 +60,6 @@ make_list (char *file_user, char *list_user)
 
   if (list_user)
     {
-      printf ("in make list\n");
       list_user = mmaping (list_user);
       char *pos;
 
@@ -134,7 +133,7 @@ make_list (char *file_user, char *list_user)
 	}
     }
 
-  return head1;
+  return head1->next;
 
 }
 

@@ -32,7 +32,7 @@
 float error_rate, sampling_rate, contamination_rate, tole_rate;
 /*-------------------------------------*/
 int k_mer = 0, mode, mytask, ntask, type = 2, reads_num =
-  0, reads_contam = 0, checky = 0;
+  0, reads_contam = 0;
 /*-------------------------------------*/
 char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
   *contam2, *list;
@@ -44,17 +44,19 @@ bloom *bl_2;
 F_set *File_head;
 /*-------------------------------------*/
 void struc_init ();
-void get_parainfo (char *full);
+int get_parainfo (char *full, Queue *head);
 void get_size (char *strFileName);
 void init (int argc, char **argv);
-void fasta_process (bloom * bl, Queue * info);
-void fastq_process (bloom * bl, Queue * info);
-void evaluate (char *detail, char *filename);
+void fasta_process (bloom * bl, Queue * info, F_set *File_head, float sampling_rate, float tole_rate);
+void fastq_process (bloom * bl, Queue * info, F_set *File_head, float sampling_rate, float tole_rate);
 void save_result (char *source, char *obj_file);
-void statistic_save (char *detail, char *filename);
+void statistic_save (char *detail, char *filename, char* prefix);
+void evaluate (char *detail, char *filename, F_set *File_head);
 /*-------------------------------------*/
-char *jump (char *target);
+char *jump (char *target, int type, float sampling_rate);
 char *mmaping (char *source);
+int check (char *query, char *reference, char l, char *target_path, double sampling_rate, double tole_rate);
+int checky (char *query, char *reference, char l, char *target_path, double sampling_rate, double tole_rate);
 /*-------------------------------------*/
 //long long get_size(char * strFileName);
 /*-------------------------------------*/
@@ -62,7 +64,7 @@ char *mmaping (char *source);
 /*-------------------------------------*/
 main (int argc, char **argv)
 {
-
+  /*
   long sec, usec, i;
   struct timezone tz;
   struct timeval tv, tv2;
@@ -101,9 +103,9 @@ main (int argc, char **argv)
 		if (head->location)
 
 		  if (type == 1)
-		    fasta_process (bl_2, head);
+		    fasta_process (bl_2, head, File_head);
 		  else
-		    fastq_process (bl_2, head);
+		    fastq_process (bl_2, head, File_head);
 	      }
 	      head = head->next;
 	    }
@@ -116,7 +118,12 @@ main (int argc, char **argv)
 //  strncpy(source,fifoname,(strrchr(fifoname,'.')-fifoname));
 //  }
 
-      evaluate (detail, File_head->filename);
+      evaluate (detail, File_head->filename, reads_num, reads_contam);
+
+      checky = 0;
+      reads_num = 0;
+      reads_contam = 0;
+      contamination_rate = 0;
 
       File_head = File_head->next;
 
@@ -125,7 +132,7 @@ main (int argc, char **argv)
       bloom_destroy (bl_2);
     }				//end while
 
-  statistic_save (detail, source);
+  statistic_save (detail, source, prefix);
 
   if (!strstr (source, ".fifo"))
     munmap (position, strlen (position));
@@ -135,6 +142,9 @@ main (int argc, char **argv)
   usec = tv2.tv_usec - tv.tv_usec;
 
   printf ("total=%ld sec\n", sec);
+  */
+
+  check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
 
   return 0;
 }
@@ -228,15 +238,15 @@ struc_init ()
   head2 = head;
   File_head = NEW (F_set);
   File_head = make_list (all_ref, list);
-  File_head = File_head->next;
+  //File_head = File_head->next;
 }
 
 /*-------------------------------------*/
-void
-get_parainfo (char *full)
+int
+get_parainfo (char *full, Queue *head)
 {
   printf ("distributing...\n");
-
+  int type;
   char *temp = full;
   int cores = omp_get_num_procs ();
   int offsett = strlen (full) / cores;
@@ -267,7 +277,6 @@ get_parainfo (char *full)
 
 	  if (add != 0)
 	    temp = strchr (full + offsett * add, '>');
-
 
 	  x->location = temp;
 	  x->number = add;
@@ -305,11 +314,11 @@ get_parainfo (char *full)
 
     }
 
-  return;
+  return type;
 }
 /*-------------------------------------*/
 void
-fastq_process (bloom * bl, Queue * info)
+fastq_process (bloom * bl, Queue * info, F_set *File_head,float sampling_rate, float tole_rate)
 {
 
 #ifdef DEBUG
@@ -319,7 +328,7 @@ fastq_process (bloom * bl, Queue * info)
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
 
-  if (info->next == NULL)
+  if (info->location == NULL)
     return;
 
   else if (info->next != tail)
@@ -330,7 +339,7 @@ fastq_process (bloom * bl, Queue * info)
 
   while (p != next)
     {
-      temp = jump (p);		//generate random number and judge if need to scan this read
+      temp = jump (p,info->type,sampling_rate);		//generate random number and judge if need to scan this read
 
       if (p != temp)
 	{
@@ -339,13 +348,12 @@ fastq_process (bloom * bl, Queue * info)
 	}
 
 #pragma omp atomic
-      reads_num++;
+      File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-
-      if (!fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate))
+      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)>0)
 #pragma omp atomic
-	reads_contam++;
+      File_head->reads_contam++;
 
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
@@ -356,27 +364,28 @@ fastq_process (bloom * bl, Queue * info)
 }
 /*-------------------------------------*/
 void
-fasta_process (bloom * bl, Queue * info)
+fasta_process (bloom * bl, Queue * info, F_set *File_head, float sampling_rate, float tole_rate)
 {
 
 #ifdef DEBUG
   printf ("fasta processing...\n");
 #endif
-
-  char *p = info->location;
+  printf("tole_rate->%f\n",tole_rate);
+  //char *p = info->location;
   char *temp_next, *next, *temp, *temp_piece = NULL;
 
-  if (info->next == NULL)
+  if (info->location == NULL)
     return;
   else if (info->next != tail)
     next = info->next->location;
   else
-    next = strchr (p, '\0');
+    next = strchr (info->location, '\0');
+
+  char *p = info->location;
 
   while (p != next)
     {
-
-      temp = jump (p);		//generate random number and judge if need to scan this read
+      temp = jump (p,info->type,sampling_rate);		//generate random number and judge if need to scan this read
 
       if (p != temp)
 	{
@@ -385,16 +394,16 @@ fasta_process (bloom * bl, Queue * info)
 	}
 
 #pragma omp atomic
-      reads_num++;
+      File_head->reads_num++;
 
       temp_next = strchr (p + 1, '>');
       if (!temp_next)
 	temp_next = next;
 
-      if (!fasta_read_check (p, temp_next, "normal", bl, tole_rate))
+      if (fasta_read_check (p, temp_next, "normal", bl, tole_rate)>0)
 	{
 #pragma omp atomic
-	  reads_contam++;
+      File_head->reads_contam++;
 	}
 
       p = temp_next;
@@ -402,27 +411,28 @@ fasta_process (bloom * bl, Queue * info)
 }
 /*-------------------------------------*/
 void
-evaluate (char *detail, char *filename)
+evaluate (char *detail, char *filename, F_set *File_head)
 {
   char buffer[200] = { 0 };
 
-  printf ("all->%d\n", reads_num);
+  printf ("all->%d\n", File_head->reads_num);
 
-  printf ("contam->%d\n", reads_contam);
+  printf ("contam->%d\n", File_head->reads_contam);
 
   printf ("bloomname->%s\n", filename);
 
-  contamination_rate = (double) (reads_contam) / (double) (reads_num);
+  contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
   if ((mode == 1 && contamination_rate == 0)
       || (mode == 2 && contamination_rate == 1))
     printf ("clean data...\n");
-
+/*
   else if (mode == 1)
     printf ("contamination rate->%f\n", contamination_rate);
   else
     printf ("contamination rate->%f\n", 1 - contamination_rate);
-
+*/
+  printf ("contamination rate->%f\n", contamination_rate);
   strcat (detail, "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
   strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
 
@@ -430,7 +440,7 @@ evaluate (char *detail, char *filename)
   //strcat (detail, "  ");
   //strcat (detail, "   \n");
 
-  sprintf (buffer, "  %d\t%d\t%f\n", reads_num, reads_contam,
+  sprintf (buffer, "  %d\t%d\t%f\n", File_head->reads_num, File_head->reads_contam,
 	   contamination_rate);
   strcat (detail, buffer);
 
@@ -449,17 +459,12 @@ evaluate (char *detail, char *filename)
   //strcat (detail, buffer);
   //memset (buffer, 0, 100);
 
-  reads_num = 0;
-  reads_contam = 0;
-  checky = 0;
-  contamination_rate = 0;
-
   //printf("detail->%s\n",detail);
 }
 
 /*-------------------------------------*/
 char *
-jump (char *target)
+jump (char *target, int type, float sampling_rate)
 {
   //printf("here\n");
   float seed = rand () % 10;
@@ -482,7 +487,7 @@ jump (char *target)
 
 /*-------------------------------------*/
 void
-statistic_save (char *detail, char *filename)
+statistic_save (char *detail, char *filename, char *prefix)
 {
   char *position1,
     *save_file = (char *) malloc (200 * sizeof (char)),
@@ -515,4 +520,79 @@ statistic_save (char *detail, char *filename)
   printf ("Info name->%s\n", save_file);
 
   write_result (save_file, detail);
+}
+/*-------------------------------------*/
+int checky(char *query, char *reference, char l, char *target_path, double sampling_rate, double tole_rate)
+{
+int type;
+char *position;
+Queue *head = NEW (Queue);
+bloom *bl_2 = NEW (bloom);
+Queue *tail, *head2;
+head2 = head; 
+head->next = tail;
+File_head = NEW (F_set);
+
+if (l == 'l')
+   File_head = make_list (NULL, reference);
+else
+   File_head = make_list (reference, NULL);
+printf ("File_head->%s\n",File_head->filename);
+char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
+
+if (strstr (query, ".fifo"))
+    position = large_load (query);
+else
+    position = mmaping (query);
+
+type = get_parainfo (position, head);
+
+while (File_head)
+    {
+      File_head->reads_num = 0;
+      File_head->reads_contam = 0;
+      load_bloom (File_head->filename, bl_2);
+
+#pragma omp parallel
+      {
+#pragma omp single nowait
+	{
+	  while (head != tail)
+	    {
+#pragma omp task firstprivate(head)
+	      { 
+                head->type =type;
+		if (head->location)
+		  if (type == 1)
+		    fasta_process (bl_2, head, File_head, sampling_rate,tole_rate);
+		  else
+		    fastq_process (bl_2, head, File_head, sampling_rate,tole_rate);
+                
+	      }
+	      head = head->next;
+	    }
+	}			// End of single - no implied barrier (nowait)
+      }				// End of parallel region - implied barrier
+      printf("num->%d\ncontam->%d\n",File_head->reads_num,File_head->reads_contam);
+      evaluate (detail, File_head->filename, File_head);
+
+      File_head = File_head->next;
+
+      head = head2;
+
+      bloom_destroy (bl_2);
+    }				//end while
+
+statistic_save (detail, query, target_path);
+
+if (!strstr (query, ".fifo"))
+     munmap (position, strlen (position));
+
+return 0;
+}
+/*-------------------------------------*/
+int check(char *query, char *reference, char l, char *target_path, double sampling_rate, double tole_rate)
+{
+checky(query, reference, l, target_path, sampling_rate, tole_rate);
+return 0;
 }

@@ -14,8 +14,7 @@
 int
 fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_rate)
 { 
-  char *p = begin;
-  
+  char *p = begin;   
   int distance = length;
   int signal = 0, result = 0;
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
@@ -47,7 +46,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_r
 	  if (bloom_check (bl, key))
 	    { 
 	      result =  fastq_full_check (bl, begin, length, model, tole_rate);
-              if (result == 0)
+              if (result > 0)
                   return result;
               else if (model == "normal")
                   break;
@@ -55,7 +54,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_r
 
     }				//outside while
     if (model == "reverse")
-        return 1;
+        return 0;
     else
         return fastq_read_check (begin, length, "reverse", bl,  tole_rate);
 }
@@ -70,6 +69,8 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model, float tole_rat
   int length = distance;
 
   int count = 0, match_s = 0, mark = 1;
+
+  float result;
 
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
   
@@ -90,7 +91,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model, float tole_rat
          }
 	if (bloom_check (bl, key))
 	  { 
-            printf("hit--->\n");
+            //printf("hit--->\n");
             if (mark == 1)
                 {
                 match_s+=(bl->k_mer-1);
@@ -100,20 +101,21 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model, float tole_rat
                 match_s++;
 	  }
       else
-         printf("unhit-->\n");
+         //printf("unhit-->\n");
       distance--;
     }				// end while
   free (key);
-  
-  if (((float) match_s / (float) length) >= tole_rate)
-    return 0;
+  result = (float) match_s / (float) length; 
+  if (result >= tole_rate)
+    return match_s;
   else
-    return 1;
+    return 0;
 }
 
 int
 fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_rate)
 {
+  int position = 0;
   char *p = strchr (begin + 1, '\n') + 1;
 
   if (!p || *p == '>')
@@ -178,18 +180,15 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_r
 	  if (bloom_check (bl, key))
 	    {
 	      result =  fasta_full_check (bl, begin, next, model, tole_rate);
-              if (result == 0)
+              if (result > 0)
                   return result;
-              //else if (model == "normal")	//use recursion to check the sequence forward and backward
-              //    return fasta_read_check (begin, next, "reverse", bl);
               else if (model == "normal")
                   break;
 	    }
 
-      memset (key, 0, bl->k_mer);
     }				//outside while
     if (model == "reverse")
-        return 1;
+        return 0;
     else
         return fasta_read_check (begin, next, "reverse", bl, tole_rate);
 }  
@@ -198,9 +197,12 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_r
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_rate)
 {
+
   int match_s = 0, count = 0, mark = 1;
 
   int n = 0, m = 0, count_enter = 0;
+
+  float result = 0;
 
   char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
 
@@ -236,7 +238,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
 
       if (model == "reverse")
 	rev_trans (key);
-      //printf("key->%s\n",key);
+     
       if (count >= bl->k_mer)
          {
            mark = 1;
@@ -246,7 +248,6 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
        {
 	if (bloom_check (bl, key))
 	  { 
-            //printf("hit--->\n");
             if (mark == 1)
                 {
                 match_s+=(bl->k_mer-1);
@@ -258,21 +259,21 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
         
 	else
 	  {
-            //printf("unhit--->\n");
+
 	  }
         
     count++;
         }   //outside if
-      //printf("score->%d\n",match_s);
+      
       p++;
       if (p[0] == '\n')
 	p++;
       n = 0;
       m = 0;
     }				// end of while
-  //printf("match->%d length->%d\nrate->%f\n",match_s,next-begin-count_enter,(float) (match_s) / (float) (next - begin - count_enter));
-  if (((float) (match_s) / (float) (next - begin - count_enter)) >= (tole_rate))	//match >tole_rate considered as contaminated
-    return 0;
+  result = (float)match_s / (float) (next - begin - count_enter);
+  if (result >= tole_rate)	//match >tole_rate considered as contaminated
+    return match_s;
   else
-    return 1;
+    return 0;
 }
