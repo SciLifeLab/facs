@@ -4,8 +4,9 @@ import sys, os
 
 version = '0.1'
 
-c_ext = Extension("drass", define_macros = [('DEBUG', '1'), ('FIFO', '1')],
-                           sources = ["drass.c", "bloom.c", "good_build.c", "suggestions.c", "lookup8.c", "file_dir.c"])
+c_ext = Extension("drass", define_macros = [('NODEBUG', '1'), ('FIFO', '1')],
+                           sources = ["drass.c", "bloom.c", "good_build.c",
+                                      "suggestions.c", "lookup8.c", "file_dir.c"])
 
 setup(name='drass',
       version=version,
@@ -14,7 +15,7 @@ setup(name='drass',
       ext_modules=[c_ext],
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='bloom filter probabilistic',
-      author='Enze Liu and Lars Arvestad, Henrik Stranneheim, Roman Valls Guimera',
+      author='Enze Liu, Lars Arvestad, Henrik Stranneheim, Roman Valls Guimera',
       author_email='roman@scilifelab.se',
       url='http://facs.scilifelab.se/',
       license='GPLv3',
