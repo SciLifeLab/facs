@@ -27,7 +27,16 @@ PyMODINIT_FUNC initdrass(void)
 
 static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 {
-    return Py_BuildValue("");
+   double sampling_rate=1;
+   double tole_rate=1;
+   char *query, *bloom;
+
+   if (!PyArg_ParseTuple(args, "ss|dd", &query, &bloom, &sampling_rate, &tole_rate))
+       return NULL;
+
+   check(query, bloom, NULL, NULL, sampling_rate, tole_rate);
+
+   return Py_BuildValue("");
 }
 
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
@@ -44,6 +53,5 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
   
    ret = build(source, bloom_filter, k_mer, error_rate);
 
-   //return Py_BuildValue("");
    return Py_BuildValue("i", ret);
 }
