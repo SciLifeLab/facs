@@ -5,8 +5,6 @@ typedef struct file_list
 	char *filename;
 	struct file_list *next;
         short number;
-        int reads_num;
-        int reads_contam;
 } F_set;
 
 extern void get_file_path(const char *path, const char *file_name,  char *file_path);
