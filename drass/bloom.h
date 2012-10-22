@@ -1,13 +1,20 @@
 #ifndef _BLOOM
 #define _BLOOM
 
-
 #include <limits.h>
 
 #define BIGNUM unsigned long long
 #define BIGNUM_STR "unsigned long"
 #define BIGCAST long long
 #define TOPLIMIT LONG_MAX
+#define PERMS 0644
+#define HUN 1000
+#define NEW(type) (type *) malloc(sizeof(type))
+
+#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+#define TWOG 2000000000
+#define hashsize(n) ((BIGNUM)1<<(n))
+#define hashmask(n) (hashsize(n) - 1)
 
 #if !HAVE_SQRTL
 #define sqrtl(val) ((long double)sqrt((double)val))
@@ -46,19 +53,26 @@ typedef struct
 	char *vector;
 	hash_t hash;
  	BIGNUM inserts;
-        struct bloomstat stat;
-        int k_mer;
+  struct bloomstat stat;
+  int k_mer;
 } bloom;
 
 typedef struct info
 {
      char *location;
      short *score;
-     short *number;     
-     short type;                			
+     short *number;                 			
      struct info *next;          
 } Queue;
 
+typedef struct file_list
+{
+	char *filename;
+        short number;
+        BIGCAST reads_num;
+        BIGCAST reads_contam;
+	struct file_list *next;
+} F_set;
 /* these are modes to test_all() */
 #define RO 0
 #define SET 1
@@ -95,10 +109,10 @@ extern void get_rec (struct bloomstat *stat);
 extern BIGNUM report_capacity(bloom *bloom);
 
 extern void write_result (char *filename, char *detail);
-extern void help(void);
 extern void build_help(void);
 extern void check_help(void);
 extern void remove_help(void);
+extern void remove_l_help(void);
 extern int save_bloom (char *filename, bloom *bl, char *prefix, char *target);
 extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);

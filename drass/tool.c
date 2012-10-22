@@ -7,15 +7,17 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
-#include "file_dir.h"
-#include "bloom.h"
 #include "tool.h"
+#include "bloom.h"
+#include "file_dir.h"
+/*-------------------------------------*/
 
 int
-fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_rate)
-{ 
+fastq_read_check (char *begin, int length, char *model, bloom * bl,
+		  float tole_rate)
+{
   char *p = begin;
-  
+
   int distance = length;
   int signal = 0, result = 0;
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
@@ -23,7 +25,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_r
   while (distance > 0)
     {
       if (signal == 1)
-	       break;
+	break;
 
       if (distance >= bl->k_mer)
 	{
@@ -42,30 +44,31 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_r
 	}
 
       if (model == "reverse")
-	        rev_trans (key);      
+	rev_trans (key);
 
-	  if (bloom_check (bl, key))
-	    { 
-	      result =  fastq_full_check (bl, begin, length, model, tole_rate);
-              if (result > 0)
-                  return result;
-              else if (model == "normal")
-                  break;
-	    }
+      if (bloom_check (bl, key))
+	{
+	  result = fastq_full_check (bl, begin, length, model, tole_rate);
+	  if (result > 0)
+	    return result;
+	  else if (model == "normal")
+	    break;
+	}
 
     }				//outside while
-    if (model == "reverse")
-        return 0;
-    else
-        return fastq_read_check (begin, length, "reverse", bl,  tole_rate);
+  if (model == "reverse")
+    return 0;
+  else
+    return fastq_read_check (begin, length, "reverse", bl, tole_rate);
 }
 
 /*-------------------------------------*/
 int
-fastq_full_check (bloom * bl, char *p, int distance, char *model, float tole_rate)
+fastq_full_check (bloom * bl, char *p, int distance, char *model,
+		  float tole_rate)
 {
 
-  printf("fastq full check...\n");
+  printf ("fastq full check...\n");
 
   int length = distance;
 
@@ -74,47 +77,49 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model, float tole_rat
   float result;
 
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
-  
+
   while (distance >= bl->k_mer)
     {
       memcpy (key, p, sizeof (char) * bl->k_mer);
       key[bl->k_mer] = '\0';
       previous = p;
       p += 1;
-      
+
       if (model == "reverse")
-	        rev_trans (key);
-     
-         if (count >= bl->k_mer)
-         {
-           mark = 1;
-           count = 0;
-         }
-	if (bloom_check (bl, key))
-	  { 
-            //printf("hit--->\n");
-            if (mark == 1)
-                {
-                match_s+=(bl->k_mer-1);
-                mark = 0;
-                }
-            else
-                match_s++;
-	  }
+	rev_trans (key);
+
+      if (count >= bl->k_mer)
+	{
+	  mark = 1;
+	  count = 0;
+	}
+      if (bloom_check (bl, key))
+	{
+	  //printf("hit--->\n");
+	  if (mark == 1)
+	    {
+	      match_s += (bl->k_mer - 1);
+	      mark = 0;
+	    }
+	  else
+	    match_s++;
+	}
       else
-         //printf("unhit-->\n");
-      distance--;
+	//printf("unhit-->\n");
+	distance--;
     }				// end while
   free (key);
-  result = (float) match_s / (float) length; 
+  result = (float) match_s / (float) length;
   if (result >= tole_rate)
     return match_s;
   else
     return 0;
 }
 
+/*-------------------------------------*/
 int
-fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_rate)
+fasta_read_check (char *begin, char *next, char *model, bloom * bl,
+		  float tole_rate)
 {
 
   char *p = strchr (begin + 1, '\n') + 1;
@@ -175,28 +180,29 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_r
       if (model == "reverse")
 	rev_trans (key);
 
-	  if (bloom_check (bl, key))
-	    {
-	      result =  fasta_full_check (bl, begin, next, model, tole_rate);
-              if (result > 0)
-                  return result;
-              //else if (model == "normal")	//use recursion to check the sequence forward and backward
-              //    return fasta_read_check (begin, next, "reverse", bl);
-              else if (model == "normal")
-                  break;
-	    }
+      if (bloom_check (bl, key))
+	{
+	  result = fasta_full_check (bl, begin, next, model, tole_rate);
+	  if (result > 0)
+	    return result;
+	  //else if (model == "normal")     //use recursion to check the sequence forward and backward
+	  //    return fasta_read_check (begin, next, "reverse", bl);
+	  else if (model == "normal")
+	    break;
+	}
 
       //memset (key, 0, bl->k_mer);
     }				//outside while
-    if (model == "reverse")
-        return 0;
-    else
-        return fasta_read_check (begin, next, "reverse", bl, tole_rate);
-}  
+  if (model == "reverse")
+    return 0;
+  else
+    return fasta_read_check (begin, next, "reverse", bl, tole_rate);
+}
 
 /*-------------------------------------*/
 int
-fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_rate)
+fasta_full_check (bloom * bl, char *begin, char *next, char *model,
+		  float tole_rate)
 {
   int match_s = 0, count = 0, mark = 1;
 
@@ -240,31 +246,31 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
 	rev_trans (key);
       //printf("key->%s\n",key);
       if (count >= bl->k_mer)
-         {
-           mark = 1;
-           count = 0;
-         }
+	{
+	  mark = 1;
+	  count = 0;
+	}
       if (strlen (key) == bl->k_mer)
-       {
-	if (bloom_check (bl, key))
-	  { 
-            //printf("hit--->\n");
-            if (mark == 1)
-                {
-                match_s+=(bl->k_mer-1);
-                mark = 0;
-                }
-            else
-                match_s++;
-	  }
-        
-	else
-	  {
-            //printf("unhit--->\n");
-	  }
-        
-    count++;
-        }   //outside if
+	{
+	  if (bloom_check (bl, key))
+	    {
+	      //printf("hit--->\n");
+	      if (mark == 1)
+		{
+		  match_s += (bl->k_mer - 1);
+		  mark = 0;
+		}
+	      else
+		match_s++;
+	    }
+
+	  else
+	    {
+	      //printf("unhit--->\n");
+	    }
+
+	  count++;
+	}			//outside if
       //printf("score->%d\n",match_s);
       p++;
       if (p[0] == '\n')
@@ -272,9 +278,108 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_r
       n = 0;
       m = 0;
     }				// end of while
-  result = (float)match_s / (float) (next - begin - count_enter);
+  result = (float) match_s / (float) (next - begin - count_enter);
   if (result >= tole_rate)	//match >tole_rate considered as contaminated
     return match_s;
   else
     return 0;
+}
+
+/*-------------------------------------*/
+int
+get_parainfo (char *full, Queue * head)
+{
+  printf ("distributing...\n");
+  int type;
+  char *temp = full;
+  int cores = omp_get_num_procs ();
+  int offsett = strlen (full) / cores;
+  int add = 0;
+
+  printf ("task->%d\n", offsett);
+
+  Queue *pos = head;
+
+  if (*full == '>')
+    type = 1;
+  else if (*full == '@')
+    type = 2;
+  else
+    {
+      perror ("wrong format\n");
+      exit (-1);
+    }
+  if (type == 1)
+    {
+      for (add = 0; add < cores; add++)
+	{
+	  Queue *x = NEW (Queue);
+
+	  if (add == 0 && *full != '>')
+
+	    temp = strchr (full, '>');	//drop the possible fragment
+
+	  if (add != 0)
+	    temp = strchr (full + offsett * add, '>');
+
+	  x->location = temp;
+	  x->number = add;
+	  x->next = pos->next;
+	  pos->next = x;
+	  pos = pos->next;
+	}
+    }
+  else
+    {
+
+      for (add = 0; add < cores; add++)
+	{
+	  Queue *x = NEW (Queue);
+
+	  if (add == 0 && *full != '@')
+
+	    temp = strstr (full, "\n@") + 1;	//drop the fragment
+
+	  //printf("offset->%d\n",offsett*add);
+
+	  if (add != 0)
+
+	    temp = strstr (full + offsett * add, "\n@");
+
+	  if (temp)
+	    temp++;
+
+	  x->location = temp;
+	  x->number = add;
+	  x->next = pos->next;
+	  pos->next = x;
+	  pos = pos->next;
+	}
+
+    }
+
+  return type;
+}
+
+/*-------------------------------------*/
+char *
+jump (char *target, int type, float sampling_rate)
+{
+  //printf("here\n");
+  float seed = rand () % 10;
+
+  if (seed >= (float) sampling_rate * 10)
+    {
+
+      char *point;
+
+      if (type == 1)
+	point = strchr (target + 1, '>');	//point to >
+      else
+	point = strstr (target + 1, "\n@") + 1;	//point to @
+
+      if (point)
+	target = point;
+    }
+  return target;
 }

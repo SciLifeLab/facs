@@ -19,8 +19,8 @@ typedef unsigned long long ub8;	/* unsigned 8-byte quantities */
 typedef unsigned long int ub4;	/* unsigned 4-byte quantities */
 typedef unsigned char ub1;
 
-#define hashsize(n) ((ub8)1<<(n))
-#define hashmask(n) (hashsize(n)-1)
+//#define hashsize(n) ((ub8)1<<(n))
+//#define hashmask(n) (hashsize(n)-1)
 
 /*
 --------------------------------------------------------------------

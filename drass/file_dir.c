@@ -11,7 +11,6 @@
 #include "bloom.h"
 
 
-
 void
 get_file_path (const char *path, const char *file_name, char *file_path)
 {
@@ -50,7 +49,6 @@ is_special_dir (const char *path)
 F_set *
 make_list (char *file_user, char *list_user)
 {
-
   struct DIR *dir;
   struct dirent *dir_info;
 
@@ -78,11 +76,9 @@ make_list (char *file_user, char *list_user)
 	    strncat (mimi, list_user, pos - list_user);
 	  else
 	    break;
-	  //mimi[strlen(mimi)] = '\0';
-	  //printf("mimi->%s\n",mimi);
+
 	  crap->filename = mimi;
 	  crap->number = &number;
-	  //printf("crap->%d\n",crap->number);
 	  crap->next = head->next;
 	  head->next = crap;
 	  head = head->next;
@@ -90,7 +86,7 @@ make_list (char *file_user, char *list_user)
 	  number++;
 	}
     }
-
+ 
   else if (is_file (file_user))
     {
       printf ("in file\n");
@@ -104,7 +100,6 @@ make_list (char *file_user, char *list_user)
   else if (is_dir (file_user))
     {
       printf ("in dir\n");
-      //char *file_path;
 
       if ((dir = opendir (file_user)) == NULL)
 	{
@@ -134,7 +129,7 @@ make_list (char *file_user, char *list_user)
 	}
     }
 
-  return head1;
+  return head1->next;
 
 }
 

@@ -15,11 +15,6 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#define TWOG 2000000000
-#define hashsize(n) ((BIGNUM)1<<(n))
-#define hashmask(n) (hashsize(n) - 1)
-#define NEW(type) (type *) malloc(sizeof(type))
-#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 int seed[20] =
   { 152501029, 152501717, 152503097, 152500171, 152500157, 152504837,
@@ -32,31 +27,40 @@ int
 bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
 	    int hashes, hash_t hash, int flags)
 {
-  if (size < 1) {
+  if (size < 1)
+    {
       fprintf (stderr, "overflow1\n");
       return -1;
-  } else {
+    }
+  else
+    {
       /* this may waste a little time, but we need to ensure
        * that our array has a prime number of elements, even
        * if we have been requested to do otherwise */
       bloom->stat.elements = find_close_prime (size);
-  }
+    }
 
-  if (hashes < 1) {
+  if (hashes < 1)
+    {
 #ifdef DEBUG
       fprintf (stderr, "hashes was %d,size %lld\n", hashes, size);
 #endif
-    return -1;
+      return -1;
 
-  } else {
+    }
+  else
+    {
       bloom->stat.ideal_hashes = hashes;
-  }
+    }
 
-  if (hash == NULL) {
+  if (hash == NULL)
+    {
       bloom->hash = (hash_t) HASH_FUNC;
-  } else {
+    }
+  else
+    {
       bloom->hash = hash;
-  }
+    }
 
   bloom->inserts = 0;
 
@@ -64,38 +68,43 @@ bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
 	If error rate and capacity were not specified, but size and num hashes were,
 	we can calculate the missing elements.
 	**/
-  if (capacity == 0 || error_rate == 0) {
+  if (capacity == 0 || error_rate == 0)
+    {
       // From wikipedia, num hashes k that minimizes probability of error is k =~ (0.7 m) / n
       // Therefore n =~ (0.7 m) / k
       bloom->stat.capacity = 0.7 * bloom->stat.elements / hashes;
       bloom->stat.e = powf (2.0, (float) -1 * hashes);
-  } else {
+    }
+  else
+    {
       bloom->stat.capacity = capacity;
       bloom->stat.e = error_rate;
-  }
+    }
 
 #ifdef DEBUG
-      fprintf (stderr, "bloom_init(%lld,%d) => (%lld,%d) =>%f\n",
-	       (BIGCAST) size, hashes, (BIGCAST) bloom->stat.elements,
-	       bloom->stat.ideal_hashes, bloom->stat.e);
+  fprintf (stderr, "bloom_init(%lld,%d) => (%lld,%d) =>%f\n",
+	   (BIGCAST) size, hashes, (BIGCAST) bloom->stat.elements,
+	   bloom->stat.ideal_hashes, bloom->stat.e);
 #endif
 
-  if ((size > TOPLIMIT)) {
+  if ((size > TOPLIMIT))
+    {
       fprintf (stderr, "overflow2\n");
       return -2;
-  }
+    }
 
   /* allocate our array of bytes.  where m is the size of our desired 
    * bit vector, we allocate m/8 + 1 bytes. */
   if ((bloom->vector = (char *) malloc (sizeof (char) *
-                       ((long long) (bloom->stat.elements / 8) + 1))) == NULL)
-  {
+					((long long) (bloom->stat.elements /
+						      8) + 1))) == NULL)
+    {
       perror ("malloc");
       return -1;
-  } else
-        memset (bloom->vector, 0,
-  
-  sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
+    }
+  else
+    memset (bloom->vector, 0,
+	    sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
 
   /* generate a collection of random integers, to use later
    * when salting our keys before hashing them */
@@ -303,36 +312,37 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       if (position2)
 	strncat (bloom_file, target, position2 + 1 - (target));
     }
-      if (position1)
-	strncat (bloom_file, position1 + 1,
-		 strrchr (filename, '.') - position1);
-      else
-	strncat (bloom_file, filename,
-		 strrchr (filename, '.') - filename + 1);
-      strcat (bloom_file, "bloom");
+  if (position1)
+    strncat (bloom_file, position1 + 1, strrchr (filename, '.') - position1);
+  else
+    strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
+  strcat (bloom_file, "bloom");
 
-#ifdef DEBUG    
+#ifdef DEBUG
   printf ("bloom name->%s\n", bloom_file);
 #endif
 
 #ifdef __APPLE__
-  fd = open(bloom_file, O_RDWR | O_CREAT, 0644);
+  fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
-  fd = open(bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, 0644);
+  fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, PERMS);
 #endif
 
-  if (fd < 0) {
+  if (fd < 0)
+    {
       perror (bloom_file);
       return -1;
-  }
+    }
 
-  BIGNUM total_size =   sizeof (bloom) + sizeof (char) * ((long long) (bl->stat.elements / 8) + 1) +
-                        sizeof (int) * (bl->stat.ideal_hashes + 1);
+  BIGNUM total_size =
+    sizeof (bloom) + sizeof (char) * ((long long) (bl->stat.elements / 8) +
+				      1) +
+    sizeof (int) * (bl->stat.ideal_hashes + 1);
 
 #ifdef __APPLE__
-  if (ftruncate(fd, total_size) < 0)
+  if (ftruncate (fd, total_size) < 0)
 #else
-  if (ftruncate64(fd, total_size) < 0)
+  if (ftruncate64 (fd, total_size) < 0)
 #endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
@@ -375,9 +385,9 @@ load_bloom (char *filename, bloom * bl)
   printf ("bloom name->%s\n", filename);
 
 #ifdef __APPLE__
-  fd = open (filename, O_RDONLY, 0644);
+  fd = open (filename, O_RDONLY, PERMS);
 #else
-  fd = open64 (filename, O_RDONLY, 0644);
+  fd = open64 (filename, O_RDONLY, PERMS);
 #endif
   x = read (fd, bl, sizeof (bloom));
 
@@ -476,7 +486,7 @@ mmaping (char *source)
   int src;
   char *sm;
 
-  if ((src = open (source, O_RDONLY)) < 0)
+  if ((src = open(source, O_RDONLY | O_LARGEFILE)) < 0)
     {
       perror (" open source ");
       exit (EXIT_FAILURE);
@@ -489,7 +499,7 @@ mmaping (char *source)
     }
 
   sm =
-    mmap (0, (size_t) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE,
+    mmap (0, (BIGCAST) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE,
 	  src, 0);
 
   if (MAP_FAILED == sm)
@@ -502,87 +512,22 @@ mmaping (char *source)
 }
 
 void
-help ()
-{
-  printf
-    ("##########################################################################\n");
-  printf ("#NAME\n");
-  printf ("#facs - Filter reads of DNA\n");
-  printf ("# Contamination Removal tool\n");
-  printf ("#\n");
-  printf
-    ("# extended from FACS (Fast and Accurate Classification of Sequences)\n");
-  printf ("#\n");
-  printf ("# facs.scilifelab.se\n");
-  printf ("#\n");
-  printf ("# Author Enze Liu\n");
-  printf ("#\n");
-  printf ("# enze.liu@scilifelab.se\n");
-  printf
-    ("##########################################################################\n");
-  printf ("\n");
-  printf ("DESCRIPTION\n");
-  printf ("\n");
-  printf
-    ("    Bloom filters are a lightweight duplicate detection algorithm proposed\n");
-  printf ("    by Burton Bloom\n");
-  printf
-    ("    (http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal), with\n");
-  printf
-    ("    applications in stream data processing, among others. Bloom filters are\n");
-  printf
-    ("    a very cool thing. Where occasional false positives are acceptable,\n");
-  printf
-    ("    bloom filters give us the ability to detect duplicates in a fast and\n");
-  printf ("    resource-friendly manner.\n");
-  printf ("\n");
-  printf
-    ("    The allocation of memory for the bit vector is handled in the c layer,\n");
-  printf
-    ("    but perl's oo capability handles the garbage collection. when a\n");
-  printf
-    ("   Bloom::Faster object goes out of scope, the vector pointed to by the c\n");
-  printf
-    ("    structure will be free()d. to manually do this, the DESTROY builtin\n");
-  printf ("    method can be called.\n");
-  printf ("\n");
-  printf
-    ("    A bloom filter perl module is currently avaible on CPAN, but it is\n");
-  printf
-    ("    profoundly slow and cannot handle large vectors. This alternative uses a\n");
-  printf
-    ("    more efficient c library which can handle arbitrarily large vectors (up\n");
-  printf ("    to the maximum size of a long long datatype (at least\n");
-  printf ("    9223372036854775807, on supported systems ).\n");
-  printf ("\n");
-  printf
-    ("    FACS is a novel algorithm, using Bloom filter to accurately and rapidly\n");
-  printf
-    ("    align sequences to a reference sequence. FACS was first optimized and\n");
-  printf
-    ("    validated using a synthetic metagenome dataset. An experimental metagenome\n");
-  printf
-    ("    dataset was then used to show that FACS is at least three times faster and\n");
-  printf
-    ("    more accurate than BLAT and SSAHA2 in classifying sequences when using\n");
-  printf ("    references larger than 50Mbp.\n");
-  printf ("\n");
-}
-
-void
 build_help ()
 {
   printf ("USAGE\n");
   printf
     ("##########################################################################\n");
   printf ("---Bloom build----\n");
-  printf ("#  ./bloom_build [option] [option] [option] [option]\n");
+  printf ("#  ./drass -m b [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
+  printf ("#  -m Mode selection: b or build can be taken\n");
   printf ("#  -r reference file name or directory name\n");
   printf ("#  -l a list containing multiple reference filenames\n");
+  printf ("!!! either -r or -l can only be allowed each time !!!\n");
   printf ("#  -k k_mer size (default size 21)\n");
   printf ("#  -e error rate (default rate 0.0005)\n");
+  printf ("#  -b 1 means show help description; 0 means normal bloom-build\n");
   printf
     ("#  -o output file name (default file is saved as the same as binary file)\n");
   printf
@@ -597,14 +542,17 @@ check_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination check---\n");
-  printf ("#  ./simple_check [option] [option] [option] [option] \n");
+  printf ("#  ./drass -m c [option] [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
+  printf ("#  -m Mode selection: b or build can be taken\n");
   printf ("#  -t tolerant rate (default rate 0.8)\n");
   printf ("#  -s sampling rate (default rate 1)\n");
-  printf ("#  -q single query file\n");
+  printf ("#  -q query file name\n");
   printf ("#  -l a list containing all bloom files\n");
   printf ("#  -r single reference bloom filter file or directory\n");
+  printf ("!!! either -r or -l can only be allowed each time !!!\n");
+  printf ("#  -b 1 means show help description; 0 means normal check\n");
   printf
     ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf ("!  Either '-q' or '-l' is used at one run.\n");
@@ -627,13 +575,42 @@ remove_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination remove---\n");
-  printf ("#  ./simple_remove [option] [option] [option]\n");
+  printf ("#  ./drass -m r [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
+  printf ("#  -m Mode selection: b or build can be taken\n");
   printf ("#  -t tolerant rate (default rate 0.8)\n");
-  printf ("#  -q query name\n");
-  printf ("#  -l list name\n");
+  printf ("#  -q query file name\n");
+  printf ("#  -l a list containing all bloom files\n");
   printf ("#  -r reference bloom filter file or dir\n");
+  printf ("!!! either -r or -l can only be allowed each time !!!\n");
+  printf ("#  -b 1 means show help description; 0 means normal decontamination\n");
+  printf
+    ("#  -o output file name (default file is saved as the same path as the binary file)\n");
+  printf
+    ("##########################################################################\n");
+  exit (1);
+}
+
+void
+remove_l_help ()
+{
+  printf ("USAGE\n");
+  printf
+    ("##########################################################################\n");
+  printf ("---contamination remove list mode---\n");
+  printf ("Pretty like mode r but with slight difference\n");
+  printf ("reads will be classified to the most like reference if\nmultiple reference files exist\n");
+  printf ("#  ./drass -m l [option] [option] [option] [option] <option>\n");
+  printf ("#\n");
+  printf ("#  Options:\n");
+  printf ("#  -m Mode selection: b or build can be taken\n");
+  printf ("#  -t tolerant rate (default rate 0.8)\n");
+  printf ("#  -q query file name\n");
+  printf ("#  -l a list containing all bloom files\n");
+  printf ("#  -r reference bloom filter file or dir\n");
+  printf ("!!! either -r or -l can only be allowed each time !!!\n");
+  printf ("#  -b 1 means show help description; 0 means normal decontamination\n");
   printf
     ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf
