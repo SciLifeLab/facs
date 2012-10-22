@@ -4,7 +4,9 @@ typedef struct file_list
 {
 	char *filename;
 	struct file_list *next;
-        short number;
+    short number;
+    short reads_num;
+    short reads_contam;
 } F_set;
 
 extern void get_file_path(const char *path, const char *file_name,  char *file_path);

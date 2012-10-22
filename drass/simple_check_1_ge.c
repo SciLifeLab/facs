@@ -62,8 +62,8 @@ int checky (char *query, char *reference, char l, char *target_path, double samp
 /*-------------------------------------*/
 //bloom *load_bloom (char *filename, bloom * bl);
 /*-------------------------------------*/
-main (int argc, char **argv)
-{
+//main (int argc, char **argv)
+//{
   /*
   long sec, usec, i;
   struct timezone tz;
@@ -144,10 +144,10 @@ main (int argc, char **argv)
   printf ("total=%ld sec\n", sec);
   */
 
-  check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
+//  check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
 
-  return 0;
-}
+//  return 0;
+//}
 
 /*-------------------------------------*/
 void
@@ -416,9 +416,7 @@ evaluate (char *detail, char *filename, F_set *File_head)
   char buffer[200] = { 0 };
 
   printf ("all->%d\n", File_head->reads_num);
-
   printf ("contam->%d\n", File_head->reads_contam);
-
   printf ("bloomname->%s\n", filename);
 
   contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);

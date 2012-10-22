@@ -6,7 +6,8 @@ version = '0.1'
 
 c_ext = Extension("drass", define_macros = [('NODEBUG', '1'), ('FIFO', '1')],
                            sources = ["drass.c", "bloom.c", "good_build.c",
-                                      "suggestions.c", "lookup8.c", "file_dir.c"])
+                                      "suggestions.c", "lookup8.c", "file_dir.c",
+                                      "simple_check_1_ge.c"])
 
 setup(name='drass',
       version=version,
