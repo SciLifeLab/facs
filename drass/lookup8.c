@@ -500,7 +500,8 @@ driver3 ()
 	  y = hash (b, len, (ub8) 1);
 	  if ((ref != x) || (ref != y))
 	    {
-	      printf ("alignment error: %.8lx %.8lx %.8lx %ld %ld\n", ref, x,
+	      printf ("alignment error: %.8lx %.8lx %.8lx %ld %ld\n", (long unsigned int) ref,
+                                                                  (long unsigned int) x,
 		      y, h, i);
 	    }
 	}

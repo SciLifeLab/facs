@@ -40,16 +40,9 @@ build_main (int k_mer, float error_rate, char *source, char *list,
       exit (1);
     }
 /*-------------------------------------*/
-  char *position, *h_u;
+  char *position;
   BIGNUM capacity;
   //BIGCAST hit = 0, un_hit = 0;
-
-/*-------------------------------------*/
-  long sec, usec, i;
-  struct timezone tz;
-  struct timeval tv, tv2;
-  struct stat statbuf;
-  gettimeofday (&tv, &tz);
 /*-------------------------------------*/
   if (help == 3)
     build ("k_12.fasta", NULL, 21, 0.0005);
