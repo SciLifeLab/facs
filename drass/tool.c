@@ -43,7 +43,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	  signal = 1;
 	}
 
-      if (strcmp(model, "reverse") == 0)
+      if (model == "reverse")
 	rev_trans (key);
 
       if (bloom_check (bl, key))
@@ -51,12 +51,12 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	  result = fastq_full_check (bl, begin, length, model, tole_rate);
 	  if (result > 0)
 	    return result;
-	  else if (strcmp(model, "normal") == 0)
+	  else if (model == "normal")
 	    break;
 	}
 
     }				//outside while
-  if (strcmp(model, "reverse") == 0)
+  if (model == "reverse")
     return 0;
   else
     return fastq_read_check (begin, length, "reverse", bl, tole_rate);
@@ -68,7 +68,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 		  float tole_rate)
 {
 
-  printf ("fastq full check...\n");
+  //printf ("fastq full check...\n");
 
   int length = distance;
 
@@ -85,7 +85,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
       previous = p;
       p += 1;
 
-      if (strcmp(model, "reverse") == 0)
+      if (model == "reverse")
 	rev_trans (key);
 
       if (count >= bl->k_mer)
@@ -177,7 +177,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
 
       m = 0;
 
-      if (strcmp(model, "reverse") == 0)
+      if (model == "reverse")
 	rev_trans (key);
 
       if (bloom_check (bl, key))
@@ -187,13 +187,13 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
 	    return result;
 	  //else if (model == "normal")     //use recursion to check the sequence forward and backward
 	  //    return fasta_read_check (begin, next, "reverse", bl);
-	  else if (strcmp(model, "normal") == 0)
+	  else if (model == "normal")
 	    break;
 	}
 
       //memset (key, 0, bl->k_mer);
     }				//outside while
-  if (strcmp(model, "reverse") == 0)
+  if (model == "reverse")
     return 0;
   else
     return fasta_read_check (begin, next, "reverse", bl, tole_rate);
@@ -242,7 +242,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
 	}
       key[n] = '\0';
 
-      if (strcmp(model, "reverse") == 0)
+      if (model == "reverse")
 	rev_trans (key);
       //printf("key->%s\n",key);
       if (count >= bl->k_mer)
@@ -296,7 +296,7 @@ get_parainfo (char *full, Queue * head)
   int offsett = strlen (full) / cores;
   int add = 0;
 
-  printf ("task->%d\n", offsett);
+  //printf ("task->%d\n", offsett);
 
   Queue *pos = head;
 
@@ -335,21 +335,16 @@ get_parainfo (char *full, Queue * head)
       for (add = 0; add < cores; add++)
 	{
 	  Queue *x = NEW (Queue);
-
 	  if (add == 0 && *full != '@')
-
 	    temp = strstr (full, "\n@") + 1;	//drop the fragment
 
 	  //printf("offset->%d\n",offsett*add);
-
+          
 	  if (add != 0)
-
-	    temp = strstr (full + offsett * add, "\n@");
-
-	  if (temp)
-	    temp++;
+	    temp = strstr (full + offsett * add, "\n@")+1;
 
 	  x->location = temp;
+ 	  printf ("location -> %0.20s\n",x->location);
 	  x->number = add;
 	  x->next = pos->next;
 	  pos->next = x;

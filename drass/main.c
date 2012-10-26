@@ -31,7 +31,7 @@ switch (*mode)
 	build_main (k_mer, error_rate, source, list, prefix,argv[0],help);
 	break;
 	case 'c':  
-	check_main (tole_rate, sampling_rate, source, ref, list, prefix,help);  
+	check_main (source,ref,tole_rate,sampling_rate,list,prefix,help);  
 	break;  
 	case 'r':    
 	remove_main (tole_rate, source, ref, list, prefix,help);   

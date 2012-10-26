@@ -30,7 +30,7 @@ PyMODINIT_FUNC initdrass(void)
 
 static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 {
-   double sampling_rate=1;
+   double sampling_rate=0.8;
    double tole_rate=1;
    char *query, *bloom;
    int ret;
