@@ -4,6 +4,6 @@
 import drass
 
 print dir(drass)
-drass.build("ecoli_K12.fasta", "example_filter.bloom")
-drass.query("test.fastq", "example_filter.bloom")
+#drass.build("ecoli_K12.fasta", "ecoli_K12.bloom")
+drass.query("test.fastq", "ecoli_K12.bloom")
 #remove_contaminants("reference", "fastq_file")

@@ -76,10 +76,13 @@ build_main (int k_mer, float error_rate, char *source, char *list,
     }
   printf ("all finished...\n");
 #ifdef DEBUG
+  /*int sec, usec;
+  struct timeval tv1, tv2;
+  struct timezone tz;
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
-  printf ("total=%ld sec\n", sec);
+  printf ("total=%ld sec\n", sec);*/
   //printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
 #endif
 
@@ -90,8 +93,6 @@ build_main (int k_mer, float error_rate, char *source, char *list,
 int
 build (char *ref_name, char *target_path, int k_mer, double error_rate)
 {
-  printf ("ERROR RATE, just coming from python iface: %d %f\n", k_mer,
-	  error_rate);
   char *position = mmaping (ref_name);
 
   bloom *bl = NEW (bloom);

@@ -23,18 +23,25 @@
 #include<omp.h>
 //#include<mpi.h>
 /*-------------------------------------*/
-check_main (float tole_rate, float sampling_rate, char *source, char *ref, char *list, char *prefix, int help)
-{
+
+/* 
+ * source:  fastq file to query against (eg: test.fastq)
+ * ref:     bloom filter file generated during the bloom build phase (eg: example_filter.bloom)
+ 
+ */
+int check_main (char *source, char *ref, float tole_rate, float sampling_rate, char *list, char *prefix, int help)
+{  
   if (help == 1)
     {
       check_help ();
       exit (1);
     }
   /*-------------------------------------*/
-  long sec, usec, i;
+#ifdef DEBUG  
   struct timezone tz;
   struct timeval tv, tv2;
   gettimeofday (&tv, &tz);
+#endif
   /*-------------------------------------*/
   char *position;
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
@@ -52,45 +59,46 @@ check_main (float tole_rate, float sampling_rate, char *source, char *ref, char 
   /*-------------------------------------*/
   position = mmaping (source);
   type = get_parainfo (position,head);
-  /*-------------------------------------*/
-  while (File_head)
-    {
+
+  while (File_head) {
       load_bloom (File_head->filename, bl_2);
 #pragma omp parallel
-      {
+{
 #pragma omp single nowait
 	{
-	  while (head != tail)
-	    {
+	  while (head != tail) {
 #pragma omp task firstprivate(head)
-	      {
-		if (head->location)
-		  if (type == 1)
-		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-		  else
-		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-	      }
-	      head = head->next;
-	    }
+		if (head->location) {
+              if (type == 1) {
+                fasta_process(bl_2, head, tail, File_head, sampling_rate,
+                              tole_rate);
+              } else {
+                fastq_process(bl_2, head, tail, File_head, sampling_rate,
+                              tole_rate);
+              }
+	     }
+          head = head->next;
+
+       } //end while
 	}			// End of single - no implied barrier (nowait)
-      }				// End of parallel region - implied barrier
+}				// End of parallel region - implied barrier
+
       evaluate (detail, File_head->filename, File_head);
-      /*-------------------------------------*/
+
       File_head = File_head->next;
       head = head2;
       bloom_destroy (bl_2);
-    }				//end while
+    } //end while
 
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
 #ifdef DEBUG
+  long sec, usec;
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
-#endif
   printf ("total=%ld sec\n", sec);
+#endif
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
 
@@ -108,7 +116,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 #endif
 
   char *p = info->location;
-  char *next, *temp, *temp_piece = NULL;
+  char *next, *temp;
 
   if (info->location == NULL)
     return;
@@ -119,15 +127,13 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
   else
     next = strchr (p, '\0');
 
-  while (p != next)
-    {
+  while (p != next) {
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
+      if (p != temp) {
+          p = temp;
+          continue;
+      }
 
 #pragma omp atomic
       File_head->reads_num++;
@@ -142,20 +148,18 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
-  if (temp_piece)
-    free (temp_piece);
 }
 
 /*-------------------------------------*/
 void
-fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
+fasta_process (bloom* bl, Queue* info, Queue* tail, F_set* File_head,
 	       float sampling_rate, float tole_rate)
 {
 
 #ifdef DEBUG
   printf ("fasta processing...\n");
 #endif
-  char *temp_next, *next, *temp, *temp_piece = NULL;
+  char *temp_next, *next, *temp;
 
   if (info->location == NULL)
     return;
@@ -178,16 +182,13 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
 #pragma omp atomic
       File_head->reads_num++;
-
       temp_next = strchr (p + 1, '>');
-      if (!temp_next)
-	temp_next = next;
+      if (!temp_next)	temp_next = next;
 
-      if (fasta_read_check (p, temp_next, "normal", bl, tole_rate) > 0)
-	{
+      if (fasta_read_check (p, temp_next, "normal", bl, tole_rate) > 0) {
 #pragma omp atomic
-	  File_head->reads_contam++;
-	}
+          File_head->reads_contam++;
+      }
 
       p = temp_next;
     }
@@ -199,10 +200,8 @@ evaluate (char *detail, char *filename, F_set * File_head)
 {
   char buffer[200] = { 0 };
 
-  printf ("all->%d\n", File_head->reads_num);
-
-  printf ("contam->%d\n", File_head->reads_contam);
-
+  printf ("all->%lld\n", File_head->reads_num);
+  printf ("contam->%lld\n", File_head->reads_contam);
   printf ("bloomname->%s\n", filename);
 
   float contamination_rate =
@@ -218,7 +217,7 @@ evaluate (char *detail, char *filename, F_set * File_head)
 
   strcat (detail, filename);
 
-  sprintf (buffer, "  %d\t%d\t%f\n", File_head->reads_num,
+  sprintf (buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
 	   File_head->reads_contam, contamination_rate);
   strcat (detail, buffer);
 }

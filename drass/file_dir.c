@@ -72,8 +72,8 @@ make_list (char *file_user, char *list_user)
 	  F_set *crap = NEW (F_set);
 	  crap->next = NULL;
 
-	  if (pos = strchr (list_user, '\n'))
-	    strncat (mimi, list_user, pos - list_user);
+	  if (pos = strchr(list_user, '\n'))
+        strncat (mimi, list_user, pos - list_user);
 	  else
 	    break;
 

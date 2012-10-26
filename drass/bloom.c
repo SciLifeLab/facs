@@ -498,9 +498,7 @@ mmaping (char *source)
       exit (EXIT_FAILURE);
     }
 
-  sm =
-    mmap (0, (BIGCAST) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE,
-	  src, 0);
+  sm = mmap(0, (BIGCAST) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE, src, 0);
 
   if (MAP_FAILED == sm)
     {
