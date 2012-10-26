@@ -1,6 +1,9 @@
 #include <Python.h>
 #include "bloom.h"
 #include "file_dir.h"
+#include "tool.h"
+#include "build.h"
+#include "check.h"
 
 static char module_docstring[] =
     "This module provides an interface for building and querying DRASS bloom filters";
@@ -30,13 +33,14 @@ static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
    double sampling_rate=1;
    double tole_rate=1;
    char *query, *bloom;
+   int ret;
 
-   if (!PyArg_ParseTuple(args, "ss|dd", &query, &bloom, &sampling_rate, &tole_rate))
+   if (!PyArg_ParseTuple(args, "ss|dd", &query, &bloom, &tole_rate, &sampling_rate))
        return NULL;
 
-   check(query, bloom, NULL, NULL, sampling_rate, tole_rate);
+   ret = check_main(query, bloom, tole_rate, sampling_rate, NULL, NULL, 0);
 
-   return Py_BuildValue("");
+   return Py_BuildValue("i", ret);
 }
 
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args)

@@ -43,7 +43,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	  signal = 1;
 	}
 
-      if (model == "reverse")
+      if (strcmp(model, "reverse") == 0)
 	rev_trans (key);
 
       if (bloom_check (bl, key))
@@ -51,12 +51,12 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	  result = fastq_full_check (bl, begin, length, model, tole_rate);
 	  if (result > 0)
 	    return result;
-	  else if (model == "normal")
+	  else if (strcmp(model, "normal") == 0)
 	    break;
 	}
 
     }				//outside while
-  if (model == "reverse")
+  if (strcmp(model, "reverse") == 0)
     return 0;
   else
     return fastq_read_check (begin, length, "reverse", bl, tole_rate);
@@ -85,7 +85,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
       previous = p;
       p += 1;
 
-      if (model == "reverse")
+      if (strcmp(model, "reverse") == 0)
 	rev_trans (key);
 
       if (count >= bl->k_mer)
@@ -177,7 +177,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
 
       m = 0;
 
-      if (model == "reverse")
+      if (strcmp(model, "reverse") == 0)
 	rev_trans (key);
 
       if (bloom_check (bl, key))
@@ -187,13 +187,13 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
 	    return result;
 	  //else if (model == "normal")     //use recursion to check the sequence forward and backward
 	  //    return fasta_read_check (begin, next, "reverse", bl);
-	  else if (model == "normal")
+	  else if (strcmp(model, "normal") == 0)
 	    break;
 	}
 
       //memset (key, 0, bl->k_mer);
     }				//outside while
-  if (model == "reverse")
+  if (strcmp(model, "reverse") == 0)
     return 0;
   else
     return fasta_read_check (begin, next, "reverse", bl, tole_rate);
@@ -242,7 +242,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
 	}
       key[n] = '\0';
 
-      if (model == "reverse")
+      if (strcmp(model, "reverse") == 0)
 	rev_trans (key);
       //printf("key->%s\n",key);
       if (count >= bl->k_mer)
