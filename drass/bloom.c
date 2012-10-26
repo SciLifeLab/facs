@@ -121,7 +121,6 @@ void
 bloom_destroy (bloom * bloom)
 {
 
-  //free(bloom->random_nums.num);
   memset (bloom->vector, 0,
 	  sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
   free (bloom->vector);

@@ -58,7 +58,7 @@ make_list (char *file_user, char *list_user)
 
   if (list_user)
     {
-      printf ("in make list\n");
+  
       list_user = mmaping (list_user);
       char *pos;
 
@@ -70,7 +70,6 @@ make_list (char *file_user, char *list_user)
 	  memset (mimi, 0, 300);
 
 	  F_set *crap = NEW (F_set);
-	  crap->next = NULL;
 
 	  if (pos = strchr (list_user, '\n'))
 	    strncat (mimi, list_user, pos - list_user);
@@ -89,7 +88,7 @@ make_list (char *file_user, char *list_user)
  
   else if (is_file (file_user))
     {
-      printf ("in file\n");
+   
       F_set *crap = NEW (F_set);
       crap->filename = file_user;
       crap->next = head->next;
@@ -99,7 +98,7 @@ make_list (char *file_user, char *list_user)
 
   else if (is_dir (file_user))
     {
-      printf ("in dir\n");
+
 
       if ((dir = opendir (file_user)) == NULL)
 	{
