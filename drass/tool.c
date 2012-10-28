@@ -22,7 +22,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
   int signal = 0, result = 0;
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
-  while (distance > 0)
+  while (distance > bl->k_mer)
     {
       if (signal == 1)
 	break;

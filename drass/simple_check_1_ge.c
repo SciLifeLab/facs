@@ -87,7 +87,7 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
       File_head = File_head->next;
       head = head2;	
       bloom_destroy (bl_2);
-    }
+    } //end while
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
 /*
