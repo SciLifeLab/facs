@@ -8,7 +8,7 @@ all:
 	#mpicc -o mpi_bloom mpi_bloom.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	#mpicc -o mpi_bloom_l mpi_bloom_l.o bloom.o suggestions.o lookup8.o file_dir.o -lm ${CFLAGS}
 	gcc -c simple_check_1_ge.c -O3
-	${CC} -o main main.o good_build.o simple_check_1_ge.o simple_remove.o simple_remove_l.o bloom.o suggestions.o lookup8.o file_dir.o tool.o -lm ${CFLAGS}
+	${CC} -o raven main.o good_build.o simple_check_1_ge.o simple_remove.o simple_remove_l.o bloom.o suggestions.o lookup8.o file_dir.o tool.o -lm ${CFLAGS}
 	${CC} -o test test.o good_build.o simple_check_1_ge.o simple_remove.o simple_remove_l.o bloom.o suggestions.o lookup8.o file_dir.o tool.o -lm ${CFLAGS}	
 	#mpicc -o mpi_decon mpi_decon.o bloom.o suggestions.o lookup8.o  -lm ${CFLAGS}
 

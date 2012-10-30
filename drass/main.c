@@ -1,3 +1,4 @@
+#include "big_query.h"
 #include "check.h"
 #include "build.h"
 #include "remove.h"
@@ -39,6 +40,9 @@ switch (*mode)
 	case 'l':     
 	remove_main_l (tole_rate, source, ref, list, prefix,help);     
 	break;   
+        case 'g':
+        bq_main (source,ref,tole_rate,sampling_rate,list,prefix,help);
+        break;
 	default:     
 	printf ("Wrong mode: stupid idiot\n");    
 	descript ();
