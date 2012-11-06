@@ -31,11 +31,6 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
       exit (1);
     }
   /*-------------------------------------*/
-  long sec, usec, i;
-  struct timezone tz;
-  struct timeval tv, tv2;
-  gettimeofday (&tv, &tz);
-  /*-------------------------------------*/
   char *position;
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
   memset (detail, 0, 1000 * 1000);
@@ -90,14 +85,6 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
     } //end while
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
-/*
-#ifdef DEBUG
-  gettimeofday (&tv2, &tz);
-  sec = tv2.tv_sec - tv.tv_sec;
-  usec = tv2.tv_usec - tv.tv_usec;
-#endif
-*/
-  printf ("total=%ld sec\n", sec);
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
 
@@ -115,7 +102,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 #endif
 
   char *p = info->location;
-  char *next, *temp, *temp_piece = NULL;
+  char *next = NULL, *temp = NULL, *temp_piece = NULL;
 
   if (info->location == NULL)
     return;
@@ -130,18 +117,16 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
     {
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
+      if (p != temp) {
+          p = temp;
+          continue;
+      }
 
 #pragma omp atomic
       File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)
-	  > 0)
+      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate) > 0)
 #pragma omp atomic
 	File_head->reads_contam++;
 
@@ -149,6 +134,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
+
   if (temp_piece)
     free (temp_piece);
 }
@@ -162,7 +148,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 #ifdef DEBUG
   printf ("fasta processing...\n");
 #endif
-  char *temp_next, *next, *temp, *temp_piece = NULL;
+  char *temp_next = NULL, *next = NULL, *temp = NULL;
 
   if (info->location == NULL)
     return;
@@ -173,31 +159,27 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
   char *p = info->location;
 
-  while (p != next)
-    {
+  while (p != next) {
       temp = jump (p, 1, sampling_rate);	//generate random number and judge if need to scan this read
 
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
+      if (p != temp) {
+          p = temp;
+          continue;
+	  }
 
 #pragma omp atomic
       File_head->reads_num++;
 
       temp_next = strchr (p + 1, '>');
       if (!temp_next)
-	temp_next = next;
+        temp_next = next;
 
-      if (fasta_read_check (p, temp_next, "normal", bl, tole_rate) > 0)
-	{
+      if (fasta_read_check(p, temp_next, "normal", bl, tole_rate) > 0) {
 #pragma omp atomic
-	  File_head->reads_contam++;
-	}
-
+	    File_head->reads_contam++;
+	  }
       p = temp_next;
-    }
+  }
 }
 
 /*-------------------------------------*/
@@ -225,8 +207,8 @@ evaluate (char *detail, char *filename, F_set * File_head)
 
   strcat (detail, filename);
 
-  sprintf (buffer, "  %d\t%d\t%f\n", File_head->reads_num,
-	   File_head->reads_contam, contamination_rate);
+  sprintf (buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
+           File_head->reads_contam, contamination_rate);
   strcat (detail, buffer);
 }
 
