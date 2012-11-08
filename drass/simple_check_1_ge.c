@@ -23,7 +23,7 @@
 #include<omp.h>
 //#include<mpi.h>
 /*-------------------------------------*/
-check_main (float tole_rate, float sampling_rate, char *source, char *ref, char *list, char *prefix, int help)
+int check_main (char *source, char *ref, float tole_rate, float sampling_rate, char *list, char *prefix, int help)
 {
   if (help == 1)
     {
