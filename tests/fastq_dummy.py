@@ -29,7 +29,8 @@ with open(dummy_fastq, "w") as f:
     f.write(ecoli_read)
 
     for r in xrange(reads):
-        f.write(header + '\n')
-        f.write('QQQQQQQQ' * stride + '\n')
+        f.write(header + "TASK ID: " + str(r) + '\n')
+		 
+        f.write('GATTACAT' * stride + '\n')
         f.write('+' + '\n')
         f.write('arvestad' * stride + '\n')

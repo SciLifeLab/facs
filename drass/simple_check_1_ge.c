@@ -45,6 +45,7 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
   Queue *tail = NEW (Queue);
   bloom *bl_2 = NEW (bloom);
   Queue *head2;
+  head->location=NULL;
   head2 = head;
   head->next = tail;
   F_set *File_head = NEW (F_set);
@@ -62,20 +63,21 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
       {
 #pragma omp single nowait
 	{
-	  while (head != tail)
-	    {
-#pragma omp task firstprivate(head)
+	  while (head != tail) {
+//#pragma omp task firstprivate(head)
 	      {
+		  printf ("head->%0.10s\n", head->location);
 		if (head->location!=NULL)
-                  {                 
+                  {
+//		  printf ("head->%0.10s\n", head->location);
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
 		  else
+      	            //printf("DETAIL!!!!!! %0.10s %s %s\n", detail, File_head->filename, File_head);
 		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
 		  		   tole_rate);
 		  }
-                 //printf ("cao\n");
 	      }
 	      head = head->next;
 	    }
@@ -116,19 +118,22 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
   //printf ("data->%0.50s\n",info->location);
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
-  char *aaa;
-  
-  if (info->location == NULL)
+
+  printf("LOCATIOOOOOOON %0.1s\n", info->location);
+
+  if (info->location[0] != '@') {
     return;
-  else if (info->next != tail && info->next->location!=NULL)
+  } else if (info->next != tail && info->next->location!=NULL) {
     next = info->next->location;
-  else
+  } else {
     next = strchr (p, '\0');
+  }
 
   while (p != next)
+  //printf("%s\n", p); 
     {
-      //printf("p->%s\n",p);
-      //printf("next->%s\n",next);
+      printf("p->%0.50s\n",p);
+      printf("next->%0.50s\n",next);
 
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
@@ -143,15 +148,18 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 
       p = strchr (p, '\n') + 1;
       //printf ("string->%0.20s\n",p);
-      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)> 0)
+      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)> 0) {
 #pragma omp atomic
 	File_head->reads_contam++;
+      }
+
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
   if (temp_piece)
     free (temp_piece);
+
 }
 
 /*-------------------------------------*/

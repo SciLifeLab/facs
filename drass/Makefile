@@ -40,3 +40,4 @@ classi_t:
 
 python:
 	rm -rf build/ drass.so && python setup.py build_ext --inplace && python build.py
+	gcc -c simple_check_1_ge.c -O3

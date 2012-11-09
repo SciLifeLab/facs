@@ -127,7 +127,8 @@ make_list (char *file_user, char *list_user)
 	  number++;
 	}
     }
-
+  head1->next->reads_num = 0;
+  head1->next->reads_contam = 0;
   return head1->next;
 
 }
