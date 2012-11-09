@@ -22,40 +22,34 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
   int signal = 0, result = 0;
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
-  while (distance > bl->k_mer)
-    {
-      if (signal == 1)
-	break;
+  while (distance > bl->k_mer) {
+      if (signal == 1) break;
 
-      if (distance >= bl->k_mer)
-	{
-	  memcpy (key, p, sizeof (char) * bl->k_mer);	//need to be tested
-	  key[bl->k_mer] = '\0';
-	  previous = p;
-	  p += bl->k_mer;
-	  distance -= bl->k_mer;
-	}
-
-      else
-	{
-	  memcpy (key, previous + distance, sizeof (char) * bl->k_mer);
-	  p += (bl->k_mer - distance);
-	  signal = 1;
-	}
+      if (distance >= bl->k_mer) {
+          memcpy (key, p, sizeof (char) * bl->k_mer);	//need to be tested
+          key[bl->k_mer] = '\0';
+          previous = p;
+          p += bl->k_mer;
+          distance -= bl->k_mer;
+  	  } else {
+          memcpy (key, previous + distance, sizeof (char) * bl->k_mer);
+          p += (bl->k_mer - distance);
+          signal = 1;
+	  }
 
       if (model == "reverse")
-	rev_trans (key);
+	      rev_trans (key);
 
-      if (bloom_check (bl, key))
-	{
-	  result = fastq_full_check (bl, begin, length, model, tole_rate);
-	  if (result > 0)
-	    return result;
-	  else if (model == "normal")
-	    break;
-	}
+      if (bloom_check (bl, key)) {
+          printf("%f\n", tole_rate);
+          result = fastq_full_check (bl, begin, length, model, tole_rate);
+          if (result > 0)
+            return result;
+          else if (model == "normal")
+            break;
+	  }
+    } //outside while
 
-    }				//outside while
   if (model == "reverse")
     return 0;
   else
@@ -68,14 +62,13 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 		  float tole_rate)
 {
 
-  //printf ("fastq full check...\n");
+#ifdef DEBUG
+  printf ("fastq full check...\n");
+#endif
 
   int length = distance;
-
   int count = 0, match_s = 0, mark = 1;
-
   float result;
-
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
   while (distance >= bl->k_mer)

@@ -34,7 +34,7 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
   long sec, usec, i;
   struct timezone tz;
   struct timeval tv, tv2;
-  gettimeofday (&tv, &tz);
+  
   /*-------------------------------------*/
   char *position;
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
@@ -47,19 +47,17 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
   Queue *head2;
   head2 = head;
   head->next = tail;
-  //F_set *File_head = NEW (F_set);
-  F_set *File_head = make_list (ref, list);
+  F_set *File_head = NEW (F_set);
+  File_head = make_list (ref, list);
   /*-------------------------------------*/
   position = mmaping (source);
+ 
   type = get_parainfo (position,head);
   /*-------------------------------------*/
+  gettimeofday (&tv, &tz);
   while (File_head)
     {
       load_bloom (File_head->filename, bl_2);
-      head = head->next;
-      File_head->reads_num = 0;
-      File_head->reads_contam = 0;
-      //printf ("contam-> %lld %lld\n",File_head->reads_contam,File_head->reads_num);
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -68,15 +66,16 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
 	    {
 #pragma omp task firstprivate(head)
 	      {
-   		//printf("%0.20s\n",head->location);
-   		//head = head->next;
-		//if (head->location)
+		if (head->location!=NULL)
+                  {                 
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
 		  else
 		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
+		  		   tole_rate);
+		  }
+                 //printf ("cao\n");
 	      }
 	      head = head->next;
 	    }
@@ -85,19 +84,19 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
       evaluate (detail, File_head->filename, File_head);
       /*-------------------------------------*/
       File_head = File_head->next;
-      head = head2;	
+      head = head2;
       bloom_destroy (bl_2);
-    } //end while
+    }				//end while
+
   statistic_save (detail, source, prefix);
-  munmap (position, strlen (position));
-/*
+  
 #ifdef DEBUG
   gettimeofday (&tv2, &tz);
   sec = tv2.tv_sec - tv.tv_sec;
   usec = tv2.tv_usec - tv.tv_usec;
 #endif
-*/
   printf ("total=%ld sec\n", sec);
+  munmap (position, strlen (position));
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
 
@@ -113,21 +112,24 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 #ifdef DEBUG
   printf ("fastq processing...\n");
 #endif
-
+  
+  //printf ("data->%0.50s\n",info->location);
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
-
+  char *aaa;
+  
   if (info->location == NULL)
     return;
-
-  else if (info->next != tail)
+  else if (info->next != tail && info->next->location!=NULL)
     next = info->next->location;
-
   else
     next = strchr (p, '\0');
 
   while (p != next)
     {
+      //printf("p->%s\n",p);
+      //printf("next->%s\n",next);
+
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
       if (p != temp)
@@ -140,11 +142,10 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
       File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)
-	  > 0)
+      //printf ("string->%0.20s\n",p);
+      if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)> 0)
 #pragma omp atomic
 	File_head->reads_contam++;
-
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
@@ -206,9 +207,9 @@ evaluate (char *detail, char *filename, F_set * File_head)
 {
   char buffer[200] = { 0 };
 
-  printf ("all->%lld\n", File_head->reads_num);
+  printf ("all->%d\n", File_head->reads_num);
 
-  printf ("contam->%lld\n", File_head->reads_contam);
+  printf ("contam->%d\n", File_head->reads_contam);
 
   printf ("bloomname->%s\n", filename);
 
@@ -240,8 +241,6 @@ statistic_save (char *detail, char *filename, char *prefix)
 
   memset (save_file, 0, 200);
   memset (possible_prefix, 0, 100);
-  
-
 
   position1 = strrchr (filename, '/');
 
