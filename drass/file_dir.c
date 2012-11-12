@@ -94,6 +94,7 @@ make_list (char *file_user, char *list_user)
       crap->next = head->next;
       head->next = crap;
       head = head->next;
+      head->next = NULL;
     }
 
   else if (is_dir (file_user))

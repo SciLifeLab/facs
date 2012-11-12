@@ -32,8 +32,6 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
     }
   /*-------------------------------------*/
   long sec, usec, i;
-  struct timezone tz;
-  struct timeval tv, tv2;
   
   /*-------------------------------------*/
   char *position;
@@ -48,6 +46,7 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
   head->location=NULL;
   head2 = head;
   head->next = tail;
+
   F_set *File_head = NEW (F_set);
   File_head = make_list (ref, list);
   /*-------------------------------------*/
@@ -55,7 +54,6 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
  
   type = get_parainfo (position,head);
   /*-------------------------------------*/
-  gettimeofday (&tv, &tz);
   while (File_head)
     {
       load_bloom (File_head->filename, bl_2);
@@ -91,13 +89,6 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
     }				//end while
 
   statistic_save (detail, source, prefix);
-  
-#ifdef DEBUG
-  gettimeofday (&tv2, &tz);
-  sec = tv2.tv_sec - tv.tv_sec;
-  usec = tv2.tv_usec - tv.tv_usec;
-#endif
-  printf ("total=%ld sec\n", sec);
   munmap (position, strlen (position));
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
