@@ -45,7 +45,6 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	      rev_trans (key);
 
       if (bloom_check (bl, key)) {
-          printf("%f\n", tole_rate);
           result = fastq_full_check (bl, begin, length, model, tole_rate);
           if (result > 0)
             return result;

@@ -64,15 +64,12 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
 	  while (head != tail) {
 //#pragma omp task firstprivate(head)
 	      {
-		  printf ("head->%0.10s\n", head->location);
 		if (head->location!=NULL)
                   {
-//		  printf ("head->%0.10s\n", head->location);
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
 		  else
-      	            //printf("DETAIL!!!!!! %0.10s %s %s\n", detail, File_head->filename, File_head);
 		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
 		  		   tole_rate);
 		  }
@@ -106,11 +103,8 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
   printf ("fastq processing...\n");
 #endif
   
-  //printf ("data->%0.50s\n",info->location);
   char *p = info->location;
   char *next, *temp, *temp_piece = NULL;
-
-  printf("LOCATIOOOOOOON %0.1s\n", info->location);
 
   if (info->location[0] != '@') {
     return;
@@ -121,11 +115,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
   }
 
   while (p != next)
-  //printf("%s\n", p); 
     {
-      printf("p->%0.50s\n",p);
-      printf("next->%0.50s\n",next);
-
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
       if (p != temp)
@@ -138,7 +128,6 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
       File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-      //printf ("string->%0.20s\n",p);
       if (fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate)> 0) {
 #pragma omp atomic
 	File_head->reads_contam++;
@@ -207,9 +196,7 @@ evaluate (char *detail, char *filename, F_set * File_head)
   char buffer[200] = { 0 };
 
   printf ("all->%d\n", File_head->reads_num);
-
   printf ("contam->%d\n", File_head->reads_contam);
-
   printf ("bloomname->%s\n", filename);
 
   float contamination_rate =
