@@ -18,7 +18,7 @@ classi:
 	${CC} -o simple_remove_l simple_remove_l.o bloom.o suggestions.o file_dir.o lookup8.o -lm ${CFLAGS}
 
 clean:
-	rm -f core.* *.o bloom_build simple_check simple_remove simple_remove_l
+	rm -f core.* vgcore.* *.o *.so bloom_build simple_check simple_remove simple_remove_l
 
 tests:
 	mkdir -p tests/data
@@ -40,3 +40,4 @@ classi_t:
 
 python:
 	rm -rf build/ drass.so && python setup.py build_ext --inplace && python build.py
+	gcc -c simple_check_1_ge.c -O3
