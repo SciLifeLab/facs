@@ -66,7 +66,7 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
 	      {
 		if (head->location!=NULL)
                   {
-                  printf ("location->%0.6s\n",head->location);
+                  //printf ("location->%0.6s\n",head->location);
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
