@@ -1,4 +1,5 @@
 #include "bloom.h"
+#include <zlib.h>
 extern char *strrstr(char *s, char *str);
 extern BIGCAST get_size (char *filename);
 extern BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type);

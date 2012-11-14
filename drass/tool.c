@@ -284,6 +284,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 	{
 	  printf ("distributing...\n");
 	  int type;
+          char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
 	  int offsett = strlen (full) / cores;
@@ -334,7 +335,16 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 		  //printf("offset->%d\n",offsett*add);
 		  
 		  if (add != 0)
-		    temp = strstr (full + offsett * add, "\n@")+1;
+                    {
+		    temp = strstr (full + offsett * add, "\n@");
+                    if (temp)
+                        {
+			temp++;
+                        if (previous!=temp)
+                        previous = temp;
+                        }
+                    } 
+                   
 	  x->location = temp;
 	  x->number = add;
 	  x->next = pos->next;

@@ -34,6 +34,11 @@ bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *list,ch
   char c;
   int type = 0;
   BIGCAST offset = 0;
+    if (help == 1)
+    {
+      check_help ();
+      exit (1);
+    }
   if ((zip = gzopen(source,"rb"))<0)
     {
 	 perror("source open error...\n");
@@ -138,8 +143,10 @@ offset += (pos-data+1);
 
 if (strlen(data)<chunk)
     offset=-1;
+memset(pos+1,0,strlen(pos));
 
 return offset;
+
 }
 
 BIGCAST CHUNKgz(gzFile zip, BIGCAST offset,int chunk,char *position,char *extra,int type)

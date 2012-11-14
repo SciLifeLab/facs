@@ -1,8 +1,8 @@
-#include "big_query.h"
 #include "check.h"
 #include "build.h"
 #include "remove.h"
 #include "remove_l.h"
+#include "big_query.h"
 /*------------------------------*/  
 #include <stdio.h>
 #include <stdlib.h>
