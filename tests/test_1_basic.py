@@ -22,7 +22,7 @@ class DrassBasicTest(unittest.TestCase):
 """
 AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTGGTTACCTGCCGTGAGTAAATTAAA
 + 
-BPaaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aWZ^Y]bba^[_b]GTXX]aOPJPSB
+@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aWZ^Y]bba^[_b]GTXX]aOPJPSB
 """
         self.header='@HWI-ST188:2:1101:2751:1987#0/1'
 
@@ -70,12 +70,13 @@ BPaaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aW
     def test_3_query_custom_compressed(self):
         """ Query gzip compressed fastq files
         """
+        pass
   
 #    def test_3_query_all_to_all_refs(self):
 #        """ XXX: Query synthetic sequences against all filters?
 #        """
 #        pass 
-   
+
 # Aux methods
     def _generate_dummy_fastq(self, fname, num_reads):
         """ Generates simplest reads with dummy qualities
