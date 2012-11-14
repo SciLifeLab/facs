@@ -39,4 +39,4 @@ classi_t:
 	./simple_remove_l -q ~/test/test.fna -r tests/data/ecoli.bloom 
 
 python:
-	rm -rf build/ drass.so && python setup.py build_ext --inplace
+	rm -rf build/ drass.so && python setup.py build_ext --inplace && python setup.py develop

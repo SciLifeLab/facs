@@ -1,6 +1,7 @@
 import os
 import sys
 import errno
+import glob
 import drass
 import unittest
 import subprocess
@@ -15,6 +16,7 @@ class DrassBasicTest(unittest.TestCase):
         self.data_dir  = os.path.join(os.path.dirname(__file__), "data")
         self.reference = os.path.join(os.path.dirname(__file__), "data", "reference")
         self.bloom_dir = os.path.join(os.path.dirname(__file__), "data", "bloom")
+        self.custom_dir = os.path.join(os.path.dirname(__file__), "data", "custom")
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.ecoli_read = \
 """
@@ -28,15 +30,17 @@ BPaaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aW
 
         self._mkdir_p(self.data_dir)
         self._mkdir_p(self.bloom_dir)
+        self._mkdir_p(self.custom_dir)
         self._mkdir_p(self.synthetic_fastq)
 
+        # Downloads reference genome(s)
         self._download_test_files(self.data_dir)
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
         self.setUp()
-
+        
         # Build bloom filter out of the reference file(s)
         for ref in os.listdir(self.reference):
             drass.build(os.path.join(self.reference, ref),
@@ -53,8 +57,21 @@ BPaaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aW
             drass.query(os.path.join(self.synthetic_fastq, test_fname),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
   
+    def test_3_query_custom(self):
+        """ Query against the uncompressed FastQ files files manually deposited in data/custom folder
+        """
+        self.setUp()
+
+        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
+            drass.query(os.path.join(self.custom_dir, sample),
+                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
+
+
+    def test_3_query_custom_compressed(self):
+        """ Query gzip compressed fastq files
+        """
   
-#    def test_3_query_all_refs(self):
+#    def test_3_query_all_to_all_refs(self):
 #        """ XXX: Query synthetic sequences against all filters?
 #        """
 #        pass 
