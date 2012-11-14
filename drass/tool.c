@@ -322,12 +322,18 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 
 		  if (add != 0)
 		    temp = strchr (full + offsett * add, '>');
+                  //if (temp)
+                  //if (previous!=temp)
+                  //    previous = temp;
 
+                  //if (previous!=temp)
+                  //{
 		  x->location = temp;
 		  x->number = add;
 		  x->next = pos->next;
 		  pos->next = x;
 		  pos = pos->next;
+                  //}
 		}
 	    }
 	  else
@@ -344,13 +350,15 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 		  
 		  if (add != 0)
                     {
-		    temp = strstr (full + offsett * add, "\n@");
+		    temp = fastq_relocate(full,offsett*add);
+                    /*
                     if (temp)
                         {
 			temp++;
                         //if (previous!=temp)
                         //previous = temp;
                         }
+                    */
                     } 
                    
           if (previous!=temp)
@@ -393,4 +401,21 @@ jump (char *target, int type, float sampling_rate)
 	target = point;
     }
   return target;
+}
+
+/*-------------------------------------*/
+char *fastq_relocate (char *data, int offset){
+     char *target=NULL;
+     target = strstr (data + offset, "\n+");
+     if (!target)
+         return NULL;
+     else
+         {
+         target = strchr (target+1,'\n')+1; 
+         if (target!=NULL)
+             target = strchr (target+1,'\n')+1;
+         
+         }
+     
+     return target;
 }
