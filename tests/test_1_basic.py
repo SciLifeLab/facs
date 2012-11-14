@@ -67,10 +67,12 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
-    def test_3_query_custom_compressed(self):
+    def test_4_query_custom_compressed(self):
         """ Query gzip compressed fastq files
         """
-        pass
+        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
+            drass.query(os.path.join(self.custom_dir, sample),
+                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
   
 #    def test_3_query_all_to_all_refs(self):
 #        """ XXX: Query synthetic sequences against all filters?

@@ -4,6 +4,7 @@
 #include "tool.h"
 #include "build.h"
 #include "check.h"
+#include "big_query.h"
 
 static char module_docstring[] =
     "This module provides an interface for building and querying DRASS bloom filters";
@@ -38,7 +39,13 @@ static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
    if (!PyArg_ParseTuple(args, "ss|dd", &query, &bloom, &tole_rate, &sampling_rate))
        return NULL;
 
-   ret = check_main(query, bloom, tole_rate, sampling_rate, NULL, NULL, 0);
+   // Not gzip, use normal queries
+   // XXX: @tzcoolman, please join both source code files
+   if (strstr(query, ".gz") == NULL) {
+        ret = check_main(query, bloom, tole_rate, sampling_rate, NULL, NULL, 0);
+   } else {
+        ret = bq_main(query, bloom, tole_rate, sampling_rate, NULL, NULL, 0);
+   }
 
    return Py_BuildValue("i", ret);
 }

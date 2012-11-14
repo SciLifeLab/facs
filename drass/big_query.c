@@ -20,7 +20,7 @@
 #define ONE 100
 /*-------------------------------------*/
 
-bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *list,char *prefix,int help)
+int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *list,char *prefix,int help)
 {
   /*-------------------------------------*/
   /*
@@ -31,7 +31,6 @@ bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *list,ch
   */
   /*-------------------------------------*/
   gzFile zip;
-  char c;
   int type = 0;
   BIGCAST offset = 0;
     if (help == 1)
@@ -64,7 +63,7 @@ bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *list,ch
   while (offset!=-1)
     {
 	offset = CHUNKer(zip,offset,ONEG,position,type);
-	printf("length->%d\n",strlen(position));
+	printf("length->%d\n",(int)strlen(position));
   /*-------------------------------------*/
         get_parainfo (position, head);
 #pragma omp parallel
