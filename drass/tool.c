@@ -318,12 +318,18 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 
 		  if (add != 0)
 		    temp = strchr (full + offsett * add, '>');
+                  //if (temp)
+                  //if (previous!=temp)
+                  //    previous = temp;
 
+                  //if (previous!=temp)
+                  //{
 		  x->location = temp;
 		  x->number = add;
 		  x->next = pos->next;
 		  pos->next = x;
 		  pos = pos->next;
+                  //}
 		}
 	    }
 	  else
@@ -351,7 +357,6 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
                     */
                     } 
                    
-          printf ("here\n");
           if (previous!=temp)
           {
           previous = temp;
