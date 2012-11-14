@@ -94,6 +94,7 @@ make_list (char *file_user, char *list_user)
       crap->next = head->next;
       head->next = crap;
       head = head->next;
+      head->next = NULL;
     }
 
   else if (is_dir (file_user))
@@ -127,7 +128,8 @@ make_list (char *file_user, char *list_user)
 	  number++;
 	}
     }
-
+  head1->next->reads_num = 0;
+  head1->next->reads_contam = 0;
   return head1->next;
 
 }

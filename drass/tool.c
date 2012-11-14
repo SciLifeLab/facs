@@ -22,6 +22,10 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
   int signal = 0, result = 0;
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
+#ifdef DEBUG
+  //printf ("fastq read check...\n");
+#endif
+
   while (distance > bl->k_mer) {
       if (signal == 1) break;
 
@@ -41,7 +45,6 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	      rev_trans (key);
 
       if (bloom_check (bl, key)) {
-          printf("%f\n", tole_rate);
           result = fastq_full_check (bl, begin, length, model, tole_rate);
           if (result > 0)
             return result;
@@ -63,7 +66,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 {
 
 #ifdef DEBUG
-  printf ("fastq full check...\n");
+  //printf ("fastq full check...\n");
 #endif
 
   int length = distance;
@@ -329,6 +332,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 	      for (add = 0; add < cores; add++)
 		{
 		  Queue *x = NEW (Queue);
+		  x->location = NULL;
 		  if (add == 0 && *full != '@')
 		    temp = strstr (full, "\n@") + 1;	//drop the fragment
 
@@ -340,19 +344,26 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
                     if (temp)
                         {
 			temp++;
-                        if (previous!=temp)
-                        previous = temp;
+                        //if (previous!=temp)
+                        //previous = temp;
                         }
                     } 
                    
+          if (previous!=temp)
+          {
+          previous = temp;
 	  x->location = temp;
+          printf ("task->%0.6s\n",x->location);
 	  x->number = add;
 	  x->next = pos->next;
 	  pos->next = x;
 	  pos = pos->next;
+          }
 	}
 
     }
+
+
 
   return type;
 }
