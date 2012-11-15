@@ -55,6 +55,7 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
   Queue *tail = NEW (Queue);
   bloom *bl_2 = NEW (bloom);
   head->next = tail;
+  Queue *head2 = head;
   F_set *File_head = make_list (ref, list);
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
@@ -74,21 +75,26 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
 	    {
 #pragma omp task firstprivate(head)
 	      {
+ printf("head->%0.40s\n",head->location);
+/*
 		if (head->location)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
 		  else
 		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
+*/
 	      }
 	      head = head->next;
 	    }
 	}			// End of single - no implied barrier (nowait)
 }				// End of parallel region - implied barrier
-  evaluate (detail, File_head->filename, File_head);
+  //evaluate (detail, File_head->filename, File_head);
       /*-------------------------------------*/
   memset (position, 0, strlen(position));
+  head = head2;
     }				//end while
+  evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
   statistic_save (detail, source, prefix);
@@ -127,7 +133,7 @@ else
 if (offset == 0)
     while (offset <10*ONE)
     {
-    c = gzgetc(zip);
+	    c = gzgetc(zip);
     putchar (c);
     	if (c == v)
        	    break;
@@ -138,6 +144,7 @@ gzseek (zip,offset,SEEK_SET);
 gzread (zip,data,chunk);
 	  
 pos = strrstr (data,"\n@");
+//pos = strchr (strchr(pos+1,'\n')+1,'\n');
 offset += (pos-data+1);
 
 if (strlen(data)<chunk)
