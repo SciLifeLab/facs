@@ -23,7 +23,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
   char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
 #ifdef DEBUG
-  //printf ("fastq read check...\n");
+  printf ("fastq read check...\n");
 #endif
 
   while (distance > bl->k_mer) {
@@ -40,6 +40,10 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
           p += (bl->k_mer - distance);
           signal = 1;
 	  }
+
+#ifdef DEBUG
+  printf ("%s\n", key);
+#endif
 
       if (model == "reverse")
 	      rev_trans (key);
