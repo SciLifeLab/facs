@@ -51,20 +51,28 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
   else
       type = 1;
   /*-------------------------------------*/
-  Queue *head = NEW (Queue);
-  Queue *tail = NEW (Queue);
+  //Queue *head = NEW (Queue);
+  //Queue *tail = NEW (Queue);
   bloom *bl_2 = NEW (bloom);
-  head->next = tail;
-  Queue *head2 = head;
+  //head->next = tail;
+  //Queue *head2 = head;
+  //Queue *tail2 = tail;
+  //Queue *tail2 = NEW (Queue);
   F_set *File_head = make_list (ref, list);
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   load_bloom (File_head->filename, bl_2);  //load a bloom filter
   /*-------------------------------------*/
   while (offset!=-1)
-    {
+    {   
 	offset = CHUNKer(zip,offset,ONEG,position,type);
-	printf("length->%d\n",(int)strlen(position));
+       	printf("length->%d\n",(int)strlen(position));
+        printf ("luci->%0.50s\n",position);
+        Queue *head = NEW (Queue);
+        head->location = NULL;
+        Queue *tail = NEW (Queue);
+        head->next = tail;
+        Queue *head2 = head;
   /*-------------------------------------*/
         get_parainfo (position, head);
 #pragma omp parallel
@@ -75,7 +83,7 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
 	    {
 #pragma omp task firstprivate(head)
 	      {
- printf("head->%0.40s\n",head->location);
+printf("head->%0.40s\n",head->location);
 /*
 		if (head->location)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
@@ -92,8 +100,9 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
   //evaluate (detail, File_head->filename, File_head);
       /*-------------------------------------*/
   memset (position, 0, strlen(position));
-  head = head2;
+  clean_list (head2, tail);
     }				//end while
+
   evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
@@ -120,6 +129,20 @@ char *strrstr(char *s, char *str)
     return NULL;
 }
 
+void clean_list (Queue* head, Queue *tail)
+{
+Queue *element;
+while (head!=tail)
+   {
+       element = head->next;
+       memset(head,0,sizeof(Queue));
+       free(head);
+       head = element;
+   }
+free(tail);
+}
+
+
 BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
 {
 char c, v;
@@ -134,7 +157,7 @@ if (offset == 0)
     while (offset <10*ONE)
     {
 	    c = gzgetc(zip);
-    putchar (c);
+ //    putchar (c);
     	if (c == v)
        	    break;
     offset++;
@@ -143,13 +166,15 @@ if (offset == 0)
 gzseek (zip,offset,SEEK_SET);
 gzread (zip,data,chunk);
 	  
-pos = strrstr (data,"\n@");
+pos = strrstr (data,"\n+");
 //pos = strchr (strchr(pos+1,'\n')+1,'\n');
-offset += (pos-data+1);
+pos = bac_2_n (pos-1);
+//printf ("pos->%0.40s\n",pos);
+offset += (pos-data);
 
 if (strlen(data)<chunk)
     offset=-1;
-memset(pos+1,0,strlen(pos));
+memset(pos,0,strlen(pos));
 
 return offset;
 
@@ -201,3 +226,15 @@ if ((tim=open(filename, O_RDONLY))<0)
 fstat (tim, &statbuf);
 return statbuf.st_size;
 }
+
+char *bac_2_n (char *filename)
+{
+     while (*filename!='\n')
+           filename--;
+     filename--;      //move from \n
+     while (*filename!='\n')
+           filename--;
+     filename++;
+     return filename;
+}
+
