@@ -14,6 +14,7 @@ class ThousandGenomesTest(unittest.TestCase):
     """
     def setUp(self):
         self.custom_dir = os.path.join(os.path.dirname(__file__), "data", "custom")
+        self.bloom_dir = os.path.join(os.path.dirname(__file__), "data", "bloom")
         self._install_1000g_test_files(self.custom_dir)
 
     def test_query_NA21137_illumina(self):
@@ -38,7 +39,7 @@ class ThousandGenomesTest(unittest.TestCase):
         """
 
         individual = "NA21137"
-        fname = "SRR062634.filt.fastq.gz"
+        fname = "SRR362119.filt.fastq.gz"
 
         base_url = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data/{}".format(individual)
         fastq_url = os.path.join(base_url, "sequence_read", fname)
@@ -46,5 +47,5 @@ class ThousandGenomesTest(unittest.TestCase):
         
         if not os.path.exists(dst):
             print("downloading {} from {}".format(fname, base_url))
-            cl = ["curl", fastq_url, "-o", dst]
+            cl = ["wget", fastq_url, "-O", dst]
             subprocess.check_call(cl)
