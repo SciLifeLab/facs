@@ -205,11 +205,8 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 			  float tole_rate)
 	{
 	  int match_s = 0, count = 0, mark = 1;
-
 	  int n = 0, m = 0, count_enter = 0;
-
 	  float result = 0;
-
 	  char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
 
 	  begin = strchr (begin + 1, '\n') + 1;
@@ -322,18 +319,12 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 
 		  if (add != 0)
 		    temp = strchr (full + offsett * add, '>');
-                  //if (temp)
-                  //if (previous!=temp)
-                  //    previous = temp;
-
-                  //if (previous!=temp)
-                  //{
-		  x->location = temp;
+		  
+          x->location = temp;
 		  x->number = add;
 		  x->next = pos->next;
 		  pos->next = x;
 		  pos = pos->next;
-                  //}
 		}
 	    }
 	  else

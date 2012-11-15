@@ -1,3 +1,6 @@
+#ifndef _TOOL
+#define _TOOL
+
 #include "bloom.h"
 extern int get_parainfo (char *full, Queue *head);
 extern char *fastq_relocate (char *data, int offset);
@@ -6,3 +9,5 @@ extern int fastq_full_check (bloom * bl, char *p, int distance,  char *model, fl
 extern int fasta_full_check (bloom * bl, char *begin, char *next, char *model, float tole_rate);
 extern int fastq_read_check (char *begin, int length, char *model, bloom * bl, float tole_rate);
 extern int fasta_read_check (char *begin, char *next, char *model, bloom * bl, float tole_rate);
+
+#endif

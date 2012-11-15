@@ -10,143 +10,17 @@
 #include <string.h>
 /*------------------------------*/ 
 int k_mer, help;
-
 float tole_rate, error_rate, sampling_rate;
-
 char *prefix, *list, *ref, *source, *mode;
 
 /*------------------------------*/ 
-void descript ();
-
-void init (int argc, char **argv);
-
+//void descript ();
+//void init (int argc, char **argv);
 /*------------------------------*/ 
-int main (int argc, char **argv) 
-{
-  
-init (argc, argv);
-  
-switch (*mode)
-    {
-	case 'b': 
-	build_main (k_mer, error_rate, source, list, prefix,argv[0],help);
-	break;
-	case 'c':  
-	check_main (source,ref,tole_rate,sampling_rate,list,prefix,help);  
-	break;  
-	case 'r':    
-	remove_main (tole_rate, source, ref, list, prefix,help);   
-	break; 
-	case 'l':     
-	remove_main_l (tole_rate, source, ref, list, prefix,help);     
-	break;   
-        case 'g':
-        bq_main (source,ref,tole_rate,sampling_rate,list,prefix,help);
-        break;
-	default:     
-	printf ("Wrong mode: stupid idiot\n");    
-	descript ();
-	break;
-    }
-  
-return 0;
 
-}
-
-
-/*------------------------------*/ 
-void 
-init (int argc, char **argv) 
-{
-  
- 
-if (argc == 1 || !strcmp (argv[1], "-h") || !strcmp (argv[1], "-help"))
-    
-    {
-      
-descript ();
-      
-exit (0);
-    
-}
-  
- 
-/*-------default-------*/ 
-  
-k_mer = 21;
-  
-tole_rate = 0.8;
-  
-error_rate = 0.0005;
-  
-sampling_rate = 1;
-
-help = 0;
-  
-prefix = NULL;
-  
-list = NULL;
-  
-ref = NULL;
-  
-source = NULL;
-  
-mode = NULL;
-  
-/*-------default-------*/ 
-  
-int x;
-  
-while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:l:b:")) != -1)
-    {
-switch (x)
-	{
-	case 'e':
-	(optarg) && ((error_rate = atof (optarg)), 1);
-	break;
-	case 'k':
-	(optarg) && ((k_mer = atoi (optarg)), 1);
-	break;
-	case 'm':
-	(optarg) && ((mode = optarg), 1);
-	break;
-	case 't':
-	(optarg) && ((tole_rate = atof (optarg)), 1); 
-	break;
-	case 's': 
-	(optarg) && ((sampling_rate = atof (optarg)), 1);
-	break;
-	case 'o':	  
-	(optarg) && ((prefix = optarg), 1);
-	break;
-	case 'r':
-	(optarg) && ((ref = optarg), 1); 
-	break;
-	case 'q':  
-	(optarg) && (source = optarg, 1);  
-	break;
-	case 'l':
-	(optarg) && (list = optarg, 1);  
-	break;
-	case 'b':
-	(optarg) && (help = atoi(optarg), 1);
-	break;
-	case '?':
-	printf ("Unknown option: -%c\n", (char) optopt); 
-	exit (0);
-} 
-} 
-if (help == 0)
-   if ((source==NULL) && ((ref==NULL) && (list==NULL)))
-    {
-      perror ("Query or reference missing..."); 
-      exit (0);
-    }
-}
 /*------------------------------*/ 
 void
-descript ()
-{
+descript () {
   printf
     ("##########################################################################\n");
   printf ("#NAME\n");
@@ -211,5 +85,116 @@ descript ()
   printf ("    references larger than 50Mbp.\n");
   printf ("\n");
 }
- 
- 
+
+
+void 
+init (int argc, char **argv) 
+{
+    if (argc == 1 || !strcmp (argv[1], "-h") || !strcmp (argv[1], "-help")) {
+        descript ();
+        exit (0);
+    }
+     
+    /*-------defaults-------*/ 
+      
+    k_mer = 21;
+    tole_rate = 0.8;
+    error_rate = 0.0005;
+    sampling_rate = 1;
+
+    help = 0;
+      
+    prefix = NULL;
+    list = NULL;
+    ref = NULL;
+    source = NULL;
+    mode = NULL;
+      
+    /*-------default-------*/ 
+      
+    int x;
+      
+    while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:l:b:")) != -1) {
+
+        switch (x) {
+            case 'e':
+            (optarg) && ((error_rate = atof (optarg)), 1);
+            break;
+            case 'k':
+            (optarg) && ((k_mer = atoi (optarg)), 1);
+            break;
+            case 'm':
+            (optarg) && ((mode = optarg), 1);
+            break;
+            case 't':
+            (optarg) && ((tole_rate = atof (optarg)), 1); 
+            break;
+            case 's': 
+            (optarg) && ((sampling_rate = atof (optarg)), 1);
+            break;
+            case 'o':	  
+            (optarg) && ((prefix = optarg), 1);
+            break;
+            case 'r':
+            (optarg) && ((ref = optarg), 1); 
+            break;
+            case 'q':  
+            (optarg) && (source = optarg, 1);  
+            break;
+            case 'l':
+            (optarg) && (list = optarg, 1);  
+            break;
+            case 'b':
+            (optarg) && (help = atoi(optarg), 1);
+            break;
+            case '?':
+            printf ("Unknown option: -%c\n", (char) optopt); 
+            exit (0);
+        } 
+    } 
+
+    if (help == 0)
+       if ((source==NULL) && ((ref==NULL) && (list==NULL)))
+        {
+          perror ("Query or reference missing..."); 
+          exit (0);
+        }
+}
+
+
+int main (int argc, char **argv) 
+{
+  
+init (argc, argv);
+  
+switch (*mode)
+    {
+	case 'b': 
+	build_main (k_mer, error_rate, source, list, prefix,argv[0],help);
+	break;
+	case 'c':  
+	check_main (source,ref,tole_rate,sampling_rate,list,prefix,help);  
+	break;  
+	case 'r':    
+	remove_main (tole_rate, source, ref, list, prefix,help);   
+	break; 
+	/*case 'l':     
+	remove_main_l (tole_rate, source, ref, list, prefix,help);     
+	break;
+    
+    XXX
+    main.o: In function `main':
+    drass/main.c:182: undefined reference to `remove_main_l'
+    */
+    case 'g':
+    bq_main (source,ref,tole_rate,sampling_rate,list,prefix,help);
+    break;
+	default:     
+	printf ("Wrong mode: stupid idiot\n");    
+	descript();
+	break;
+    }
+  
+return 0;
+
+}
