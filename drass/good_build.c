@@ -64,7 +64,7 @@ build_main (int k_mer, float error_rate, char *source, char *list,
     }
   printf ("all finished...\n");
 #ifdef DEBUG
-  /*int sec, usec;
+  /*int sec, usec;'
   struct timeval tv1, tv2;
   struct timezone tz;
   gettimeofday (&tv2, &tz);
