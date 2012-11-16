@@ -334,8 +334,9 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 		{
 		  Queue *x = NEW (Queue);
 		  x->location = NULL;
-		  if (add == 0 && *full != '@')
-		    temp = strstr (full, "\n@") + 1;	//drop the fragment
+		  //if (add == 0 && *full != '@')
+		  //if (add != 0)
+		    //temp = strstr (full, "\n@");	//drop the fragment
 
 		  //printf("offset->%d\n",offsett*add);
 		  
@@ -356,7 +357,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
           {
           previous = temp;
 	  x->location = temp;
-          //printf ("task->%0.6s\n",x->location);
+          //printf ("task->%0.50s\n",x->location);
 	  x->number = add;
 	  x->next = pos->next;
 	  pos->next = x;

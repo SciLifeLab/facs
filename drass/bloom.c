@@ -224,10 +224,10 @@ int
 finder (BIGNUM index, deref * dr)
 {
 
-  dr->index = (BIGNUM) (index / 8);
-  dr->spot = pow (2, (index % 8));
-  //dr->index = (BIGNUM) (index >> 3);
+  //dr->index = (BIGNUM) (index / 8);
   //dr->spot = pow (2, (index % 8));
+  dr->index = (BIGNUM) (index >> 3);
+  dr->spot = pow (2, (index % 8));
   //dr->spot = 0x80;
   //dr->spot = dr->spot >> (index & 0x07);
   //dr->spot = pow(2,(index & 0x07));
