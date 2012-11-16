@@ -17,18 +17,6 @@
 #include "build.h"
 #include "bloom.h"
 #include "file_dir.h"
-/*
-void struc_init ();
-void init_bloom (bloom * bl);
-void init_query (char *source);
-void init (int argc, char **argv);
-void ref_add (bloom * bl, char *position);
-void fastq_add (bloom * bl, char *position);
-void fasta_add (bloom * bl, char *position);
-
-char *fasta_data (bloom * bl_2, char *data);
-int build(char *ref_name, char *target_path, int k_mer, double error_rate);
-*/
 
 int
 build_main (int k_mer, float error_rate, char *source, char *list,

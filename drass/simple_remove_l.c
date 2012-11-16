@@ -24,6 +24,7 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
+int
 remove_main_l (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
 {
   if (help == 1)

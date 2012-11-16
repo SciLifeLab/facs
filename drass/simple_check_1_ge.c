@@ -25,11 +25,10 @@
 /*-------------------------------------*/
 int check_main (char *source, char *ref, float tole_rate, float sampling_rate, char *list, char *prefix, int help)
 {
-  if (help == 1)
-    {
+  if (help == 1) {
       check_help ();
       exit (1);
-    }
+  }
   /*-------------------------------------*/
   long sec, usec, i;
   
@@ -249,94 +248,6 @@ statistic_save (char *detail, char *filename, char *prefix)
     strncat (save_file, filename, strrchr (filename, '.') - filename + 1);
 
   strcat (save_file, "info");
-
   printf ("Info name->%s\n", save_file);
-
   write_result (save_file, detail);
 }
-
-/*-------------------------------------*/
-/*
-int
-checky (char *query, char *reference, char l, char *target_path,
-	double sampling_rate, double tole_rate)
-{
-  int type;
-  char *position;
-  Queue *head = NEW (Queue);
-  bloom *bl_2 = NEW (bloom);
-  Queue *tail, *head2;
-  head2 = head;
-  head->next = tail;
-  F_set *File_head = NEW (F_set);
-
-  if (l == 'l')
-    File_head = make_list (NULL, reference);
-  else
-    File_head = make_list (reference, NULL);
-  printf ("File_head->%s\n", File_head->filename);
-  char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
-
-  if (strstr (query, ".fifo"))
-    position = large_load (query);
-  else
-    position = mmaping (query);
-
-  type = get_parainfo (position, head);
-
-  while (File_head)
-    {
-      File_head->reads_num = 0;
-      File_head->reads_contam = 0;
-      load_bloom (File_head->filename, bl_2);
-
-#pragma omp parallel
-      {
-#pragma omp single nowait
-	{
-	  while (head != tail)
-	    {
-#pragma omp task firstprivate(head)
-	      {
-		if (head->location)
-		  if (type == 1)
-		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-		  else
-		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-
-	      }
-	      head = head->next;
-	    }
-	}			// End of single - no implied barrier (nowait)
-      }				// End of parallel region - implied barrier
-      printf ("num->%d\ncontam->%d\n", File_head->reads_num,
-	      File_head->reads_contam);
-      evaluate (detail, File_head->filename, File_head);
-
-      File_head = File_head->next;
-
-      head = head2;
-
-      bloom_destroy (bl_2);
-    }				//end while
-
-  statistic_save (detail, query, target_path);
-
-  if (!strstr (query, ".fifo"))
-    munmap (position, strlen (position));
-
-  return 0;
-}
-*/
-/*-------------------------------------*/
-/*
-int
-check (char *query, char *reference, char l, char *target_path,
-       double sampling_rate, double tole_rate)
-{
-  checky (query, reference, l, target_path, sampling_rate, tole_rate);
-  return 0;
-}
-*/
