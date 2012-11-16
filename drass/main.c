@@ -13,14 +13,9 @@ int k_mer, help;
 float tole_rate, error_rate, sampling_rate;
 char *prefix, *list, *ref, *source, *mode;
 
-/*------------------------------*/ 
-//void descript ();
-//void init (int argc, char **argv);
-/*------------------------------*/ 
-
-/*------------------------------*/ 
 void
-descript () {
+descript (void)
+{
   printf
     ("##########################################################################\n");
   printf ("#NAME\n");
@@ -164,8 +159,13 @@ init (int argc, char **argv)
 
 int main (int argc, char **argv) 
 {
-  
+
+//int ret=0;
+
 init (argc, argv);
+
+  //  if (strcmp(argv[1], "build") == 0) ret = 
+
   
 switch (*mode)
     {
@@ -190,7 +190,7 @@ switch (*mode)
     bq_main (source,ref,tole_rate,sampling_rate,list,prefix,help);
     break;
 	default:     
-	printf ("Wrong mode: stupid idiot\n");    
+	printf ("Wrong mode\n");    
 	descript();
 	break;
     }

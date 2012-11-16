@@ -286,7 +286,9 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 	int
 	get_parainfo (char *full, Queue * head)
 	{
+#ifdef DEBUG
 	  printf ("distributing...\n");
+#endif
 	  int type;
           char *previous = NULL;
 	  char *temp = full;

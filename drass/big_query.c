@@ -51,13 +51,7 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
   else
       type = 1;
   /*-------------------------------------*/
-  //Queue *head = NEW (Queue);
-  //Queue *tail = NEW (Queue);
   bloom *bl_2 = NEW (bloom);
-  //head->next = tail;
-  //Queue *head2 = head;
-  //Queue *tail2 = tail;
-  //Queue *tail2 = NEW (Queue);
   F_set *File_head = make_list (ref, list);
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
@@ -66,8 +60,6 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
   while (offset!=-1)
     {   
 	offset = CHUNKer(zip,offset,ONEG,position,type);
-       	//printf("length->%d\n",(int)strlen(position));
-        //printf ("luci->%0.50s\n",position);
         Queue *head = NEW (Queue);
         head->location = NULL;
         Queue *tail = NEW (Queue);
@@ -83,19 +75,22 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
 	    {
 #pragma omp task firstprivate(head)
 	      {
-printf("head->%0.40s\n",head->location);
 
-		if (head->location)
-                    if (type == 1)
-		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-		    else
-		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-
-	      }
+#ifdef DEBUG
+    printf("head->%0.40s\n",head->location);
+#endif
+		if (head->location) {
+            if (type == 1) {
+                fasta_process (bl_2, head, tail, File_head, sampling_rate,
+                               tole_rate);
+		    } else {
+                fastq_process (bl_2, head, tail, File_head, sampling_rate,
+                               tole_rate);
+            }
+        }
+	  }
 	      head = head->next;
-	    }
+	    }       // End of firstprivate
 	}			// End of single - no implied barrier (nowait)
 }				// End of parallel region - implied barrier
   //evaluate (detail, File_head->filename, File_head);

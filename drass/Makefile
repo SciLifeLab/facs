@@ -1,4 +1,4 @@
-CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DDEBUG -lz -lm
+CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DNODEBUG -lz -lm
 .PHONY:  tests clean
 .SUFFIXES:.c .o
 PROG=drass
