@@ -66,7 +66,7 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
   while (offset!=-1)
     {   
 	offset = CHUNKer(zip,offset,ONEG,position,type);
-       	printf("length->%d\n",(int)strlen(position));
+       	//printf("length->%d\n",(int)strlen(position));
         //printf ("luci->%0.50s\n",position);
         Queue *head = NEW (Queue);
         head->location = NULL;
@@ -83,12 +83,13 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
 	    {
 #pragma omp task firstprivate(head)
 	      {
-//printf("head->%0.40s\n",head->location);
+printf("head->%0.40s\n",head->location);
 
 		if (head->location)
+                    if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
-		  else
+		    else
 		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
 
