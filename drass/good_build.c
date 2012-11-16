@@ -18,39 +18,79 @@
 #include "bloom.h"
 #include "file_dir.h"
 
-int
-build_main (int k_mer, float error_rate, char *source, char *list,
-	    char *prefix, char *target_path, int help)
+static int
+build_usage(void)
 {
-  if (help == 1)
-    {
-      build_help ();
-      exit (1);
-    }
-/*-------------------------------------*/
+    fprintf(stderr, "\nUsage: ./facs build <opts>\n");
+    fprintf(stderr, "-r path/to/something.fasta\n");
+    fprintf(stderr, "-o have to use it, but does not write file! :_/ XXX\n");
+    return 1;
+}
+
+int
+build_main (int argc, char **argv)
+{
+
+  if (argc < 2) return build_usage();
+
   char *position;
   BIGNUM capacity;
-  //BIGCAST hit = 0, un_hit = 0;
-/*-------------------------------------*/
-  if (help == 3)
-    build ("k_12.fasta", NULL, 21, 0.0005);
-/*-------------------------------------*/
+
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  int k_mer = 21;
+  float error_rate = 0.0005;
+  float tole_rate = 0.8;
+
+  char* prefix = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+
+  while ((opt = getopt (argc, argv, "ekpo:r:lh")) != -1) {
+      switch (opt) {
+          case 'e':
+              (optarg) && ((error_rate = atof (optarg)), 1);
+              break;
+          case 'k':
+              (optarg) && ((k_mer = atoi (optarg)), 1);
+              break;
+          case 'p':    
+              (optarg) && ((prefix = optarg), 1);
+              break;
+          case 'o':
+              (optarg) && ((target_path = optarg), 1); 
+              break;
+          case 'r':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              return build_usage();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              return build_usage();
+      } 
+  } 
+
+
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
   Queue *tail = NEW (Queue);
   head->next = tail;
   F_set *File_head = NEW (F_set);
   File_head = make_list (source, list);
-/*-------------------------------------*/
-  while (File_head)
-    {
+  
+  while (File_head) {
       printf ("File_head->%s\n", File_head->filename);
       /*map query- into memory-------------- */
       position = mmaping (File_head->filename);
       if (*position == '>')
-	capacity = strlen (position);
+    	capacity = strlen (position);
       else
-	capacity = strlen (position) / 2;
+    	capacity = strlen (position) / 2;
       /*init bloom-------------------------- */
       init_bloom (bl_2, capacity, error_rate, k_mer);
       /*hashing and bloom building---------- */
@@ -62,17 +102,6 @@ build_main (int k_mer, float error_rate, char *source, char *list,
       munmap (position, strlen (position));
       File_head = File_head->next;
     }
-  printf ("all finished...\n");
-#ifdef DEBUG
-  /*int sec, usec;
-  struct timeval tv1, tv2;
-  struct timezone tz;
-  gettimeofday (&tv2, &tz);
-  sec = tv2.tv_sec - tv.tv_sec;
-  usec = tv2.tv_usec - tv.tv_usec;
-  printf ("total=%ld sec\n", sec);*/
-  //printf ("Same K_mer->%ld\n,New K_mer->%ld\n", hit, un_hit);
-#endif
 
   return 0;
 }
@@ -153,33 +182,19 @@ fastq_add (bloom * bl, char *position)
     {
       position = strchr (position, '\n') + 1;
 
-      while (position[bl->k_mer - 1] != '\n')
-	{
-	  memcpy (key, position, sizeof (char) * bl->k_mer);
-
-	  key[bl->k_mer] = '\0';
-/*
-	  if (bloom_add (bl, key))
-	    hit++;
-	  else
-	    un_hit++;
-*/
-	  bloom_add (bl, key);
-
-	  position++;
-	}
+      while (position[bl->k_mer - 1] != '\n') {
+    	  memcpy (key, position, sizeof (char) * bl->k_mer);
+	      key[bl->k_mer] = '\0';
+	      bloom_add (bl, key);
+	      position++;
+      }
 
       position += bl->k_mer;
-
       position = strchr (position, '\n') + 1;
-
       char *v = strchr (position, '\n');
 
-      if (!v)
-	break;
-      else
-
-	position = v + 1;
+      if (!v) break;
+      else position = v + 1;
 
     }
   free (key);
