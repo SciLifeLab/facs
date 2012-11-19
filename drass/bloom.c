@@ -227,34 +227,13 @@ finder (BIGNUM index, deref * dr)
   //dr->index = (BIGNUM) (index / 8);
   //dr->spot = pow (2, (index % 8));
   dr->index = (BIGNUM) (index >> 3);
-  dr->spot = pow (2, (index % 8));
+  //dr->spot = pow (2, (index % 8));
   //dr->spot = 0x80;
   //dr->spot = dr->spot >> (index & 0x07);
-  //dr->spot = pow(2,(index & 0x07));
+  dr->spot = pow(2,(index & 0x07));
   return 0;
 }
 
-
-
-int
-sketchy_randoms (randoms * rands, int cnt)
-{
-  int i;
-  srand (CONS);
-  if ((rands->num = (int *) malloc (sizeof (int) * (cnt + 1))) == NULL)
-    {
-      perror ("malloc");
-      errno = ERR_MALLOC;
-      return -1;
-    }
-  for (i = 0; i < cnt; i++)
-    {
-      rands->num[i] =
-	1 + (int) ((float) SALTRAND * rand () / (RAND_MAX + 1.0));
-    }
-  rands->cnt = cnt;
-  return 0;
-}
 
 BIGNUM
 report_capacity (bloom * bloom)
@@ -262,31 +241,6 @@ report_capacity (bloom * bloom)
   return bloom->stat.capacity;
 }
 
-char *
-to_bitstr (bloom * bm)
-{
-  int i, j;
-  char *ptr;
-  BIGNUM steps = (bm->stat.elements / 8) + 1;
-  char *ret = (char *) malloc (sizeof (char *) * (bm->stat.elements + 2));
-
-  strcpy (ret, "");
-  for (i = 0, ptr = bm->vector; i < steps; i++, ptr++)
-    {
-      for (j = 0; j < 8; j++)
-	{
-	  if ((*ptr >> j) == 1)
-	    {
-	      strcat (ret, "1");
-	    }
-	  else
-	    {
-	      strcat (ret, "0");
-	    }
-	}
-    }
-  return ret;
-}
 
 int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
