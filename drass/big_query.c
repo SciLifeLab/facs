@@ -20,61 +20,99 @@
 #define ONE 100
 /*-------------------------------------*/
 
-int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *list,char *prefix,int help)
+
+static int
+query_usage(void)
 {
-  /*-------------------------------------*/
-  /*
-  long sec, usec, i;
-  struct timezone tz;
-  struct timeval tv, tv2;
-  gettimeofday (&tv, &tz);
-  */
-  /*-------------------------------------*/
+    fprintf(stderr, "\nUsage: ./facs query [options]\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "\t-r reference bloom filter to query against\n");
+    return 1;
+}
+
+int bq_main(int argc, char** argv)
+{
+  if (argc < 2) return query_usage();
+  
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  float tole_rate = 0.8;
+  float sampling_rate = 1;
+
+  char* prefix = NULL;
+  char* ref = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+
+  while ((opt = getopt (argc, argv, "ekpo:r:lh")) != -1) {
+      switch (opt) {
+          case 't':
+              (optarg) && ((tole_rate = atof(optarg)), 1);
+              break;
+          case 's':
+              (optarg) && ((sampling_rate = atof(optarg)), 1);
+              break;
+          case 'p':    
+              (optarg) && ((prefix = optarg), 1);
+              break;
+          case 'r':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'q':  
+              (optarg) && (ref = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              return query_usage();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              return query_usage();
+      } 
+  } 
+
+  query(ref, target_path, tole_rate, sampling_rate, list, prefix);
+}
+
+int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* prefix)
+{
+
   gzFile zip;
   int type = 0;
   BIGCAST offset = 0;
-    if (help == 1)
-    {
-      check_help ();
-      exit (1);
-    }
-  if ((zip = gzopen(source,"rb"))<0)
-    {
-	 perror("source open error...\n");
-         exit(-1);
-    }
-  char *detail = (char*)malloc((ONE*ONE*ONE)*sizeof(char));
-  char *position =  (char*)malloc((ONEG+1)*sizeof(char));
-  /*-------------------------------------*/
-  if (strstr(source,".fastq")||strstr(source,".fq"))
+  char *detail = (char*) malloc((ONE*ONE*ONE)*sizeof(char));
+  char *position =  (char*) malloc((ONEG+1)*sizeof(char));
+  
+  bloom *bl_2 = NEW (bloom);
+  F_set *File_head = make_list (bloom_filter, list);
+
+  File_head->reads_num = 0;
+  File_head->reads_contam = 0;
+  File_head->filename = bloom_filter;
+  load_bloom (File_head->filename, bl_2);  //load a bloom filter
+  
+  if ((zip = gzopen(query, "rb"))<0) {
+	 perror("query open error...\n");
+     exit(-1);
+  }
+
+  if (strstr(query, ".fastq") || strstr(query, ".fq"))
       type = 2;
   else
       type = 1;
-  /*-------------------------------------*/
-  //Queue *head = NEW (Queue);
-  //Queue *tail = NEW (Queue);
-  bloom *bl_2 = NEW (bloom);
-  //head->next = tail;
-  //Queue *head2 = head;
-  //Queue *tail2 = tail;
-  //Queue *tail2 = NEW (Queue);
-  F_set *File_head = make_list (ref, list);
-  File_head->reads_num = 0;
-  File_head->reads_contam = 0;
-  load_bloom (File_head->filename, bl_2);  //load a bloom filter
-  /*-------------------------------------*/
-  while (offset!=-1)
-    {   
+ 
+  
+  while (offset!=-1) {   
 	offset = CHUNKer(zip,offset,ONEG,position,type);
-       	//printf("length->%d\n",(int)strlen(position));
-        //printf ("luci->%0.50s\n",position);
-        Queue *head = NEW (Queue);
-        head->location = NULL;
-        Queue *tail = NEW (Queue);
-        head->next = tail;
-        Queue *head2 = head;
-  /*-------------------------------------*/
-        get_parainfo (position, head);
+    Queue *head = NEW (Queue);
+    head->location = NULL;
+    Queue *tail = NEW (Queue);
+    head->next = tail;
+    Queue *head2 = head;
+    get_parainfo (position, head);
+
 #pragma omp parallel
 {
 #pragma omp single nowait
@@ -83,23 +121,26 @@ int bq_main(char *source,char *ref,float tole_rate,float sampling_rate,char *lis
 	    {
 #pragma omp task firstprivate(head)
 	      {
-printf("head->%0.40s\n",head->location);
 
-		if (head->location)
-                    if (type == 1)
-		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-		    else
-		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
-				   tole_rate);
-
-	      }
+#ifdef DEBUG
+    printf("head->%0.40s\n",head->location);
+#endif
+		if (head->location) {
+            if (type == 1) {
+                fasta_process (bl_2, head, tail, File_head, sampling_rate,
+                               tole_rate);
+		    } else {
+                fastq_process (bl_2, head, tail, File_head, sampling_rate,
+                               tole_rate);
+            }
+        }
+	  }
 	      head = head->next;
-	    }
+	    }       // End of firstprivate
 	}			// End of single - no implied barrier (nowait)
 }				// End of parallel region - implied barrier
-  //evaluate (detail, File_head->filename, File_head);
-      /*-------------------------------------*/
+                //evaluate (detail, File_head->filename, File_head);
+  
   memset (position, 0, strlen(position));
   clean_list (head2, tail);
     }				//end while
@@ -107,15 +148,8 @@ printf("head->%0.40s\n",head->location);
   evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
-  statistic_save (detail, source, prefix);
-  /*
-#ifdef DEBUG
-  gettimeofday (&tv2, &tz);
-  sec = tv2.tv_sec - tv.tv_sec;
-  usec = tv2.tv_usec - tv.tv_usec;
-#endif
-  */
-  //printf ("total=%ld sec\n", sec);
+  statistic_save (detail, query, prefix);
+  
   return 0;
 }
 
@@ -238,4 +272,3 @@ char *bac_2_n (char *filename)
      filename++;
      return filename;
 }
-

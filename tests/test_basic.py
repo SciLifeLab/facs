@@ -56,6 +56,11 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
             self._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
             drass.query(os.path.join(self.synthetic_fastq, test_fname),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
+
+#all
+#contam
+
+#        assert nreads == all
   
     def test_3_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited in data/custom folder
@@ -71,7 +76,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         """ Query gzip compressed fastq files
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
-            print "Querying against compressed sample {}".format(sample)
+            print "\nQuerying against compressed sample {}".format(sample)
             drass.query(os.path.join(self.custom_dir, sample),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
   

@@ -30,9 +30,6 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
       exit (1);
   }
   /*-------------------------------------*/
-  long sec, usec, i;
-  
-  /*-------------------------------------*/
   char *position;
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
   memset (detail, 0, 1000 * 1000);
@@ -194,23 +191,21 @@ void
 evaluate (char *detail, char *filename, F_set * File_head)
 {
   char buffer[200] = { 0 };
-
-  printf ("all->%d\n", File_head->reads_num);
-  printf ("contam->%d\n", File_head->reads_contam);
-  printf ("bloomname->%s\n", filename);
-
   float contamination_rate =
     (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
-  if (contamination_rate == 0)
-    printf ("clean data...\n");
-  else
-    printf ("contamination rate->%f\n", contamination_rate);
+// JSON output format by default
+  printf("{\n");
+  printf ("\t\"total_read_count\": %d,\n", File_head->reads_num);
+  printf ("\t\"contaminated_reads\": %d,\n", File_head->reads_contam);
+  printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
+  printf ("\t\"bloom_filename\":\"%s\"\n", filename);
+  printf("}\n");
 
-  strcat (detail, "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
+#ifdef DEBUG
   strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
-
   strcat (detail, filename);
+#endif
 
   sprintf (buffer, "  %d\t%d\t%f\n", File_head->reads_num,
 	   File_head->reads_contam, contamination_rate);
@@ -230,7 +225,9 @@ statistic_save (char *detail, char *filename, char *prefix)
 
   position1 = strrchr (filename, '/');
 
+#ifdef DEBUG
   printf ("filename->%s\n", filename);
+#endif
 
   if (!prefix)
     {
@@ -248,11 +245,14 @@ statistic_save (char *detail, char *filename, char *prefix)
     strncat (save_file, filename, strrchr (filename, '.') - filename + 1);
 
   strcat (save_file, "info");
+
+#ifdef DEBUG
   if (!is_dir (prefix))
     {
       memset (save_file,0,strlen(save_file)); 
       strcat (save_file,prefix); 
     }
   printf ("Info name->%s\n", save_file);
+#endif
   write_result (save_file, detail);
 }

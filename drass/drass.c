@@ -33,19 +33,13 @@ static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 {
    double sampling_rate=1;
    double tole_rate=0.8;
-   char *query, *bloom;
+   char *qry, *bloom;
    int ret;
 
-   if (!PyArg_ParseTuple(args, "ss|dd", &query, &bloom, &tole_rate, &sampling_rate))
+   if (!PyArg_ParseTuple(args, "ss|dd", &qry, &bloom, &tole_rate, &sampling_rate))
        return NULL;
 
-   // Not gzip, use normal queries
-   // XXX: @tzcoolman, please join both source code files
-   if (strstr(query, ".gz") == NULL) {
-        ret = check_main(query, bloom, tole_rate, sampling_rate, NULL, NULL, 0);
-   } else {
-        ret = bq_main(query, bloom, tole_rate, sampling_rate, NULL, NULL, 0);
-   }
+   ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL);
 
    return Py_BuildValue("i", ret);
 }
@@ -61,7 +55,7 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
 
    if (!PyArg_ParseTuple(args, "ss|id", &source, &bloom_filter, &k_mer, &error_rate))
        return NULL;
-  
+   
    ret = build(source, bloom_filter, k_mer, error_rate);
 
    return Py_BuildValue("i", ret);

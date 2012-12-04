@@ -337,10 +337,11 @@ int
 load_bloom (char *filename, bloom * bl)
 {
   int fd = 0;
-
   int x;
 
+#ifdef DEBUG
   printf ("bloom name->%s\n", filename);
+#endif
 
 #ifdef __APPLE__
   fd = open (filename, O_RDONLY, PERMS);
@@ -367,7 +368,9 @@ load_bloom (char *filename, bloom * bl)
   x = read (fd, bl->vector + off, sizeof (char) * total_size);
   close (fd);
 
+#ifdef DEBUG
   printf ("successful bloom read...\n");
+#endif
   close (fd);
 
   return 0;
