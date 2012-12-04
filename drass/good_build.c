@@ -75,6 +75,11 @@ build_main (int argc, char **argv)
       } 
   } 
 
+  build(source, target_path, k_mer, error_rate);
+
+/*
+ * @tzcoolman: Is this just replicated code that could be moved to build() function?
+ *
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
   Queue *tail = NEW (Queue);
@@ -84,7 +89,7 @@ build_main (int argc, char **argv)
   
   while (File_head) {
       printf ("File_head->%s\n", File_head->filename);
-      /*map query- into memory-------------- */
+      //map query- into memory--------------
       position = mmaping (File_head->filename);
       if (*position == '>')
     	capacity = strlen (position);
@@ -99,12 +104,12 @@ build_main (int argc, char **argv)
       munmap (position, strlen (position));
       File_head = File_head->next;
     }
-
+*/
   return 0;
 }
 
 int
-build (char *ref_name, char *target_path, int k_mer, double error_rate)
+build(char *ref_name, char *target_path, int k_mer, double error_rate)
 {
   char *position = mmaping (ref_name);
 
