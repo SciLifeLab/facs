@@ -21,16 +21,16 @@
 static int
 build_usage(void)
 {
-    fprintf(stderr, "\nUsage: ./facs build <opts>\n");
-    fprintf(stderr, "-r path/to/something.fasta\n");
-    fprintf(stderr, "-o have to use it, but does not write file! :_/ XXX\n");
+    fprintf(stderr, "\nUsage: ./facs build [options]\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "\t-r path/to/something.fasta\n");
+    fprintf(stderr, "\t-o have to use it, but does not write file! :_/ XXX\n");
     return 1;
 }
 
 int
 build_main (int argc, char **argv)
 {
-
   if (argc < 2) return build_usage();
 
   char *position;
@@ -75,7 +75,6 @@ build_main (int argc, char **argv)
       } 
   } 
 
-
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
   Queue *tail = NEW (Queue);
@@ -91,14 +90,12 @@ build_main (int argc, char **argv)
     	capacity = strlen (position);
       else
     	capacity = strlen (position) / 2;
-      /*init bloom-------------------------- */
+      
       init_bloom (bl_2, capacity, error_rate, k_mer);
-      /*hashing and bloom building---------- */
       ref_add (bl_2, position);
-      /*save bloom-------------------------- */
       save_bloom (File_head->filename, bl_2, prefix, target_path);
-      /*clear memory------------------------ */
       bloom_destroy (bl_2);
+      
       munmap (position, strlen (position));
       File_head = File_head->next;
     }
@@ -106,7 +103,6 @@ build_main (int argc, char **argv)
   return 0;
 }
 
-/*-------------------------------------*/
 int
 build (char *ref_name, char *target_path, int k_mer, double error_rate)
 {
@@ -126,7 +122,6 @@ build (char *ref_name, char *target_path, int k_mer, double error_rate)
   return 0;
 }
 
-/*-------------------------------------*/
 void
 init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
 {

@@ -9,9 +9,6 @@
 #include <unistd.h>
 #include <string.h>
 /*------------------------------*/ 
-int k_mer, help;
-float tole_rate, error_rate, sampling_rate;
-char *prefix, *list, *ref, *source, *mode;
 
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "0.1"
@@ -56,9 +53,9 @@ mode = NULL;
   if (argc < 2) return usage();
 
   if (strcmp(argv[1], "build") == 0) ret = build_main(argc-1, argv+1);
-//  else if (strcmp(argv[1], "query") == 0) ret = check_main(argc-1, argv+1);
+  else if (strcmp(argv[1], "query") == 0) ret = bq_main(argc-1, argv+1);
+  else if (strcmp(argv[1], "cquery") == 0) ret = bq_main(argc-1, argv+1);
 //  else if (strcmp(argv[1], "remove") == 0) ret = remove_main(argc-1, argv+1);
-//  else if (strcmp(argv[1], "cquery") == 0) ret = bq_main(argc-1, argv+1);
   else usage();
 
   return ret;
