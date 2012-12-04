@@ -245,7 +245,13 @@ statistic_save (char *detail, char *filename, char *prefix)
     strncat (save_file, filename, strrchr (filename, '.') - filename + 1);
 
   strcat (save_file, "info");
+
 #ifdef DEBUG
+  if (!is_dir (prefix))
+    {
+      memset (save_file,0,strlen(save_file)); 
+      strcat (save_file,prefix); 
+    }
   printf ("Info name->%s\n", save_file);
 #endif
   write_result (save_file, detail);
