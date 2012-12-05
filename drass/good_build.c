@@ -17,6 +17,7 @@
 #include "build.h"
 #include "bloom.h"
 #include "file_dir.h"
+#include "tool.h"
 
 static int
 build_usage(void)
@@ -146,6 +147,7 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
 	      bl->stat.ideal_hashes, NULL, flags);
 
   bl->k_mer = k_mer;
+  bl->dx = dx_add (bl->k_mer);
 
 }
 

@@ -2,6 +2,7 @@
 #define _TOOL
 
 #include "bloom.h"
+extern int dx_add (int k_mer);
 extern int get_parainfo (char *full, Queue *head);
 extern char *fastq_relocate (char *data, int offset);
 extern char *jump (char *target, int type, float sampling_rate);
