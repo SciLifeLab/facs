@@ -75,37 +75,35 @@ build_main (int argc, char **argv)
               return build_usage();
       } 
   } 
-
-  build(source, target_path, k_mer, error_rate, prefix);
-
-/*
- * @tzcoolman: Is this just replicated code that could be moved to build() function?
- *
-  bloom *bl_2 = NEW (bloom);
-  Queue *head = NEW (Queue);
-  Queue *tail = NEW (Queue);
-  head->next = tail;
-  F_set *File_head = NEW (F_set);
-  File_head = make_list (source, list);
   
-  while (File_head) {
-      printf ("File_head->%s\n", File_head->filename);
-      //map query- into memory--------------
-      position = mmaping (File_head->filename);
-      if (*position == '>')
-    	capacity = strlen (position);
-      else
-    	capacity = strlen (position) / 2;
-      
-      init_bloom (bl_2, capacity, error_rate, k_mer);
-      ref_add (bl_2, position);
-      save_bloom (File_head->filename, bl_2, prefix, target_path);
-      bloom_destroy (bl_2);
-      
-      munmap (position, strlen (position));
-      File_head = File_head->next;
-    }
-*/
+  if (!list)
+     build(source, target_path, k_mer, error_rate, prefix);
+  else {
+      bloom *bl_2 = NEW (bloom);
+      Queue *head = NEW (Queue);
+      Queue *tail = NEW (Queue);
+      head->next = tail;
+      F_set *File_head = NEW (F_set);
+      File_head = make_list (source, list);
+  
+      while (File_head) {
+          printf ("Path->%s\n", File_head->filename);
+          //map query- into memory--------------
+          position = mmaping (File_head->filename);
+          if (*position == '>')
+            capacity = strlen (position);
+          else
+            capacity = strlen (position) / 2;
+          
+          init_bloom (bl_2, capacity, error_rate, k_mer);
+          ref_add (bl_2, position);
+          save_bloom (File_head->filename, bl_2, prefix, target_path);
+          bloom_destroy (bl_2);
+          
+          munmap (position, strlen (position));
+          File_head = File_head->next;
+        }
+  }
   return 0;
 }
 
@@ -149,6 +147,26 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
   bl->k_mer = k_mer;
   bl->dx = dx_add (bl->k_mer);
 
+}
+
+int
+build(char *ref_name, char *target_path, int k_mer, double error_rate, char* prefix)
+{
+  char *position = mmaping (ref_name);
+
+  bloom *bl = NEW (bloom);
+  bl->k_mer = k_mer;
+  bl->stat.e = error_rate;
+  bl->dx = dx_add (bl->k_mer);
+  bl->stat.capacity = strlen (position);
+  get_rec (&bl->stat);
+
+  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
+	      bl->stat.ideal_hashes, NULL, 3);
+  ref_add (bl, position);
+  save_bloom (ref_name, bl, prefix, target_path);
+
+  return 0;
 }
 
 /*-------------------------------------*/

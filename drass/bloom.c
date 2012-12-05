@@ -257,7 +257,6 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 
   position1 = strrchr (filename, '/');
   position2 = strrchr (target + 2, '/');
-
   if (prefix)
     strcat (bloom_file, prefix);
   else
@@ -270,15 +269,13 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   else
     strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
   strcat (bloom_file, "bloom");
-  if (!is_dir (prefix))
+
+  if ((prefix)&&(!is_dir (prefix)))
     {
       memset(bloom_file,0,strlen(bloom_file));
       strcat (bloom_file,prefix);
     }
-
-#ifdef DEBUG
-  printf ("bloom name->%s\n", bloom_file);
-#endif
+   printf("prefix->%s\n",prefix);
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
@@ -328,7 +325,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 #ifdef DEBUG
   printf ("big file process OK\n");
 #endif
-
+  printf ("done\n");
   return 0;
 
 }
