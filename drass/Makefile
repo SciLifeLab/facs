@@ -1,5 +1,7 @@
-CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DNODEBUG -lz -lm
-LZFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DNODEBUG -lm
+# -lz flag has to be at the end
+#  http://stackoverflow.com/questions/9700414/compilation-problems-with-zlib
+CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DNODEBUG -lm -lz
+#LZFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -fopenmp -g -DNODEBUG -lm
 .PHONY:  tests clean
 .SUFFIXES:.c .o
 PROG=facs
@@ -30,7 +32,7 @@ clean:
 
 .c.o:
 		$(CC) -c $(CFLAGS) $(DFLAGS) $(INCLUDES) $< -o $@
-		${CC} -c ${LZFLAGS} big_query.c
+#		${CC} -c ${LZFLAGS} big_query.c
 
 ${PROG}:lib${PROG}.a $(AOBJS)
 
