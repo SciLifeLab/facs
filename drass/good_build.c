@@ -43,21 +43,18 @@ build_main (int argc, char **argv)
   float error_rate = 0.0005;
   float tole_rate = 0.8;
 
-  char* prefix = NULL;
   char* list = NULL;
+  char* prefix = NULL;
   char* target_path = NULL;
   char* source = NULL;
-
-  while ((opt = getopt (argc, argv, "ekpo:r:lh")) != -1) {
+  printf ("1st command->%s\n",argv[0]);
+  while ((opt = getopt (argc, argv, "eko:r:lh")) != -1) {
       switch (opt) {
           case 'e':
               (optarg) && ((error_rate = atof (optarg)), 1);
               break;
           case 'k':
               (optarg) && ((k_mer = atoi (optarg)), 1);
-              break;
-          case 'p':    
-              (optarg) && ((prefix = optarg), 1);
               break;
           case 'o':
               (optarg) && ((target_path = optarg), 1); 
@@ -76,7 +73,7 @@ build_main (int argc, char **argv)
       } 
   } 
   if (!list)
-  build(source, target_path, k_mer, error_rate, prefix);
+  build(source, target_path, k_mer, error_rate,NULL);
   else
   {
   bloom *bl_2 = NEW (bloom);
@@ -97,7 +94,7 @@ build_main (int argc, char **argv)
       
       init_bloom (bl_2, capacity, error_rate, k_mer);
       ref_add (bl_2, position);
-      save_bloom (File_head->filename, bl_2, prefix, target_path);
+      save_bloom (File_head->filename, bl_2, prefix,target_path);
       bloom_destroy (bl_2);
       
       munmap (position, strlen (position));
@@ -132,7 +129,7 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
 }
 
 int
-build(char *ref_name, char *target_path, int k_mer, double error_rate, char* prefix)
+build(char *ref_name, char *target_path, int k_mer, double error_rate, char *prefix)
 {
   char *position = mmaping (ref_name);
 
@@ -146,7 +143,7 @@ build(char *ref_name, char *target_path, int k_mer, double error_rate, char* pre
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
 	      bl->stat.ideal_hashes, NULL, 3);
   ref_add (bl, position);
-  save_bloom (ref_name, bl, prefix, target_path);
+  save_bloom (ref_name, bl, NULL, target_path);
 
   return 0;
 }

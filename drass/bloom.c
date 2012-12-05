@@ -251,31 +251,27 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 
   memset (bloom_file, 0, 300);
 
-#ifdef DEBUG
-  printf ("target->%s\n", target);
-#endif
+  printf ("filename->%s\n", filename);
 
   position1 = strrchr (filename, '/');
+  //position1 = strrchr (position1,'.')-position1;
   position2 = strrchr (target + 2, '/');
-  if (prefix)
-    strcat (bloom_file, prefix);
-  else
+  if (is_dir(target))
     {
-      if (position2)
-	strncat (bloom_file, target, position2 + 1 - (target));
+      strcat (bloom_file,target);
+      strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+      strcat (bloom_file,".bloom");
     }
-  if (position1)
-    strncat (bloom_file, position1 + 1, strrchr (filename, '.') - position1);
-  else
-    strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
-  strcat (bloom_file, "bloom");
-
-  if ((prefix)&&(!is_dir (prefix)))
+  else if (target)
     {
-      memset(bloom_file,0,strlen(bloom_file));
-      strcat (bloom_file,prefix);
+      strcat (bloom_file,target);
     }
-   printf("prefix->%s\n",prefix);
+  else 
+    {
+      strncat (bloom_file,filename,strrchr(position1,'.')-filename);
+      strcat (bloom_file,".bloom");
+    }
+   printf("bloom_file->%s\n",bloom_file);
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
