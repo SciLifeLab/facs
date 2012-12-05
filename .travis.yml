@@ -8,7 +8,7 @@ before_install:
 #    - sudo apt-get autoremove
 #    - sudo rm -rf /usr/share/doc
 # Install dependencies
-    - sudo aptitude install -y lib64gomp1 libgomp1 zlib1g-dev zlib1g
+    - sudo aptitude install -y lib64gomp1 libgomp1 libc6-dev zlib1g-dev zlib1g 
 
 python:
     - 2.7
