@@ -55,6 +55,7 @@ typedef struct
  	BIGNUM inserts;
   struct bloomstat stat;
   int k_mer;
+  int sigma;
 } bloom;
 
 typedef struct info
