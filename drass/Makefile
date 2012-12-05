@@ -31,13 +31,13 @@ clean:
 
 
 .c.o:
-		$(CC) -c $(CFLAGS) $(DFLAGS) $(INCLUDES) $< -o $@
+		$(CC) -c $(DFLAGS) $(INCLUDES) $< -o $@ $(CFLAGS) 
 #		${CC} -c ${LZFLAGS} big_query.c
 
 ${PROG}:lib${PROG}.a $(AOBJS)
 
 ${PROG}:lib${PROG}.a $(AOBJS) main.o
-		$(CC) $(CFLAGS) $(DFLAGS) $(AOBJS) main.o -o $@ -L. -l${PROG} $(LIBS)
+		$(CC) $(DFLAGS) $(AOBJS) main.o -o $@ -L. -l${PROG} $(LIBS) $(CFLAGS) 
 
 lib${PROG}.a:$(LOBJS)
 		$(AR) -csru $@ $(LOBJS)
