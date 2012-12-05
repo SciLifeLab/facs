@@ -259,23 +259,26 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   position2 = strrchr (target + 2, '/');
   if (prefix)
     strcat (bloom_file, prefix);
-  else
-    {
+  else {
       if (position2)
 	strncat (bloom_file, target, position2 + 1 - (target));
-    }
+  }
+
   if (position1)
     strncat (bloom_file, position1 + 1, strrchr (filename, '.') - position1);
   else
     strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
+
   strcat (bloom_file, "bloom");
 
-  if ((prefix)&&(!is_dir (prefix)))
-    {
+  if (prefix && !is_dir (prefix)) {
       memset(bloom_file,0,strlen(bloom_file));
       strcat (bloom_file,prefix);
-    }
-   printf("prefix->%s\n",prefix);
+  }
+
+#ifdef DEBUG
+  printf ("bloom name->%s\n", bloom_file);
+#endif
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);

@@ -149,26 +149,6 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
 
 }
 
-int
-build(char *ref_name, char *target_path, int k_mer, double error_rate, char* prefix)
-{
-  char *position = mmaping (ref_name);
-
-  bloom *bl = NEW (bloom);
-  bl->k_mer = k_mer;
-  bl->stat.e = error_rate;
-  bl->dx = dx_add (bl->k_mer);
-  bl->stat.capacity = strlen (position);
-  get_rec (&bl->stat);
-
-  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	      bl->stat.ideal_hashes, NULL, 3);
-  ref_add (bl, position);
-  save_bloom (ref_name, bl, prefix, target_path);
-
-  return 0;
-}
-
 /*-------------------------------------*/
 char *
 fasta_title (char *full)
@@ -266,15 +246,15 @@ fasta_data (bloom * bl_2, char *data)
       return p;
     }
 /*-------------------------------------*/
-  void ref_add (bloom * bl, char *position)
-  {
+void ref_add (bloom * bl, char *position)
+{
     if (*position == '>')
-      fasta_add (bl, position);
+        fasta_add (bl, position);
     else if (*position == '@')
-      fastq_add (bl, position);
+        fastq_add (bl, position);
     else
-      {
-	perror ("wrong format\n");
-	exit (-1);
-      }
-  }
+    {
+        perror ("wrong format\n");
+        exit (-1);
+    }
+}

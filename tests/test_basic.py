@@ -47,7 +47,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
                         os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
 
     def test_2_query(self):
-        """ Genereate dummy fastq files for querying purposes, query against the reference ecoli bloom filter
+        """ Generate dummy fastq files for querying purposes, query against the reference ecoli bloom filter
         """
         self.setUp()
 
