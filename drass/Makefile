@@ -30,7 +30,7 @@ clean:
 
 .c.o:
 		$(CC) -c $(CFLAGS) $(DFLAGS) $(INCLUDES) $< -o $@
-		${CC} -c ${LZFLAGS} big_query.c
+#		${CC} -c ${LZFLAGS} big_query.c
 
 ${PROG}:lib${PROG}.a $(AOBJS)
 
