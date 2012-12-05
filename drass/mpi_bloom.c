@@ -24,8 +24,8 @@
 //MPICH/OPENMPI
 #include<mpi.h>
 /*-------------------------------------*/
-#define PERMS 0600
-#define NEW(type) (type *) malloc(sizeof(type))
+//#define PERMS 0600
+//#define NEW(type) (type *) malloc(sizeof(type))
 /*-------------------------------------*/
 int ntask = 0, mytask = 0;
 /*-------------------------------------*/

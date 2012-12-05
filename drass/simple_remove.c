@@ -1,14 +1,12 @@
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
-#include <math.h>
-#include <time.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /*-------------------------------------*/
-//for file mapping in Linux
+//for file mapping in Linux and timing
 #include<fcntl.h>
 #include<unistd.h>
 #include<sys/stat.h>
@@ -16,84 +14,58 @@
 #include<sys/mman.h>
 #include<sys/types.h>
 /*-------------------------------------*/
-#include "bloom.h"
-#include "hashes.h"
-#include "file_dir.h"
 #include "tool.h"
+#include "bloom.h"
+#include "remove.h"
+#include "file_dir.h"
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
 //#include<mpi.h>
 /*-------------------------------------*/
-#define PERMS 0600
-#define NEW(type) (type *) malloc(sizeof(type))
+char *clean, *contam;
 /*-------------------------------------*/
-float error_rate, tole_rate, contamination_rate;
-/*-------------------------------------*/
-int k_mer, mode, mytask, ntask, type = 2;
-/*-------------------------------------*/
-char *source, *all_ref, *position, *prefix, *clean, *contam, *clean2,
-  *contam2, *list;
-/*-------------------------------------*/
-Queue *head, *tail, *head2;
-/*-------------------------------------*/
-bloom *bl_2;
-/*-------------------------------------*/
-F_set *File_head;
-/*-------------------------------------*/
-void struc_init ();
-void get_parainfo (char *full);
-void get_size (char *strFileName);
-void init (int argc, char **argv);
-void fasta_process (bloom * bl, Queue * info);
-void fastq_process (bloom * bl, Queue * info);
-void save_result (char *source, char *obj_file);
-/*-------------------------------------*/
-//char *mmaping (char *source);
-/*-------------------------------------*/
-/*
-int fastq_full_check (bloom * bl, char *p, int distance,  char *model);
-int fasta_full_check (bloom * bl, char *begin, char *next, char *model);
-int fastq_read_check (char *begin, int length, char *model, bloom * bl);
-int fasta_read_check (char *begin, char *next, char *model, bloom * bl);
-*/
-/*-------------------------------------*/
-main (int argc, char **argv)
+remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
 {
-
-  long sec, usec, i;
-
+  if (help == 1)
+    {
+      remove_help ();
+      exit (1);
+    }
+  
+  /*-------------------------------------*/
+  long sec, usec;
   struct timezone tz;
-
   struct timeval tv, tv2;
-
   gettimeofday (&tv, &tz);
-
-  init (argc, argv);		//initialize 
-
-  struc_init ();		//structure init   
-
-  if (strstr (source, ".fifo"))
-    position = large_load (source);
-  else
-    position = mmaping (source);
-
-  get_parainfo (position);
-
+  /*-------------------------------------*/
+  int type = 1;
+  char *position;
+  //char *clean;
+  //char *contam;
+  char *clean2;
+  char *contam2;
+  /*-------------------------------------*/
+  bloom *bl_2 = NEW (bloom);
+  Queue *head = NEW (Queue);
+  Queue *tail = NEW (Queue);
+  head->next = tail;
+  Queue *head2 = head;
+  F_set *File_head = NEW (F_set);
+  File_head = make_list (ref, list);
+  /*-------------------------------------*/
+  position = mmaping (source);
+  type = get_parainfo (position, head);
   clean = (char *) malloc (strlen (position) * sizeof (char));
   contam = (char *) malloc (strlen (position) * sizeof (char));
   clean2 = clean;
   contam2 = contam;
-
+  /*-------------------------------------*/
   while (File_head)
     {
-
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
-
       load_bloom (File_head->filename, bl_2);
-      k_mer = bl_2->k_mer;
-
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -104,222 +76,38 @@ main (int argc, char **argv)
 	      {
 		if (head->location)
 		  if (type == 1)
-		    fasta_process (bl_2, head);
+		    fasta_process_m (bl_2, head, tail, tole_rate);
 		  else
-		    fastq_process (bl_2, head);
+		    fastq_process_m (bl_2, head, tail, tole_rate);
 	      }
 	      head = head->next;
 	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
-
-      save_result (source,File_head->filename);
-
+      save_result (source, File_head->filename, type, prefix, clean, clean2,
+		   contam, contam2);
       File_head = File_head->next;
-
       head = head2;
-
       bloom_destroy (bl_2);
-
     }				//end while
-
   munmap (position, strlen (position));
-
   printf ("finish processing...\n");
-
+#ifdef DEBUG
   gettimeofday (&tv2, &tz);
-
   sec = tv2.tv_sec - tv.tv_sec;
-
   usec = tv2.tv_usec - tv.tv_usec;
-
   printf ("total=%ld sec\n", sec);
-
+#endif
   return 0;
 }
 
 /*-------------------------------------*/
 void
-init (int argc, char **argv)
-{
-  if (argc == 1 || !strcmp (argv[1], "-h") || !strcmp (argv[1], "-help"))
-    {
-      help ();
-      remove_help ();
-    }
-/*-------default-------*/
-  mode = 1;
-  tole_rate = 0.8;
-  error_rate = 0.0005;
-  prefix = NULL;
-/*-------default-------*/
-  int x;
-  while ((x = getopt (argc, argv, "m:t:o:r:q:l:h")) != -1)
-    {
-      //printf("optind: %d\n", optind);
-      switch (x)
-	{
-	case 'm':
-	  //printf ("Mode : \nThe argument of -m is %s\n", optarg);
-	  (optarg) && ((mode = atoi (optarg)), 1);
-	  break;
-	case 't':
-	  //printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
-	  (optarg) && ((tole_rate = atof (optarg)), 1);
-	  break;
-	case 'o':
-	  //printf ("Out : \nThe argument of -o is %s\n", optarg);
-	  (optarg) && ((prefix = optarg), 1);
-	  break;
-	case 'r':
-	  //printf ("Bloom list : \nThe argument of -r is %s\n", optarg);
-	  (optarg) && ((all_ref = optarg), 1);
-	  break;
-	case 'q':
-	  //printf ("Query : \nThe argument of -q is %s\n", optarg);
-	  (optarg) && (source = optarg, 1);
-	  break;
-	case 'l':
-	  (optarg) && (list = optarg, 1);
-	  break;
-	case 'h':
-	  help ();
-	  remove_help ();
-	  break;
-	case '?':
-	  printf ("Unknown option: -%c\n", (char) optopt);
-	  exit (0);
-	}
-
-    }
-
-  if (((!all_ref) && (!list)) || (!source))
-    {
-      perror ("No source.");
-      exit (0);
-    }
-
-  if (mode != 1 && mode != 2)
-    {
-      perror ("Mode select error.");
-      exit (0);
-    }
-
-}
-
-/*-------------------------------------*/
-void
-struc_init ()
-{
-  bl_2 = NEW (bloom);
-  head = NEW (Queue);
-  tail = NEW (Queue);
-  head->next = tail;
-  head2 = head;
-  File_head = NEW (F_set);
-  File_head = make_list (all_ref, list);
-  File_head = File_head->next;
-
-}
-/*-------------------------------------*/
-void
-get_parainfo (char *full)
-{
-  printf ("distributing...\n");
-
-  char *temp = full;
-
-  int cores = omp_get_num_procs ();
-
-  int offsett = strlen (full) / cores;
-
-  int add = 0;
-
-  printf ("task->%d\n", offsett);
-
-  Queue *pos = head;
-
-  if (*full == '>')
-    type = 1;
-  else if (*full == '@')
-    type = 2;
-  else
-    {
-      perror ("wrong format\n");
-      exit (-1);
-    }
-
-
-  if (type == 1)
-    {
-      for (add = 0; add < cores; add++)
-	{
-	  Queue *x = NEW (Queue);
-
-	  if (add == 0 && *full != '>')
-
-	    temp = strchr (full, '>');	//drop the possible fragment
-
-	  if (add != 0)
-
-	    temp = strchr (full + offsett * add, '>');
-
-	  //printf ("full->%0.20s\n", full);
-
-	  x->location = temp;
-
-	  x->number = add;
-
-	  x->next = pos->next;
-
-	  pos->next = x;
-
-	  pos = pos->next;
-	}
-    }				// end if
-
-  else
-    {
-      for (add = 0; add < cores; add++)
-	{
-	  Queue *x = NEW (Queue);
-
-	  if (add == 0 && *full != '@')
-
-	    temp = strstr (full, "\n@") + 1;	//drop the fragment
-
-	  //printf("offset->%d\n",offsett*add);
-
-	  if (add != 0)
-
-	    temp = strstr (full + offsett * add, "\n@");
-
-	  if (temp)
-	    temp++;
-
-	  x->location = temp;
-
-	  x->number = add;
-
-	  x->next = pos->next;
-
-	  pos->next = x;
-
-	  pos = pos->next;
-	}			//end else  
-
-    }
-
-  return;
-}
-
-/*-------------------------------------*/
-void
-fastq_process (bloom * bl, Queue * info)
+fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
 {
   printf ("fastq processing...\n");
 
-  int read_num = 0;
+  int read_num = 0, read_contam = 0;
   char *p = info->location;
   char *next, *temp_start, *temp_end, *temp_piece = NULL;
 
@@ -348,7 +136,8 @@ fastq_process (bloom * bl, Queue * info)
 
       if (!temp_end)
 	temp_end = strchr (p, '\0');
-      int result = fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
+      int result =
+	fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
 
       if (result == 0)
 	{
@@ -367,9 +156,8 @@ fastq_process (bloom * bl, Queue * info)
 	{
 #pragma omp critical
 	  {
-	    //printf("in\n");
+            read_contam++;
 	    memcpy (contam, temp_start, temp_end - temp_start);
-	    //printf("??\n");
 	    contam += (temp_end - temp_start);
 	    if (*temp_end != '\0')
 	      {
@@ -390,9 +178,10 @@ fastq_process (bloom * bl, Queue * info)
   if (temp_piece)
     free (temp_piece);
 }
+
 /*-------------------------------------*/
 void
-fasta_process (bloom * bl, Queue * info)
+fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
 {
   printf ("fasta processing...\n");
 
@@ -417,9 +206,9 @@ fasta_process (bloom * bl, Queue * info)
       temp = strchr (p + 1, '>');
       if (!temp)
 	temp = next;
-	  
+
       int result = fasta_read_check (p, temp, "normal", bl, tole_rate);
-      if (result==0)
+      if (result == 0)
 	{
 #pragma omp critical
 	  {
@@ -429,10 +218,9 @@ fasta_process (bloom * bl, Queue * info)
 	}
       else if (result > 0)
 	{
-#pragma omp atomic
-	  read_contam++;
 #pragma omp critical
 	  {
+            read_contam++;
 	    memcpy (contam, p, temp - p);
 	    contam += (temp - p);
 	  }
@@ -444,7 +232,8 @@ fasta_process (bloom * bl, Queue * info)
 
 /*-------------------------------------*/
 void
-save_result (char *source, char *obj_file)
+save_result (char *source, char *obj_file, int type, char *prefix,
+	     char *clean, char *clean2, char *contam, char *contam2)
 {
   printf ("saving...\n");
   char *match = (char *) malloc (400 * sizeof (char)),
@@ -515,23 +304,15 @@ save_result (char *source, char *obj_file)
   printf ("mis->%s\n", mismatch);
 
   write_result (match, contam2);
-
   write_result (mismatch, clean2);
-
   free (match);
-
   free (mismatch);
-
   free (so_name);
-
   free (obj_name);
-
   memset (contam2, 0, strlen (contam2));
-
   memset (clean2, 0, strlen (clean2));
-
   clean = clean2;
-
   contam = contam2;
-
 }
+
+/*-------------------------------------*/

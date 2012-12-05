@@ -1,13 +1,20 @@
 #ifndef _BLOOM
 #define _BLOOM
 
-
 #include <limits.h>
 
 #define BIGNUM unsigned long long
 #define BIGNUM_STR "unsigned long"
 #define BIGCAST long long
 #define TOPLIMIT LONG_MAX
+#define PERMS 0644
+#define HUN 1000
+#define NEW(type) (type *) malloc(sizeof(type))
+
+#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+#define TWOG 2000000000
+#define hashsize(n) ((BIGNUM)1<<(n))
+#define hashmask(n) (hashsize(n) - 1)
 
 #if !HAVE_SQRTL
 #define sqrtl(val) ((long double)sqrt((double)val))
@@ -33,31 +40,40 @@ typedef struct
 	int cnt;
 } randoms;
 
-struct bloomstat
+typedef struct bloomstat
 {
 	BIGNUM elements; /* size of array */
 	int ideal_hashes; /* num hash functions */
 	BIGNUM capacity; /* number of elements */
-	float e; /* max error rate */
-} ;
+	double e; /* max error rate */
+} bl_stat;
 
 typedef struct
 {
 	char *vector;
 	hash_t hash;
  	BIGNUM inserts;
-        struct bloomstat stat;
-        int k_mer;
+  struct bloomstat stat;
+  int k_mer;
+  int dx;
 } bloom;
 
 typedef struct info
 {
      char *location;
      short *score;
-     short *number;                     			
+     short *number;                 			
      struct info *next;          
 } Queue;
 
+typedef struct file_list
+{
+	char *filename;
+        short number;
+        BIGCAST reads_num;
+        BIGCAST reads_contam;
+	struct file_list *next;
+} F_set;
 /* these are modes to test_all() */
 #define RO 0
 #define SET 1
@@ -72,12 +88,13 @@ typedef struct info
 BIGNUM mkprime(BIGNUM startval);
 
 
-extern int bloom_init(bloom *bloom,BIGNUM size,BIGNUM capacity, float error_rate,int hashes,hash_t hash,int flags);
+extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity,
+                      double error_rate, int hashes, hash_t hash, int flags);
+
 extern int bloom_check(bloom *bloom,char *str);
 extern int bloom_add(bloom *bloom,char *str);
 extern int bloom_test(bloom *bloom,char *str,int MODE);
 extern void bloom_destroy(bloom *bloom);
-
 
 extern int sketchy_randoms(randoms *rands,int cnt);
 extern int finder (BIGNUM index,deref *dr);
@@ -93,10 +110,10 @@ extern void get_rec (struct bloomstat *stat);
 extern BIGNUM report_capacity(bloom *bloom);
 
 extern void write_result (char *filename, char *detail);
-extern void help();
-extern void build_help();
-extern void check_help();
-extern void remove_help();
+extern void build_help(void);
+extern void check_help(void);
+extern void remove_help(void);
+extern void remove_l_help(void);
 extern int save_bloom (char *filename, bloom *bl, char *prefix, char *target);
 extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);
