@@ -76,7 +76,7 @@ build_main (int argc, char **argv)
       } 
   } 
 
-  build(source, target_path, k_mer, error_rate);
+  build(source, target_path, k_mer, error_rate, prefix);
 
 /*
  * @tzcoolman: Is this just replicated code that could be moved to build() function?
@@ -110,7 +110,7 @@ build_main (int argc, char **argv)
 }
 
 int
-build(char *ref_name, char *target_path, int k_mer, double error_rate)
+build(char *ref_name, char *target_path, int k_mer, double error_rate, char* prefix)
 {
   char *position = mmaping (ref_name);
 
@@ -123,7 +123,7 @@ build(char *ref_name, char *target_path, int k_mer, double error_rate)
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
 	      bl->stat.ideal_hashes, NULL, 3);
   ref_add (bl, position);
-  save_bloom (ref_name, bl, NULL, target_path);
+  save_bloom (ref_name, bl, prefix, target_path);
 
   return 0;
 }

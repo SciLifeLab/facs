@@ -46,17 +46,17 @@ static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
 {
-   char *source, *bloom_filter;
+   char *source, *bloom_filter, *prefix;
    int ret;
 
    //DRASS operational defaults
    int k_mer=21;
    double error_rate=0.0005;
 
-   if (!PyArg_ParseTuple(args, "ss|id", &source, &bloom_filter, &k_mer, &error_rate))
+   if (!PyArg_ParseTuple(args, "ss|ids", &source, &bloom_filter, &k_mer, &error_rate, &prefix))
        return NULL;
    
-   ret = build(source, bloom_filter, k_mer, error_rate);
+   ret = build(source, bloom_filter, k_mer, error_rate, prefix);
 
    return Py_BuildValue("i", ret);
 }
