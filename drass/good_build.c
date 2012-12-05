@@ -75,12 +75,10 @@ build_main (int argc, char **argv)
               return build_usage();
       } 
   } 
-
-  build(source, target_path, k_mer, error_rate);
-
-/*
- * @tzcoolman: Is this just replicated code that could be moved to build() function?
- *
+  if (!list)
+  build(source, target_path, k_mer, error_rate, prefix);
+  else
+  {
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
   Queue *tail = NEW (Queue);
@@ -89,7 +87,7 @@ build_main (int argc, char **argv)
   File_head = make_list (source, list);
   
   while (File_head) {
-      printf ("File_head->%s\n", File_head->filename);
+      printf ("Path->%s\n", File_head->filename);
       //map query- into memory--------------
       position = mmaping (File_head->filename);
       if (*position == '>')
@@ -105,28 +103,10 @@ build_main (int argc, char **argv)
       munmap (position, strlen (position));
       File_head = File_head->next;
     }
-*/
+  }
   return 0;
 }
 
-int
-build(char *ref_name, char *target_path, int k_mer, double error_rate)
-{
-  char *position = mmaping (ref_name);
-
-  bloom *bl = NEW (bloom);
-  bl->k_mer = k_mer;
-  bl->stat.e = error_rate;
-  bl->stat.capacity = strlen (position);
-  get_rec (&bl->stat);
-
-  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	      bl->stat.ideal_hashes, NULL, 3);
-  ref_add (bl, position);
-  save_bloom (ref_name, bl, NULL, target_path);
-
-  return 0;
-}
 
 void
 init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
@@ -149,6 +129,26 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
   bl->k_mer = k_mer;
   bl->dx = dx_add (bl->k_mer);
 
+}
+
+int
+build(char *ref_name, char *target_path, int k_mer, double error_rate, char* prefix)
+{
+  char *position = mmaping (ref_name);
+
+  bloom *bl = NEW (bloom);
+  bl->k_mer = k_mer;
+  bl->stat.e = error_rate;
+  bl->dx = dx_add (bl->k_mer);
+  bl->stat.capacity = strlen (position);
+  get_rec (&bl->stat);
+
+  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
+	      bl->stat.ideal_hashes, NULL, 3);
+  ref_add (bl, position);
+  save_bloom (ref_name, bl, prefix, target_path);
+
+  return 0;
 }
 
 /*-------------------------------------*/
