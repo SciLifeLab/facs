@@ -216,43 +216,14 @@ evaluate (char *detail, char *filename, F_set * File_head)
 void
 statistic_save (char *detail, char *filename, char *prefix)
 {
-  char *position1,
-    *save_file = (char *) malloc (200 * sizeof (char)),
-    *possible_prefix = (char *) malloc (100 * sizeof (char));
-
-  memset (save_file, 0, 200);
-  memset (possible_prefix, 0, 100);
-
-  position1 = strrchr (filename, '/');
+  char *save_file = NULL;
+  save_file = prefix_make (filename, NULL, prefix);
+  strcat (save_file,".info");
 
 #ifdef DEBUG
   printf ("filename->%s\n", filename);
 #endif
 
-  if (!prefix)
-    {
-      if (position1)
-	strncat (possible_prefix, filename, position1 + 1 - filename);
-    }
-  else
-    strcat (possible_prefix, prefix);
-
-  strcat (save_file, possible_prefix);
-
-  if (position1)
-    strncat (save_file, position1 + 1, strrchr (filename, '.') - position1);
-  else
-    strncat (save_file, filename, strrchr (filename, '.') - filename + 1);
-
-  strcat (save_file, "info");
-
-#ifdef DEBUG
-  if (!is_dir (prefix))
-    {
-      memset (save_file,0,strlen(save_file)); 
-      strcat (save_file,prefix); 
-    }
   printf ("Info name->%s\n", save_file);
-#endif
   write_result (save_file, detail);
 }

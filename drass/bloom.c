@@ -241,37 +241,40 @@ report_capacity (bloom * bloom)
   return bloom->stat.capacity;
 }
 
-
-int
-save_bloom (char *filename, bloom * bl, char *prefix, char *target)
+char *prefix_make (char *filename, char *prefix, char *target)
 {
   char *position1, *position2;
   char *bloom_file = (char *) malloc (300 * sizeof (char));
-  int fd, fq;
-
   memset (bloom_file, 0, 300);
 
-  printf ("filename->%s\n", filename);
-
   position1 = strrchr (filename, '/');
-  //position1 = strrchr (position1,'.')-position1;
   position2 = strrchr (target + 2, '/');
+
   if (is_dir(target))
     {
       strcat (bloom_file,target);
       strncat (bloom_file,position1,strrchr(position1,'.')-position1);
-      strcat (bloom_file,".bloom");
     }
   else if (target)
     {
       strcat (bloom_file,target);
     }
-  else 
+  else
     {
       strncat (bloom_file,filename,strrchr(position1,'.')-filename);
-      strcat (bloom_file,".bloom");
     }
    printf("bloom_file->%s\n",bloom_file);
+
+return bloom_file;
+}
+
+int
+save_bloom (char *filename, bloom * bl, char *prefix, char *target)
+{
+  char *bloom_file = NULL;
+  bloom_file = prefix_make(filename, prefix, target);
+  strcat (bloom_file,".bloom");
+  int fd, fq;
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
