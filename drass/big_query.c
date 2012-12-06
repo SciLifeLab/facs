@@ -36,7 +36,7 @@ int bq_main(int argc, char** argv)
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  float tole_rate = 0.8;
+  float tole_rate = 0.3;
   float sampling_rate = 1;
 
   char* prefix = NULL;
@@ -45,7 +45,7 @@ int bq_main(int argc, char** argv)
   char* target_path = NULL;
   char* source = NULL;
 
-  while ((opt = getopt (argc, argv, "ekpo:r:lh")) != -1) {
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
       switch (opt) {
           case 't':
               (optarg) && ((tole_rate = atof(optarg)), 1);
@@ -53,13 +53,13 @@ int bq_main(int argc, char** argv)
           case 's':
               (optarg) && ((sampling_rate = atof(optarg)), 1);
               break;
-          case 'p':    
-              (optarg) && ((prefix = optarg), 1);
-              break;
-          case 'r':  
-              (optarg) && (source = optarg, 1);  
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
               break;
           case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
               (optarg) && (ref = optarg, 1);  
               break;
           case 'l':
