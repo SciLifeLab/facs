@@ -241,44 +241,40 @@ report_capacity (bloom * bloom)
   return bloom->stat.capacity;
 }
 
+char *prefix_make (char *filename, char *prefix, char *target)
+{
+  char *position1, *position2;
+  char *bloom_file = (char *) malloc (300 * sizeof (char));
+  memset (bloom_file, 0, 300);
+
+  position1 = strrchr (filename, '/');
+  position2 = strrchr (target + 2, '/');
+
+  if (is_dir(target))
+    {
+      strcat (bloom_file,target);
+      strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+    }
+  else if (target)
+    {
+      strcat (bloom_file,target);
+    }
+  else
+    {
+      strncat (bloom_file,filename,strrchr(position1,'.')-filename);
+    }
+   printf("bloom_file->%s\n",bloom_file);
+
+return bloom_file;
+}
 
 int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
-  char *position1, *position2;
-  char *bloom_file = (char *) malloc (300 * sizeof (char));
+  char *bloom_file = NULL;
+  bloom_file = prefix_make(filename, prefix, target);
+  strcat (bloom_file,".bloom");
   int fd, fq;
-
-  memset (bloom_file, 0, 300);
-
-#ifdef DEBUG
-  printf ("target->%s\n", target);
-#endif
-
-  position1 = strrchr (filename, '/');
-  position2 = strrchr (target + 2, '/');
-  if (prefix)
-    strcat (bloom_file, prefix);
-  else {
-      if (position2)
-	strncat (bloom_file, target, position2 + 1 - (target));
-  }
-
-  if (position1)
-    strncat (bloom_file, position1 + 1, strrchr (filename, '.') - position1);
-  else
-    strncat (bloom_file, filename, strrchr (filename, '.') - filename + 1);
-
-  strcat (bloom_file, "bloom");
-
-  if (prefix && !is_dir (prefix)) {
-      memset(bloom_file,0,strlen(bloom_file));
-      strcat (bloom_file,prefix);
-  }
-
-#ifdef DEBUG
-  printf ("bloom name->%s\n", bloom_file);
-#endif
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);

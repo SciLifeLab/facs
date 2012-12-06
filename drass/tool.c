@@ -327,11 +327,11 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
 	{
 	  printf ("distributing...\n");
 	  int type;
-          char *previous = NULL;
+      char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
 	  int offsett = strlen (full) / cores;
-	  int add = 0;
+	  short add = 0;
 
 	  //printf ("task->%d\n", offsett);
 
@@ -360,7 +360,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
 		    temp = strchr (full + offsett * add, '>');
 		  
           x->location = temp;
-		  x->number = add;
+		  x->number = &add;
 		  x->next = pos->next;
 		  pos->next = x;
 		  pos = pos->next;
@@ -397,7 +397,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
           previous = temp;
 	  x->location = temp;
           //printf ("task->%0.50s\n",x->location);
-	  x->number = add;
+	  x->number = &add;
 	  x->next = pos->next;
 	  pos->next = x;
 	  pos = pos->next;

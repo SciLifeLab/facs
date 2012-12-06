@@ -121,4 +121,5 @@ extern void rev_trans (char *s);
 //
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
+extern char *prefix_make (char *filename, char *prefix, char *target);
 #endif

@@ -36,7 +36,7 @@ int bq_main(int argc, char** argv)
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  float tole_rate = 0.8;
+  float tole_rate = 0.3;
   float sampling_rate = 1;
 
   char* prefix = NULL;
@@ -45,7 +45,7 @@ int bq_main(int argc, char** argv)
   char* target_path = NULL;
   char* source = NULL;
 
-  while ((opt = getopt (argc, argv, "ekpo:r:lh")) != -1) {
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
       switch (opt) {
           case 't':
               (optarg) && ((tole_rate = atof(optarg)), 1);
@@ -53,13 +53,13 @@ int bq_main(int argc, char** argv)
           case 's':
               (optarg) && ((sampling_rate = atof(optarg)), 1);
               break;
-          case 'p':    
-              (optarg) && ((prefix = optarg), 1);
-              break;
-          case 'r':  
-              (optarg) && (source = optarg, 1);  
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
               break;
           case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
               (optarg) && (ref = optarg, 1);  
               break;
           case 'l':
@@ -73,10 +73,10 @@ int bq_main(int argc, char** argv)
       } 
   } 
 
-  query(ref, target_path, tole_rate, sampling_rate, list, prefix);
+  query(source, ref, tole_rate, sampling_rate, list, target_path);
 }
 
-int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* prefix)
+int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
 {
 
   gzFile zip;
@@ -148,7 +148,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
-  statistic_save (detail, query, prefix);
+  statistic_save (detail, query, target_path);
   
   return 0;
 }

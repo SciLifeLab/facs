@@ -43,21 +43,18 @@ build_main (int argc, char **argv)
   float error_rate = 0.0005;
   float tole_rate = 0.8;
 
-  char* prefix = NULL;
   char* list = NULL;
+  char* prefix = NULL;
   char* target_path = NULL;
   char* source = NULL;
-
-  while ((opt = getopt (argc, argv, "ekpo:r:lh")) != -1) {
+  printf ("1st command->%s\n",argv[0]);
+  while ((opt = getopt (argc, argv, "eko:r:lh")) != -1) {
       switch (opt) {
           case 'e':
               (optarg) && ((error_rate = atof (optarg)), 1);
               break;
           case 'k':
               (optarg) && ((k_mer = atoi (optarg)), 1);
-              break;
-          case 'p':    
-              (optarg) && ((prefix = optarg), 1);
               break;
           case 'o':
               (optarg) && ((target_path = optarg), 1); 
@@ -77,32 +74,33 @@ build_main (int argc, char **argv)
   } 
   
   if (!list)
-     build(source, target_path, k_mer, error_rate, prefix);
-  else {
-      bloom *bl_2 = NEW (bloom);
-      Queue *head = NEW (Queue);
-      Queue *tail = NEW (Queue);
-      head->next = tail;
-      F_set *File_head = NEW (F_set);
-      File_head = make_list (source, list);
+    build(source, target_path, k_mer, error_rate, NULL);
+  else
+  {
+  bloom *bl_2 = NEW (bloom);
+  Queue *head = NEW (Queue);
+  Queue *tail = NEW (Queue);
+  head->next = tail;
+  F_set *File_head = NEW (F_set);
+  File_head = make_list (source, list);
   
-      while (File_head) {
-          printf ("Path->%s\n", File_head->filename);
-          //map query- into memory--------------
-          position = mmaping (File_head->filename);
-          if (*position == '>')
-            capacity = strlen (position);
-          else
-            capacity = strlen (position) / 2;
-          
-          init_bloom (bl_2, capacity, error_rate, k_mer);
-          ref_add (bl_2, position);
-          save_bloom (File_head->filename, bl_2, prefix, target_path);
-          bloom_destroy (bl_2);
-          
-          munmap (position, strlen (position));
-          File_head = File_head->next;
-        }
+  while (File_head) {
+      printf ("Path->%s\n", File_head->filename);
+      //map query- into memory--------------
+      position = mmaping (File_head->filename);
+      if (*position == '>')
+    	capacity = strlen (position);
+      else
+    	capacity = strlen (position) / 2;
+      
+      init_bloom (bl_2, capacity, error_rate, k_mer);
+      ref_add (bl_2, position);
+      save_bloom (File_head->filename, bl_2, prefix,target_path);
+      bloom_destroy (bl_2);
+      
+      munmap (position, strlen (position));
+      File_head = File_head->next;
+    }
   }
   return 0;
 }
