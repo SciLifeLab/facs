@@ -1,0 +1,19 @@
+echo "download deconseq"
+
+tar zxvf /bubo/home/h16/enze/bin/deconseq.tar.gz
+
+cd deconseq*
+
+./bwa64 index -p hsref_ecoli -a bwtsw /bubo/home/h16/enze/dev/DRASS/tests/data/reference/U00096.2.fasta  >bwa.log 2>&1
+
+mkdir db
+
+mv hsref_ecoli* db/
+
+echo "add a new database name hsref_ecoli in DeconseqConfig.pm"
+
+time perl deconseq.pl -dbs hsref_ecoli -f /bubo/home/h16/enze/dev/DRASS/tests/data/custom/ecoli_k12.fastq
+
+time perl deconseq.pl -dbs hsref_ecoli -f /bubo/home/h16/enze/dev/DRASS/tests/data/custom/mouse_bs.fastq
+
+time perl deconseq.pl -dbs hsref_ecoli -f /bubo/home/h16/enze/dev/DRASS/tests/data/custom/synthetic454.fna
