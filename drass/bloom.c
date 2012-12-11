@@ -344,6 +344,11 @@ load_bloom (char *filename, bloom * bl)
 #else
   fd = open64 (filename, O_RDONLY, PERMS);
 #endif
+  if (fd < 0)
+  {
+      perror (filename);
+      return -1;
+  }
   x = read (fd, bl, sizeof (bloom));
 
   bl->vector =

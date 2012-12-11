@@ -144,7 +144,6 @@ void
 fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	       float sampling_rate, float tole_rate)
 {
-
 #ifdef DEBUG
   printf ("fasta processing...\n");
 #endif
