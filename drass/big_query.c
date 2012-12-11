@@ -36,7 +36,7 @@ int bq_main(int argc, char** argv)
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  float tole_rate = 0.3;
+  float tole_rate = 0;
   float sampling_rate = 1;
 
   char* prefix = NULL;
@@ -92,6 +92,8 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   File_head->reads_contam = 0;
   File_head->filename = bloom_filter;
   load_bloom (File_head->filename, bl_2);  //load a bloom filter
+  if (tole_rate==0)
+      tole_rate = mco_suggestion (bl_2->k_mer); 
   
   if ((zip = gzopen(query, "rb"))<0) {
 	 perror("query open error...\n");
@@ -258,7 +260,7 @@ BIGCAST CHUNKgz(gzFile zip, BIGCAST offset,int chunk,char *position,char *extra,
 return offset;	
 }
 
-
+/*
 BIGCAST get_size (char *filename)
 {
 BIGCAST tim;
@@ -271,7 +273,7 @@ if ((tim=open(filename, O_RDONLY))<0)
 fstat (tim, &statbuf);
 return statbuf.st_size;
 }
-
+*/
 char *bac_2_n (char *filename)
 {
      while (*filename!='\n')

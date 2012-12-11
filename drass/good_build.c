@@ -92,7 +92,7 @@ build_main (int argc, char **argv)
       else
     	capacity = strlen (position) / 2;
       
-      init_bloom (bl_2, capacity, error_rate, k_mer);
+      init_bloom (bl_2, capacity, error_rate, k_mer, File_head->filename);
       ref_add (bl_2, position);
       save_bloom (File_head->filename, bl_2, prefix,target_path);
       bloom_destroy (bl_2);
@@ -106,7 +106,7 @@ build_main (int argc, char **argv)
 
 
 void
-init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
+init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer, char* filename)
 {
   int flags = 3;
 
@@ -122,10 +122,11 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
 
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
 	      bl->stat.ideal_hashes, NULL, flags);
-
-  bl->k_mer = k_mer;
+  if (k_mer!=0)
+      bl->k_mer = k_mer;
+  else
+      bl->k_mer = kmer_suggestion(get_size(filename)); 
   bl->dx = dx_add (bl->k_mer);
-
 }
 
 int
@@ -134,7 +135,11 @@ build(char *ref_name, char *target_path, int k_mer, double error_rate, char *pre
   char *position = mmaping (ref_name);
 
   bloom *bl = NEW (bloom);
-  bl->k_mer = k_mer;
+  if (k_mer!=0)
+      bl->k_mer = k_mer;
+  else
+      bl->k_mer = kmer_suggestion(get_size(ref_name));
+
   bl->stat.e = error_rate;
   bl->dx = dx_add (bl->k_mer);
   bl->stat.capacity = strlen (position);

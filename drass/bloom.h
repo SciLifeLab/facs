@@ -56,6 +56,7 @@ typedef struct
   struct bloomstat stat;
   int k_mer;
   int dx;
+  float mcf;
 } bloom;
 
 typedef struct info
@@ -105,6 +106,9 @@ extern int bloom_hash_old(bloom *bloom,char *str, int i);
 
 extern BIGNUM find_close_prime(BIGNUM m);
 extern int get_suggestion(struct bloomstat *stats, BIGNUM n,double e);
+extern BIGCAST get_size (char *filename);
+extern int kmer_suggestion (BIGCAST size);
+extern float mco_suggestion (int k_mer);
 extern int is_prime(BIGNUM m);
 extern void get_rec (struct bloomstat *stat);
 extern BIGNUM report_capacity(bloom *bloom);
@@ -118,7 +122,9 @@ extern int save_bloom (char *filename, bloom *bl, char *prefix, char *target);
 extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);
 //extern void cat_print(char *merge, char *remove);
-//
+
+//extern void kmer_suggestion (BIGCAST size);
+//extern float mcf_suggestion (int k_mer);
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
 extern char *prefix_make (char *filename, char *prefix, char *target);
