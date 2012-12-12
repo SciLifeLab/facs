@@ -18,9 +18,10 @@ at producing 64-bit results.
 typedef unsigned long long ub8;	/* unsigned 8-byte quantities */
 typedef unsigned long int ub4;	/* unsigned 4-byte quantities */
 typedef unsigned char ub1;
+typedef long unsigned int lui;
 
-#define hashsize(n) ((ub8)1<<(n))
-#define hashmask(n) (hashsize(n)-1)
+//#define hashsize(n) ((ub8)1<<(n))
+//#define hashmask(n) (hashsize(n)-1)
 
 /*
 --------------------------------------------------------------------
@@ -423,7 +424,7 @@ driver2 ()
 		    {
 		      printf ("Some bit didn't change: ");
 		      printf ("%.8lx %.8lx %.8lx %.8lx %.8lx %.8lx  ",
-			      e[0], f[0], g[0], h[0], x[0], y[0]);
+			      (lui) e[0], (lui) f[0], (lui) g[0], (lui) h[0], (lui) x[0], (lui) y[0]);
 		      printf ("i %ld j %ld m %ld len %ld\n",
 			      (ub4) i, (ub4) j, (ub4) m, (ub4) hlen);
 		    }
@@ -500,8 +501,11 @@ driver3 ()
 	  y = hash (b, len, (ub8) 1);
 	  if ((ref != x) || (ref != y))
 	    {
-	      printf ("alignment error: %.8lx %.8lx %.8lx %ld %ld\n", ref, x,
-		      y, h, i);
+	      printf ("alignment error: %.8lx %.8lx %.8lx %ld %ld\n", (lui) ref,
+                                                                  (lui) x,
+		                                                          (lui) y, 
+                                                                  (lui) h, 
+                                                                  (lui) i);
 	    }
 	}
     }

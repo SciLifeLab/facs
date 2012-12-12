@@ -1,2 +1,14 @@
 *.o
+*.so
+*.a
+*.pyc
+*.swp
+*.bloom
+*.fasta
+*.fastq
+*.info
+core.*
+vgcore.*
+*.egg-info
 tests/data
+build/

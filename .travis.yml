@@ -1,0 +1,24 @@
+language: python
+
+before_install:
+#Clean up some space (using aptitude to remove as it is less strict if it doesn't find the package that wants to remove)
+#    - sudo apt-get update
+#    - sudo apt-get upgrade 
+#    - sudo apt-get install -y aptitude
+#    - lsb_release -a
+#    - sudo apt-get clean
+#    - sudo aptitude purge -q -y ruby mysql-common mysql-client mysql-server emacs python2.5 python2.6 python3.1 python3.2 postgresql-common postgresql-client postgresql-server-dev-all sqlite3 mongodb-10gen redis-server elasticsearch erlang-base libcairo2 libcairo2-dev xserver-xorg-core x11-utils x11-common
+#    - sudo apt-get autoremove
+#    - sudo rm -rf /usr/share/doc
+# Install dependencies
+#    - sudo aptitude install -y lib64gomp1 libgomp1 build-essential zlib1g-dev zlib1g
+    - sudo apt-get install -y build-essential zlib1g-dev zlib1g libgomp1
+
+python:
+    - 2.7
+install:
+    - cd drass && make 
+script:
+    - make tests
+notifications:
+  email: false

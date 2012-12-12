@@ -2,8 +2,74 @@
 #include <stdlib.h>
 #include <math.h>
 #include "bloom.h"
+/*------------------------------*/
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#define MB 1048576
+
 
 /* dmitriy ryaboy */
+
+BIGCAST get_size (char *filename)
+{
+BIGCAST tim;
+struct stat statbuf;
+if ((tim=open(filename, O_RDONLY))<0)
+    {
+     printf("open file error...\n");
+     exit(-1);
+    }
+fstat (tim, &statbuf);
+return statbuf.st_size;
+}
+
+int kmer_suggestion (BIGCAST size)
+{
+  if (size<1*MB)
+     {
+      //bl->k_mer = 12;
+      //bl->mcf = 0.3;
+      return 12;
+     }
+  else if (size<20*MB)
+     {
+      //bl->k_mer = 15;
+      //bl->mcf = 0.4;
+      return 15;
+     }
+  else if (size<50*MB)
+     {
+      //bl->k_mer = 17;
+      //bl->mcf = 0.4;
+      return 17;
+     }
+  else if (size<200*MB)
+     {
+      //bl->k_mer = 18;
+      //bl->mcf = 0.3;
+      return 18;
+     }
+  else 
+     {
+      //bl->k_mer = 20;
+      //bl->mcf = 0.3;
+      return 20;
+     }
+}
+
+float mco_suggestion (int k_mer)
+{
+  if (k_mer<15)
+      return 0.3;
+  if (k_mer<18)
+      return 0.4;
+  else
+      return 0.3;
+}
 
 int
 get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
@@ -11,6 +77,8 @@ get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
   stats->capacity = n;
   stats->e = e;
   get_rec (stats);
+
+  return 0;
 }
 
 BIGNUM
