@@ -263,7 +263,10 @@ char *prefix_make (char *filename, char *prefix, char *target)
     {
       strncat (bloom_file,filename,strrchr(position1,'.')-filename);
     }
+
+#ifdef DEBUG
    printf("bloom_file->%s\n",bloom_file);
+#endif
 
 return bloom_file;
 }
@@ -324,7 +327,6 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 #ifdef DEBUG
   printf ("big file process OK\n");
 #endif
-  printf ("done\n");
   return 0;
 
 }

@@ -260,20 +260,6 @@ BIGCAST CHUNKgz(gzFile zip, BIGCAST offset,int chunk,char *position,char *extra,
 return offset;	
 }
 
-/*
-BIGCAST get_size (char *filename)
-{
-BIGCAST tim;
-struct stat statbuf;
-if ((tim=open(filename, O_RDONLY))<0)
-    {
-     printf("open file error...\n");
-     exit(-1);
-    }
-fstat (tim, &statbuf);
-return statbuf.st_size;
-}
-*/
 char *bac_2_n (char *filename)
 {
      while (*filename!='\n')

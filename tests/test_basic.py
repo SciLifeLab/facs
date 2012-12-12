@@ -33,52 +33,45 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         self._mkdir_p(self.custom_dir)
         self._mkdir_p(self.synthetic_fastq)
 
+
         # Downloads reference genome(s)
         self._download_test_files(self.data_dir)
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
-        self.setUp()
-        
         # Build bloom filter out of the reference file(s)
         for ref in os.listdir(self.reference):
             drass.build(os.path.join(self.reference, ref),
                         os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+        pass
 
-    def test_2_query(self):
-        """ Generate dummy fastq files for querying purposes, query against the reference ecoli bloom filter
-        """
-        self.setUp()
+#    def test_2_query(self):
+#        """ Generate dummy fastq files.
+#        """
+#        for nreads in self.fastq_nreads:
+#            test_fname = "test%s.fastq" % nreads
+#            _generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
+#            drass.query(os.path.join(self.synthetic_fastq, test_fname),
+#                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
-        for nreads in self.fastq_nreads:
-            test_fname = "test{}.fastq".format(nreads)
-            self._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
-            drass.query(os.path.join(self.synthetic_fastq, test_fname),
-                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
-#all
-#contam
-
-#        assert nreads == all
-  
     def test_3_query_custom(self):
-        """ Query against the uncompressed FastQ files files manually deposited in data/custom folder
+        """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.
         """
-        self.setUp()
-
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
             drass.query(os.path.join(self.custom_dir, sample),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
-    def test_4_query_custom_compressed(self):
-        """ Query gzip compressed fastq files
+    def test_4_query_custom_small_compressed(self):
+        """ Query gzip compressed fastq files (less than 20MB).
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
             print "\nQuerying against compressed sample {}".format(sample)
-            drass.query(os.path.join(self.custom_dir, sample),
-                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
+            if os.path.getsize(os.path.join(self.custom_dir, sample)) < 20*1024*1204:
+                drass.query(os.path.join(self.custom_dir, sample),
+                            os.path.join(self.bloom_dir, "U00096.2.bloom"))
   
 #    def test_3_query_all_to_all_refs(self):
 #        """ XXX: Query synthetic sequences against all filters?

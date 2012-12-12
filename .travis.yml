@@ -2,10 +2,10 @@ language: python
 
 before_install:
 #Clean up some space (using aptitude to remove as it is less strict if it doesn't find the package that wants to remove)
-    - sudo apt-get update
-    - sudo apt-get upgrade 
-    - sudo apt-get install -y aptitude
-    - lsb_release -a
+#    - sudo apt-get update
+#    - sudo apt-get upgrade 
+#    - sudo apt-get install -y aptitude
+#    - lsb_release -a
 #    - sudo apt-get clean
 #    - sudo aptitude purge -q -y ruby mysql-common mysql-client mysql-server emacs python2.5 python2.6 python3.1 python3.2 postgresql-common postgresql-client postgresql-server-dev-all sqlite3 mongodb-10gen redis-server elasticsearch erlang-base libcairo2 libcairo2-dev xserver-xorg-core x11-utils x11-common
 #    - sudo apt-get autoremove
