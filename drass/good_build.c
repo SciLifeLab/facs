@@ -83,14 +83,6 @@ build_main (int argc, char **argv)
       F_set *File_head = NEW (F_set);
       File_head = make_list (source, list);
       
-      init_bloom (bl_2, capacity, error_rate, k_mer, File_head->filename);
-      ref_add (bl_2, position);
-      save_bloom (File_head->filename, bl_2, prefix,target_path);
-      bloom_destroy (bl_2);
-      
-      munmap (position, strlen (position));
-      File_head = File_head->next;
-      
       while (File_head) {
           printf ("Path->%s\n", File_head->filename);
           //map query- into memory--------------
@@ -100,7 +92,7 @@ build_main (int argc, char **argv)
           else
             capacity = strlen (position) / 2;
           
-          init_bloom (bl_2, capacity, error_rate, k_mer);
+          init_bloom (bl_2, capacity, error_rate, k_mer, File_head->filename);
           ref_add (bl_2, position);
           save_bloom (File_head->filename, bl_2, prefix,target_path);
           bloom_destroy (bl_2);
