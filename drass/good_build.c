@@ -75,60 +75,47 @@ build_main (int argc, char **argv)
   
   if (!list)
     build(source, target_path, k_mer, error_rate, NULL);
-  else
-  {
-  bloom *bl_2 = NEW (bloom);
-  Queue *head = NEW (Queue);
-  Queue *tail = NEW (Queue);
-  head->next = tail;
-  F_set *File_head = NEW (F_set);
-  File_head = make_list (source, list);
-  
-  while (File_head) {
-      printf ("Path->%s\n", File_head->filename);
-      //map query- into memory--------------
-      position = mmaping (File_head->filename);
-      if (*position == '>')
-    	capacity = strlen (position);
-      else
-    	capacity = strlen (position) / 2;
+  else {
+      bloom *bl_2 = NEW (bloom);
+      Queue *head = NEW (Queue);
+      Queue *tail = NEW (Queue);
+      head->next = tail;
+      F_set *File_head = NEW (F_set);
+      File_head = make_list (source, list);
       
-      init_bloom (bl_2, capacity, error_rate, k_mer);
+      init_bloom (bl_2, capacity, error_rate, k_mer, File_head->filename);
       ref_add (bl_2, position);
       save_bloom (File_head->filename, bl_2, prefix,target_path);
       bloom_destroy (bl_2);
       
       munmap (position, strlen (position));
       File_head = File_head->next;
+      
+      while (File_head) {
+          printf ("Path->%s\n", File_head->filename);
+          //map query- into memory--------------
+          position = mmaping (File_head->filename);
+          if (*position == '>')
+            capacity = strlen (position);
+          else
+            capacity = strlen (position) / 2;
+          
+          init_bloom (bl_2, capacity, error_rate, k_mer);
+          ref_add (bl_2, position);
+          save_bloom (File_head->filename, bl_2, prefix,target_path);
+          bloom_destroy (bl_2);
+          
+          munmap (position, strlen (position));
+          File_head = File_head->next;
     }
   }
   return 0;
 }
 
-int
-build(char *ref_name, char *target_path, int k_mer, double error_rate, char* prefix)
-{
-  char *position = mmaping (ref_name);
-
-  bloom *bl = NEW (bloom);
-  bl->k_mer = k_mer;
-  bl->stat.e = error_rate;
-  bl->stat.capacity = strlen (position);
-  get_rec (&bl->stat);
-
-  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	      bl->stat.ideal_hashes, NULL, 3);
-  ref_add (bl, position);
-  save_bloom (ref_name, bl, prefix, target_path);
-
-  return 0;
-}
-
 void
-init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
+init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer, char* filename)
 {
   int flags = 3;
-
   get_suggestion (&bl->stat, capacity, error_rate);
 
 #ifdef DEBUG
@@ -141,10 +128,35 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer)
 
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
 	      bl->stat.ideal_hashes, NULL, flags);
-
-  bl->k_mer = k_mer;
+  if (k_mer!=0)
+      bl->k_mer = k_mer;
+  else
+      bl->k_mer = kmer_suggestion(get_size(filename)); 
   bl->dx = dx_add (bl->k_mer);
+}
 
+int
+build(char *ref_name, char *target_path, int k_mer, double error_rate, char *prefix)
+{
+  char *position = mmaping (ref_name);
+
+  bloom *bl = NEW (bloom);
+  if (k_mer!=0)
+      bl->k_mer = k_mer;
+  else
+      bl->k_mer = kmer_suggestion(get_size(ref_name));
+
+  bl->stat.e = error_rate;
+  bl->dx = dx_add (bl->k_mer);
+  bl->stat.capacity = strlen (position);
+  get_rec (&bl->stat);
+
+  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
+	      bl->stat.ideal_hashes, NULL, 3);
+  ref_add (bl, position);
+  save_bloom (ref_name, bl, NULL, target_path);
+
+  return 0;
 }
 
 /*-------------------------------------*/
@@ -163,9 +175,9 @@ fasta_add (bloom * bl, char *position)
   while (*position != '\0')
     {
       if (*position == '>')
-	position = fasta_title (position);
+	      position = fasta_title (position);
       else
-	position = fasta_data (bl, position);
+	      position = fasta_data (bl, position);
     }
 }
 
@@ -206,26 +218,21 @@ fasta_data (bloom * bl_2, char *data)
   char *p = data;
   int n = 0, m = 0;
 
-  while (*p != '>' && *p != '\0')
-    {
-      while (n < bl_2->k_mer)
-	{
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
+  while (*p != '>' && *p != '\0') {
+      while (n < bl_2->k_mer) {
+          if (p[m] == '>' || p[m] == '\0') {
+              m--;
+              break;
+          }
 
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-	  m++;
-	}
+          if (p[m] != '\r' && p[m] != '\n')
+            key[n++] = p[m];
+          m++;
+	  }
 
       key[n] = '\0';
 
-
-      if (strlen (key) == bl_2->k_mer)
-	{
+      if (strlen (key) == bl_2->k_mer) {
 /*
 	  if (bloom_add (bl_2, key))
 	    hit++;
@@ -239,10 +246,9 @@ fasta_data (bloom * bl_2, char *data)
 	  n = 0;
 	  m = 0;
 	}
-
       free (key);
       return p;
-    }
+}
 /*-------------------------------------*/
 void ref_add (bloom * bl, char *position)
 {

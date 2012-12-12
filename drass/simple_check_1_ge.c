@@ -53,6 +53,8 @@ int check_main (char *source, char *ref, float tole_rate, float sampling_rate, c
   while (File_head)
     {
       load_bloom (File_head->filename, bl_2);
+      if (tole_rate==0)
+          tole_rate = mco_suggestion(bl_2->k_mer);
 #pragma omp parallel
       {
 #pragma omp single nowait
