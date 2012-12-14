@@ -145,8 +145,9 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   
   memset (position, 0, strlen(position));
   clean_list (head2, tail);
+  
     }				//end while
-
+  
   evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
@@ -203,7 +204,9 @@ if (offset == 0)
     
 gzseek (zip,offset,SEEK_SET);
 gzread (zip,data,chunk);
-
+length = strlen(data);
+printf ("data->%0.50s\n",data);
+printf ("length->%d\n",length);
 if (length>=chunk)
 if (type == 2)
     {

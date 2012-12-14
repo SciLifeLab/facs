@@ -42,6 +42,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         """
         # Build bloom filter out of the reference file(s)
         for ref in os.listdir(self.reference):
+            print ref
             drass.build(os.path.join(self.reference, ref),
                         os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
         pass
@@ -65,10 +66,10 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
 
 
     def test_4_query_custom_small_compressed(self):
-        """ Query gzip compressed fastq files (less than 20MB).
-        """
-        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
-            print "\nQuerying against compressed sample {}".format(sample)
+	""" Query gzip compressed fastq files (less than 20MB).
+	"""
+        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")): 
+	    print "\nQuerying against compressed sample {}".format(sample)
             if os.path.getsize(os.path.join(self.custom_dir, sample)) < 20*1024*1204:
                 drass.query(os.path.join(self.custom_dir, sample),
                             os.path.join(self.bloom_dir, "U00096.2.bloom"))
