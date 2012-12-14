@@ -32,7 +32,7 @@ PyMODINIT_FUNC initdrass(void)
 static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 {
    double sampling_rate=1;
-   double tole_rate=0.8;
+   double tole_rate=0;
    char *qry, *bloom;
    int ret;
 
@@ -50,7 +50,7 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
    int ret;
 
    //DRASS operational defaults
-   int k_mer=21;
+   int k_mer=0;
    double error_rate=0.0005;
 
    if (!PyArg_ParseTuple(args, "ss|ids", &source, &bloom_filter, &k_mer, &error_rate, &prefix))

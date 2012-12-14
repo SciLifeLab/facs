@@ -115,6 +115,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 
   while (p != next)
     {
+      //printf ("p->%0.50s\n",p);
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
       if (p != temp)
