@@ -254,6 +254,7 @@ char *prefix_make (char *filename, char *prefix, char *target)
     {
       strcat (bloom_file,target);
       strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+      strcat (bloom_file,".bloom");
     }
   else if (target)
     {
@@ -262,6 +263,7 @@ char *prefix_make (char *filename, char *prefix, char *target)
   else
     {
       strncat (bloom_file,filename,strrchr(position1,'.')-filename);
+      strcat (bloom_file,".bloom");
     }
 
 #ifdef DEBUG
@@ -276,7 +278,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
   bloom_file = prefix_make(filename, prefix, target);
-  strcat (bloom_file,".bloom");
+  //strcat (bloom_file,".bloom");
   int fd, fq;
 
 #ifdef __APPLE__
