@@ -278,7 +278,6 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
   bloom_file = prefix_make(filename, prefix, target);
-  //strcat (bloom_file,".bloom");
   int fd, fq;
 
 #ifdef __APPLE__

@@ -9,7 +9,7 @@ AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.
 all:$(PROG)
 
 tests: python
-	nosetests -v -s ../tests/test.py
+	nosetests -v -s ../tests
 
 mpi:
 	@echo Make sure you have MPI support on your cluster hint: module load openmpi
