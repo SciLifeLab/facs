@@ -11,7 +11,6 @@ c_ext = Extension("drass", define_macros = [('DEBUG', '1'), ('FIFO', '1'), ('FIL
                            extra_compile_args = ['-fopenmp'],
                            extra_link_args=['-lgomp', '-lz'])
 
-
 setup(name='drass',
       version=version,
       description="DRASS bloom filter implementation",

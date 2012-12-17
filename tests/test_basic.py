@@ -61,7 +61,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
-    	    print "\nQuerying against uncompressed sample %s" % sample
+    	    print "\nQuerying against uncompressed sample {}".format(sample)
             drass.query(os.path.join(self.custom_dir, sample),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
@@ -72,8 +72,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")): 
     	    print "\nQuerying against compressed sample %s" % sample
             if os.path.getsize(os.path.join(self.custom_dir, sample)) < 20*1024*1204:
-                drass.query(os.path.join(self.custom_dir, sample),
-                            os.path.join(self.bloom_dir, "U00096.2.bloom"))
+		drass.query(os.path.join(self.custom_dir, sample),os.path.join(self.bloom_dir, "U00096.2.bloom"))
   
 #    def test_3_query_all_to_all_refs(self):
 #        """ XXX: Query synthetic sequences against all filters?
