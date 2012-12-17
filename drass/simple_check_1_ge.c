@@ -150,7 +150,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 #ifdef DEBUG
   printf ("fasta processing...\n");
 #endif
-  char *temp_next, *next, *temp, *temp_piece = NULL;
+  char *temp_next, *next, *temp;
 
   if (info->location == NULL)
     return;
@@ -198,8 +198,8 @@ evaluate (char *detail, char *filename, F_set * File_head)
 
 // JSON output format by default
   printf("{\n");
-  printf ("\t\"total_read_count\": %d,\n", File_head->reads_num);
-  printf ("\t\"contaminated_reads\": %d,\n", File_head->reads_contam);
+  printf ("\t\"total_read_count\": %lld,\n", File_head->reads_num);
+  printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
   printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
   printf ("\t\"bloom_filename\":\"%s\"\n", filename);
   printf("}\n");
@@ -209,7 +209,7 @@ evaluate (char *detail, char *filename, F_set * File_head)
   strcat (detail, filename);
 #endif
 
-  sprintf (buffer, "  %d\t%d\t%f\n", File_head->reads_num,
+  sprintf (buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
 	   File_head->reads_contam, contamination_rate);
   strcat (detail, buffer);
 }
