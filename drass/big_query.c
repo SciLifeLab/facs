@@ -39,7 +39,6 @@ int bq_main(int argc, char** argv)
   float tole_rate = 0;
   float sampling_rate = 1;
 
-  char* prefix = NULL;
   char* ref = NULL;
   char* list = NULL;
   char* target_path = NULL;
@@ -73,7 +72,7 @@ int bq_main(int argc, char** argv)
       } 
   } 
 
-  query(source, ref, tole_rate, sampling_rate, list, target_path);
+  return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }
 
 int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
@@ -125,7 +124,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
 	      {
 
 #ifdef DEBUG
-    printf("head->%0.50s\n",head->location);
+    printf("head->%0.40s\n",head->location);
 #endif
 		if (head->location) {
             if (type == 1) {
@@ -183,51 +182,52 @@ free(tail);
 
 BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
 {
-char c, v;
-char *pos;
-int length = 0;
-//if (strstr(filename,".fastq")||strstr(filename,".fq"))
-if (type == 2)
-    v = '@';
-else 
-    v = '>';
+    char c, v;
+    char *pos = NULL;
+    int length = 0;
+    //if (strstr(filename,".fastq")||strstr(filename,".fq"))
+    if (type == 2)
+        v = '@';
+    else 
+        v = '>';
 
-if (offset == 0)
-    while (offset <10*ONE)
-    {
-	    c = gzgetc(zip);
- //    putchar (c);
-    	if (c == v)
-       	    break;
-    offset++;
-    }
-    
-gzseek (zip,offset,SEEK_SET);
-gzread (zip,data,chunk);
-length = strlen(data);
-printf ("data->%0.50s\n",data);
-printf ("length->%d\n",length);
-if (length>=chunk)
-if (type == 2)
-    {
-	pos = strrstr (data,"\n+");
-	pos = bac_2_n (pos-1);
-    }
-else
-    {
-	pos = strrchr (data,'>')-1;	
+    if (offset == 0)
+        while (offset <10*ONE)
+        {
+            c = gzgetc(zip);
+     //    putchar (c);
+            if (c == v)
+                break;
+        offset++;
+        }
+        
+    gzseek (zip,offset,SEEK_SET);
+    gzread (zip,data,chunk);
+    length = strlen(data);
+
+#ifdef DEBUG
+    printf ("data->%s\n",data);
+    printf ("length->%d\n",length);
+#endif
+
+    if (length>=chunk) {
+        if (type == 2) {
+            pos = strrstr (data,"\n+");
+            pos = bac_2_n (pos-1);
+        } else {
+            pos = strrchr (data,'>')-1;	
+        }
     }
 
-if (pos)
-    {
-	offset += (pos-data);
-        memset (pos,0,strlen(pos));
+    if (pos) {
+        offset += (pos-data);
+        memset (pos, 0, strlen(pos));
     }
-if (length<chunk)
-    offset=-1;
 
-return offset;
+    if (length<chunk)
+        offset=-1;
 
+    return offset;
 }
 
 BIGCAST CHUNKgz(gzFile zip, BIGCAST offset,int chunk,char *position,char *extra,int type)

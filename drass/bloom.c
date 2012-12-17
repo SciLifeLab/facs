@@ -8,6 +8,8 @@
 #include <errno.h>
 #include "bloom.h"
 #include "hashes.h"
+#include "file_dir.h"
+
 /*---------------------------*/
 #include <fcntl.h>
 #include <unistd.h>
@@ -243,34 +245,25 @@ report_capacity (bloom * bloom)
 
 char *prefix_make (char *filename, char *prefix, char *target)
 {
-  char *position1, *position2;
-  char *bloom_file = (char *) malloc (300 * sizeof (char));
-  memset (bloom_file, 0, 300);
+    char *position1;
 
-  position1 = strrchr (filename, '/');
-  position2 = strrchr (target + 2, '/');
+    char *bloom_file = (char *) malloc (300 * sizeof (char));
+    memset (bloom_file, 0, 300);
 
-  if (is_dir(target))
-    {
-      strcat (bloom_file,target);
-      strncat (bloom_file,position1,strrchr(position1,'.')-position1);
-      strcat (bloom_file,".bloom");
-    }
-  else if (target)
-    {
-      strcat (bloom_file,target);
-    }
-  else
-    {
-      strncat (bloom_file,filename,strrchr(position1,'.')-filename);
-      strcat (bloom_file,".bloom");
+    position1 = strrchr (filename, '/');
+
+    if (is_dir(target)) {
+        strcat (bloom_file,target);
+        strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+    }  else if (target) {
+        strcat (bloom_file,target);
     }
 
 #ifdef DEBUG
-   printf("bloom_file->%s\n",bloom_file);
+    printf("bloom_file->%s\n",bloom_file);
 #endif
 
-return bloom_file;
+    return bloom_file;
 }
 
 int
@@ -278,7 +271,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
   bloom_file = prefix_make(filename, prefix, target);
-  int fd, fq;
+  int fd;
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
@@ -308,18 +301,18 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       return 0;
     }
 
-  fq = write (fd, bl, sizeof (bloom));
+  write (fd, bl, sizeof (bloom));
 
   total_size = (long long) (bl->stat.elements / 8) + 1;
 
   BIGNUM off = 0;
   while (total_size > TWOG)
     {
-      fq = write (fd, bl->vector + off, sizeof (char) * TWOG);
+      write (fd, bl->vector + off, sizeof (char) * TWOG);
       total_size -= TWOG;
       off += TWOG;
     }
-  fq = write (fd, bl->vector + off, sizeof (char) * total_size);
+  write (fd, bl->vector + off, sizeof (char) * total_size);
   close (fd);
 
   memset (bl->vector, 0,
@@ -336,7 +329,6 @@ int
 load_bloom (char *filename, bloom * bl)
 {
   int fd = 0;
-  int x;
 
 #ifdef DEBUG
   printf ("bloom name->%s\n", filename);
@@ -347,12 +339,11 @@ load_bloom (char *filename, bloom * bl)
 #else
   fd = open64 (filename, O_RDONLY, PERMS);
 #endif
-  if (fd < 0)
-  {
+  if (fd < 0) {
       perror (filename);
       return -1;
   }
-  x = read (fd, bl, sizeof (bloom));
+  read (fd, bl, sizeof (bloom));
 
   bl->vector =
     (char *) malloc (sizeof (char) *
@@ -360,16 +351,13 @@ load_bloom (char *filename, bloom * bl)
 
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
 
-  while (total_size > TWOG)
-    {
-      x = read (fd, bl->vector + off, sizeof (char) * TWOG);
-
+  while (total_size > TWOG) {
+      read (fd, bl->vector + off, sizeof (char) * TWOG);
       total_size -= TWOG;
-
       off += TWOG;
-    }
+  }
 
-  x = read (fd, bl->vector + off, sizeof (char) * total_size);
+  read (fd, bl->vector + off, sizeof (char) * total_size);
   close (fd);
 
 #ifdef DEBUG
@@ -383,11 +371,10 @@ load_bloom (char *filename, bloom * bl)
 void
 write_result (char *filename, char *detail)
 {
-  int fd, x;
+  int fd;
 
   fd = open (filename, O_CREAT | O_RDWR, S_IRWXU);
-
-  x = write (fd, detail, strlen (detail));
+  write (fd, detail, strlen (detail));
 
   close (fd);
 }
@@ -561,8 +548,7 @@ void
 remove_l_help ()
 {
   printf ("USAGE\n");
-  printf
-    ("##########################################################################\n");
+  printf ("##########################################################################\n");
   printf ("---contamination remove list mode---\n");
   printf ("Pretty like mode r but with slight difference\n");
   printf ("reads will be classified to the most like reference if\nmultiple reference files exist\n");
@@ -576,19 +562,17 @@ remove_l_help ()
   printf ("#  -r reference bloom filter file or dir\n");
   printf ("!!! either -r or -l can only be allowed each time !!!\n");
   printf ("#  -b 1 means show help description; 0 means normal decontamination\n");
-  printf
-    ("#  -o output file name (default file is saved as the same path as the binary file)\n");
-  printf
-    ("##########################################################################\n");
+  printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
+  printf ("##########################################################################\n");
   exit (1);
 }
 
 char *
 large_load (char *fifoname)
 {
-  FILE *fd;
-  int x;
+  int x = 0;
   char ch;
+  FILE *fd;
 
   printf ("fifoname->%s\n", fifoname);
 #ifdef __APPLE__
@@ -601,15 +585,15 @@ large_load (char *fifoname)
 
   data[TWOG / 2] = '\0';
 
-  while ((ch = fgetc (fd)) != EOF)
-    {
+  while ((ch = fgetc (fd)) != EOF) {
       data[x] = ch;
       x++;
-    }
+  }
 
-  printf ("data length->%lld\n", strlen (data));
+#ifdef DEBUG
+  printf ("data length->%lld\n", (long long int) strlen(data));
+#endif
 
   fclose (fd);
-
   return data;
 }

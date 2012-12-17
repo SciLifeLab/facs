@@ -41,11 +41,11 @@ class ThousandGenomesTest(unittest.TestCase):
         individual = "NA21137"
         fname = "SRR362119.filt.fastq.gz"
 
-        base_url = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data/{}".format(individual)
+        base_url = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data/%s" % individual
         fastq_url = os.path.join(base_url, "sequence_read", fname)
         dst = os.path.join(data_dir, fname)
         
         if not os.path.exists(dst):
-            print("downloading {} from {}".format(fname, base_url))
+            print("downloading %s from %s" % (fname, base_url))
             cl = ["wget", fastq_url, "-O", dst]
             subprocess.check_call(cl)
