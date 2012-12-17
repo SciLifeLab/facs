@@ -436,7 +436,6 @@ driver2 ()
     done:
       if (z < MAXPAIR)
 	{
-	  printf ("Mix success  %2ld bytes  %2ld levels  ", (ub4) i, (ub4) m);
 	  printf ("required  %ld  trials\n", (ub4) (z / 2));
 	}
     }

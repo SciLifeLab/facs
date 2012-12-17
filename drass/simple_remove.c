@@ -25,7 +25,7 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
-remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
+int remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
 {
   if (help == 1)
     {
@@ -33,11 +33,6 @@ remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix,
       exit (1);
     }
   
-  /*-------------------------------------*/
-  long sec, usec;
-  struct timezone tz;
-  struct timeval tv, tv2;
-  gettimeofday (&tv, &tz);
   /*-------------------------------------*/
   int type = 1;
   char *position;
@@ -74,7 +69,7 @@ remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix,
 	    {
 #pragma omp task firstprivate(head)
 	      {
-		if (head->location)
+		if (head->location!=NULL)
 		  if (type == 1)
 		    fasta_process_m (bl_2, head, tail, tole_rate);
 		  else
@@ -92,12 +87,6 @@ remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix,
     }				//end while
   munmap (position, strlen (position));
   printf ("finish processing...\n");
-#ifdef DEBUG
-  gettimeofday (&tv2, &tz);
-  sec = tv2.tv_sec - tv.tv_sec;
-  usec = tv2.tv_usec - tv.tv_usec;
-  printf ("total=%ld sec\n", sec);
-#endif
   return 0;
 }
 
@@ -137,7 +126,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
       if (!temp_end)
 	temp_end = strchr (p, '\0');
       int result =
-	fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
+	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate);
 
       if (result == 0)
 	{
@@ -207,7 +196,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
       if (!temp)
 	temp = next;
 
-      int result = fasta_read_check (p, temp, "normal", bl, tole_rate);
+      int result = fasta_read_check (p, temp, 'n', bl, tole_rate);
       if (result == 0)
 	{
 #pragma omp critical
@@ -241,16 +230,16 @@ save_result (char *source, char *obj_file, int type, char *prefix,
     *so_name = (char *) malloc (200 * sizeof (char)),
     *obj_name = (char *) malloc (200 * sizeof (char));
 
-  memset (match, 0, 200);
-  memset (mismatch, 0, 200);
+  memset (match, 0, 400);
+  memset (mismatch, 0, 400);
   memset (so_name, 0, 200);
   memset (obj_name, 0, 200);
 
   char *so;
-  ((so = strrchr (source, '/'))) && (so += 1, 1) || (so = NULL);
+  (so = strrchr (source, '/')) && (so += 1, 1) || (so = NULL);
 
   char *obj;
-  ((obj = strrchr (obj_file, '/'))) && (obj += 1, 1) || (obj = NULL);
+  (obj = strrchr (obj_file, '/')) && (obj += 1, 1) || (obj = NULL);
 
   if (so)
     strncat (so_name, so, strrchr (source, '.') - so);
