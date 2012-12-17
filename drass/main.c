@@ -32,7 +32,7 @@ usage(void)
 
 int main (int argc, char **argv) 
 {
-  int ret=0, opt=0;
+  int ret=0;
 /*-------defaults-------*/ 
 /*
 k_mer = 21;
