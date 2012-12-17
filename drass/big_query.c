@@ -125,7 +125,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
 	      {
 
 #ifdef DEBUG
-    printf("head->%0.40s\n",head->location);
+    printf("head->%0.50s\n",head->location);
 #endif
 		if (head->location) {
             if (type == 1) {

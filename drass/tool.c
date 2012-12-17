@@ -362,7 +362,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
 		    temp = strchr (full + offsett * add, '>');
 		  
           x->location = temp;
-		  x->number = add;
+		  x->number = &add;
 		  x->next = pos->next;
 		  pos->next = x;
 		  pos = pos->next;
@@ -399,7 +399,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
           previous = temp;
 	  x->location = temp;
           //printf ("task->%0.50s\n",x->location);
-	  x->number = add;
+	  x->number = &add;
 	  x->next = pos->next;
 	  pos->next = x;
 	  pos = pos->next;
