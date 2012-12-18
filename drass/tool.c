@@ -7,19 +7,20 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
+#include <omp.h>
 #include "tool.h"
 #include "bloom.h"
 #include "file_dir.h"
 /*-------------------------------------*/
 
 int
-fastq_read_check (char *begin, int length, char *model, bloom * bl,
+fastq_read_check (char *begin, int length, char model, bloom * bl,
 		  float tole_rate)
 {
   char *p = begin;
   int distance = length;
   int signal = 0, result = 0;
-  char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
+  char  *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
   while (distance > bl->k_mer)
     {
@@ -30,8 +31,8 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	{
 	  memcpy (key, p, sizeof (char) * bl->k_mer);	//need to be tested
 	  key[bl->k_mer] = '\0';
-	  previous = p;
 	  p += bl->k_mer;
+          previous = p;
 	  distance -= bl->k_mer;
 	}
 
@@ -42,7 +43,7 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	  signal = 1;
 	}
 
-      if (model == "reverse")
+      if (model == 'r')
 	rev_trans (key);
 
       if (bloom_check (bl, key))
@@ -50,20 +51,20 @@ fastq_read_check (char *begin, int length, char *model, bloom * bl,
 	  result = fastq_full_check (bl, begin, length, model, tole_rate);
 	  if (result > 0)
 	    return result;
-	  else if (model == "normal")
+	  else if (model == 'n')
 	    break;
 	}
 
     }				//outside while
-  if (model == "reverse")
+  if (model == 'r')
     return 0;
   else
-    return fastq_read_check (begin, length, "reverse", bl, tole_rate);
+    return fastq_read_check (begin, length, 'r', bl, tole_rate);
 }
 
 /*-------------------------------------*/
 int
-fastq_full_check (bloom * bl, char *p, int distance, char *model,
+fastq_full_check (bloom * bl, char *p, int distance, char model,
 		  float tole_rate)
 {
 
@@ -75,7 +76,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 
   float result;
 
-  char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
+  char *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
   short prev = 0, conse = 0; 
 
@@ -83,10 +84,9 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
     {
       memcpy (key, p, sizeof (char) * bl->k_mer);
       key[bl->k_mer] = '\0';
-      previous = p;
       p += 1;
 
-      if (model == "reverse")
+      if (model == 'r')
 	rev_trans (key);
 
       if (count >= bl->k_mer)
@@ -136,7 +136,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char *model,
 
 /*-------------------------------------*/
 int
-fasta_read_check (char *begin, char *next, char *model, bloom * bl,
+fasta_read_check (char *begin, char *next, char model, bloom * bl,
 		  float tole_rate)
 {
 
@@ -145,7 +145,6 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
   if (!p || *p == '>')
     return 1;
 
-  char *start = p;
   int n, m, result, count_enter;
   char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
   char *pre_key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
@@ -195,7 +194,7 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
 
       m = 0;
 
-      if (model == "reverse")
+      if (model == 'r')
 	rev_trans (key);
 
       if (bloom_check (bl, key))
@@ -203,23 +202,23 @@ fasta_read_check (char *begin, char *next, char *model, bloom * bl,
 	  result = fasta_full_check (bl, begin, next, model, tole_rate);
 	  if (result > 0)
 	    return result;
-	  //else if (model == "normal")     //use recursion to check the sequence forward and backward
-	  //    return fasta_read_check (begin, next, "reverse", bl);
-	  else if (model == "normal")
+	  //else if (model == 'n')     //use recursion to check the sequence forward and backward
+	  //    return fasta_read_check (begin, next, 'r', bl);
+	  else if (model == 'n')
 	    break;
 	}
 
       //memset (key, 0, bl->k_mer);
     }				//outside while
-  if (model == "reverse")
+  if (model == 'r')
     return 0;
   else
-    return fasta_read_check (begin, next, "reverse", bl, tole_rate);
+    return fasta_read_check (begin, next, 'r', bl, tole_rate);
 }
 
 /*-------------------------------------*/
 int
-fasta_full_check (bloom * bl, char *begin, char *next, char *model,
+fasta_full_check (bloom * bl, char *begin, char *next, char model,
 		  float tole_rate)
 {
   int match_s = 0, count = 0, mark = 1;
@@ -262,7 +261,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char *model,
 	}
       key[n] = '\0';
 
-      if (model == "reverse")
+      if (model == 'r')
 	rev_trans (key);
       //printf("key->%s\n",key);
       if (count >= bl->k_mer)

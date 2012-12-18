@@ -71,13 +71,13 @@ make_list (char *file_user, char *list_user)
 
 	  F_set *crap = NEW (F_set);
 
-	  if (pos = strchr (list_user, '\n'))
+	  if ((pos = strchr (list_user, '\n'))!=NULL)
 	    strncat (mimi, list_user, pos - list_user);
 	  else
 	    break;
 
 	  crap->filename = mimi;
-	  crap->number = &number;
+	  crap->number = number;
 	  crap->next = head->next;
 	  head->next = crap;
 	  head = head->next;

@@ -41,7 +41,6 @@ build_main (int argc, char **argv)
   int opt;
   int k_mer = 21;
   float error_rate = 0.0005;
-  float tole_rate = 0.8;
 
   char* list = NULL;
   char* prefix = NULL;
