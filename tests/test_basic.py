@@ -61,7 +61,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
-    	    print "\nQuerying against uncompressed sample {}".format(sample)
+    	    print "\nQuerying against uncompressed sample %s" % sample
             drass.query(os.path.join(self.custom_dir, sample),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
