@@ -12,6 +12,7 @@ at producing 64-bit results.
 #define SELF_TEST
 
 #include "bloom.h"
+#include "lookup8.h"
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -88,10 +89,12 @@ is acceptable.  Do NOT use for cryptographic purposes.
 */
 
 ub8
-hash (k, length, level)
-     register ub1 *k;		/* the key */
-     register ub8 length;	/* the length of the key */
-     register ub8 level;	/* the previous hash, or an arbitrary value */
+hash (register ub1 *k, register ub8 length, register ub8 level)
+/*
+     register ub1 *k;		// the key
+     register ub8 length;	// the length of the key
+     register ub8 level;	// the previous hash, or an arbitrary value
+*/
 {
   register ub8 a, b, c, len;
 
@@ -187,10 +190,12 @@ hash (k, length, level)
 --------------------------------------------------------------------
 */
 ub8
-hash2 (k, length, level)
-     register ub8 *k;		/* the key */
-     register ub8 length;	/* the length of the key */
-     register ub8 level;	/* the previous hash, or an arbitrary value */
+hash2 (register ub8 *k, register ub8 length, register ub8 level)
+/*     
+     register ub8 *k;		// the key
+     register ub8 length;	// the length of the key
+     register ub8 level;	// the previous hash, or an arbitrary value
+*/
 {
   register ub8 a, b, c, len;
 
@@ -236,10 +241,12 @@ hash2 (k, length, level)
 */
 
 ub8
-hash3 (k, length, level)
-     register ub1 *k;		/* the key */
-     register ub8 length;	/* the length of the key */
-     register ub8 level;	/* the previous hash, or an arbitrary value */
+hash3 (register ub1 *k, register ub8 length, register level)
+/*
+     register ub1 *k;		// the key
+     register ub8 length;	// the length of the key
+     register ub8 level;	// the previous hash, or an arbitrary value
+*/
 {
   register ub8 a, b, c, len;
 
