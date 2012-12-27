@@ -21,14 +21,52 @@
 /*-------------------------------------*/
 //openMP library
 #include<omp.h>
-//#include<mpi.h>
 /*-------------------------------------*/
-int check_main (char *source, char *ref, float tole_rate, float sampling_rate, char *list, char *prefix, int help)
+
+int check_main (int argc, char **argv)
 {
-  if (help == 1) {
-      check_help ();
-      exit (1);
-  }
+   if (argc<2)  check_help();
+   
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  float tole_rate = 0;
+  float sampling_rate = 1;
+  char* ref = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
+      switch (opt) {
+          case 't':
+              (optarg) && ((tole_rate = atof(optarg)), 1);
+              break;
+          case 's':
+              (optarg) && ((sampling_rate = atof(optarg)), 1);
+              break;
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
+              break;
+          case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
+              (optarg) && (ref = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              check_help();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              check_help();
+      } 
+  } 
+  return check_all (source, ref, tole_rate, sampling_rate, list, target_path);
+}
+
+int check_all (char *source, char *ref, float tole_rate, float sampling_rate, char *list, char *prefix)
+{
   /*-------------------------------------*/
   char *position;
   char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
@@ -128,7 +166,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
       File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-      if (fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate)> 0) {
+      if (fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head)> 0) {
 #pragma omp atomic
 	File_head->reads_contam++;
       }
@@ -178,7 +216,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
       if (!temp_next)
 	temp_next = next;
 
-      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate) > 0)
+      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0)
 	{
 #pragma omp atomic
 	  File_head->reads_contam++;
@@ -200,6 +238,7 @@ evaluate (char *detail, char *filename, F_set * File_head)
   printf("{\n");
   printf ("\t\"total_read_count\": %lld,\n", File_head->reads_num);
   printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
+  printf ("\t\"total_hits\": %lld,\n", File_head->hits);
   printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
   printf ("\t\"bloom_filename\":\"%s\"\n", filename);
   printf("}\n");

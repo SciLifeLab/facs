@@ -71,9 +71,9 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
 	      {
 		if (head->location!=NULL)
 		  if (type == 1)
-		    fasta_process_m (bl_2, head, tail, tole_rate);
+		    fasta_process_m (bl_2, head, tail, tole_rate, File_head);
 		  else
-		    fastq_process_m (bl_2, head, tail, tole_rate);
+		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
 	      }
 	      head = head->next;
 	    }
@@ -92,7 +92,7 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
 
 /*-------------------------------------*/
 void
-fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
+fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
   printf ("fastq processing...\n");
 
@@ -126,7 +126,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
       if (!temp_end)
 	temp_end = strchr (p, '\0');
       int result =
-	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate);
+	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head);
 
       if (result == 0)
 	{
@@ -170,7 +170,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
 
 /*-------------------------------------*/
 void
-fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
+fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
   printf ("fasta processing...\n");
 
@@ -196,7 +196,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
       if (!temp)
 	temp = next;
 
-      int result = fasta_read_check (p, temp, 'n', bl, tole_rate);
+      int result = fasta_read_check (p, temp, 'n', bl, tole_rate, File_head);
       if (result == 0)
 	{
 #pragma omp critical
