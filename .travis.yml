@@ -17,9 +17,7 @@ before_install:
 
 python:
     - 2.7
-install:
-    - cd drass && make 
 script:
-    - make tests
+    - cd drass && make tests
 notifications:
   email: false

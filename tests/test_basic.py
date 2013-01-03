@@ -115,7 +115,6 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
                 self._download_to_dir(url, dirname)
 
     def _download_to_dir(self, url, dirname):
-        print dirname
         fname = os.path.basename(url)
 
         cl = ["wget", url, "-O", os.path.join(dirname, fname)]
