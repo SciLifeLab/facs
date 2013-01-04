@@ -25,13 +25,46 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
-int remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
+
+int remove_main(int argc, char** argv)
 {
-  if (help == 1)
-    {
-      remove_help ();
-      exit (1);
-    }
+  if (argc < 2) remove_help();
+  
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  float tole_rate = 0;
+  char* ref = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1) {
+      switch (opt) {
+          case 't':
+              (optarg) && ((tole_rate = atof(optarg)), 1);
+              break;
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
+              break;
+          case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
+              (optarg) && (ref = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              remove_help();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              remove_help();
+      } 
+  } 
+  return remove_all(tole_rate, source, ref, list, target_path);
+}
+int remove_all (float tole_rate, char *source, char *ref, char *list, char *prefix)
+{
   
   /*-------------------------------------*/
   int type = 1;
@@ -61,6 +94,9 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
       load_bloom (File_head->filename, bl_2);
+      if (tole_rate==0)
+      tole_rate = mco_suggestion (bl_2->k_mer);
+
 #pragma omp parallel
       {
 #pragma omp single nowait
