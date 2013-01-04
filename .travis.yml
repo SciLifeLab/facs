@@ -19,6 +19,6 @@ python:
     - 2.7
 script:
     - cd drass
-    - make valgrind
+    - make tests
 notifications:
   email: false
