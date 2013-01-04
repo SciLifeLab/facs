@@ -331,12 +331,12 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
       char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
-	  int offsett = strlen (full) / cores;
 	  short add = 0;
-
-	  //printf ("task->%d\n", offsett);
-
+      int offset = NULL;
 	  Queue *pos = head;
+
+      if (full != NULL)
+          offset = strlen(full) / cores;
 
 	  if (*full == '>')
 	    type = 1;
@@ -358,7 +358,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
 		    temp = strchr (full, '>');	//drop the possible fragment
 
 		  if (add != 0)
-		    temp = strchr (full + offsett * add, '>');
+		    temp = strchr (full + offset * add, '>');
 		  
           x->location = temp;
 		  x->number = &add;
@@ -374,24 +374,9 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
 		{
 		  Queue *x = NEW (Queue);
 		  x->location = NULL;
-		  //if (add == 0 && *full != '@')
-		  //if (add != 0)
-		    //temp = strstr (full, "\n@");	//drop the fragment
-
-		  //printf("offset->%d\n",offsett*add);
 		  
 		  if (add != 0)
-                    {
-		    temp = fastq_relocate(full,offsett*add);
-                    /*
-                    if (temp)
-                        {
-			temp++;
-                        //if (previous!=temp)
-                        //previous = temp;
-                        }
-                    */
-                    } 
+              temp = fastq_relocate(full,offset*add);
                    
           if (previous!=temp)
           {
