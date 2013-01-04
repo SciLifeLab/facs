@@ -135,15 +135,21 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
                 fastq_process (bl_2, head, tail, File_head, sampling_rate,
                                tole_rate);
             }
-        }
+         }
 	  }
 	      head = head->next;
 	    }       // End of firstprivate
 	}			// End of single - no implied barrier (nowait)
 }				// End of parallel region - implied barrier
                 //evaluate (detail, File_head->filename, File_head);
-  
-  memset (position, 0, strlen(position));
+ 
+  if (position != NULL) {
+      memset (position, 0, strlen(position));
+  //else {
+  //    perror("Cannot memset, wrong position on fastq file\n");
+  //    exit(-1);
+  }
+
   clean_list (head2, tail);
   
     }				//end while
@@ -204,7 +210,9 @@ BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
         
     gzseek (zip,offset,SEEK_SET);
     gzread (zip,data,chunk);
-    length = strlen(data);
+    
+    if (data != NULL)
+        length = strlen(data);
 
 #ifdef DEBUG
     printf ("data->%s\n",data);

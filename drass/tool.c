@@ -323,10 +323,9 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
     return 0;
 }
 
-/*-------------------------------------*/
-	int
-	get_parainfo (char *full, Queue * head)
-	{
+int
+get_parainfo (char *full, Queue * head)
+{
 #ifdef DEBUG
 	  printf ("distributing...\n");
 #endif
@@ -334,83 +333,58 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
       char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
-	  int offsett = strlen (full) / cores;
 	  short add = 0;
-
-	  //printf ("task->%d\n", offsett);
-
+      int offset = NULL;
 	  Queue *pos = head;
+      Queue *x = NEW (Queue);
 
-	  if (*full == '>')
-	    type = 1;
-	  else if (*full == '@')
-	    type = 2;
-	  else
-	    {
-	      perror ("wrong format\n");
-	      exit (-1);
-	    }
-	  if (type == 1)
-	    {
-	      for (add = 0; add < cores; add++)
-		{
-		  Queue *x = NEW (Queue);
+      if (full != NULL) {
+          offset = strlen(full) / cores;
 
-		  if (add == 0 && *full != '>')
-
-		    temp = strchr (full, '>');	//drop the possible fragment
-
-		  if (add != 0)
-		    temp = strchr (full + offsett * add, '>');
-		  
-          x->location = temp;
-		  x->number = &add;
-		  x->next = pos->next;
-		  pos->next = x;
-		  pos = pos->next;
-		}
-	    }
-	  else
-	    {
-
-	      for (add = 0; add < cores; add++)
-		{
-		  Queue *x = NEW (Queue);
-		  x->location = NULL;
-		  //if (add == 0 && *full != '@')
-		  //if (add != 0)
-		    //temp = strstr (full, "\n@");	//drop the fragment
-
-		  //printf("offset->%d\n",offsett*add);
-		  
-		  if (add != 0)
-                    {
-		    temp = fastq_relocate(full,offsett*add);
-                    /*
-                    if (temp)
-                        {
-			temp++;
-                        //if (previous!=temp)
-                        //previous = temp;
-                        }
-                    */
-                    } 
-                   
-          if (previous!=temp)
-          {
-          previous = temp;
-	  x->location = temp;
-          //printf ("task->%0.50s\n",x->location);
-	  x->number = &add;
-	  x->next = pos->next;
-	  pos->next = x;
-	  pos = pos->next;
+          if (*full == '>')
+            type = 1;
+          else if (*full == '@')
+            type = 2;
+          else {
+              perror ("wrong format\n");
+              exit (-1);
           }
-	}
+      }
+      
+      if (type == 1) {
+              for (add = 0; add < cores; add++) {
+                  if (add == 0 && *full != '>')
+                    temp = strchr (full, '>');	//drop the possible fragment
 
+                  if (add != 0)
+                    temp = strchr (full + offset * add, '>');
+                  
+                  x->location = temp;
+                  x->number = &add;
+                  x->next = pos->next;
+                  pos->next = x;
+                  pos = pos->next;
+              }
+
+	  } else {
+
+	      for (add = 0; add < cores; add++) {
+              Queue *x = NEW (Queue);
+              x->location = NULL;
+              
+              if (add != 0)
+                  temp = fastq_relocate(full, offset*add);
+                       
+              if (previous!=temp) {
+                  previous = temp;
+                  x->location = temp;
+                  x->number = &add;
+                  x->next = pos->next;
+                  pos->next = x;
+                  pos = pos->next;
+              }
+	      }
     }
-
-
 
   return type;
 }
@@ -444,16 +418,17 @@ jump (char *target, int type, float sampling_rate)
 /*-------------------------------------*/
 char *fastq_relocate (char *data, int offset){
      char *target=NULL;
-     target = strstr (data + offset, "\n+");
+
+     if(data != NULL && offset != NULL)
+        target = strstr (data + offset, "\n+");
+
      if (!target)
          return NULL;
-     else
-         {
+     else {
          target = strchr (target+1,'\n')+1; 
          if (target!=NULL)
              target = strchr (target+1,'\n')+1;
-         
-         }
+     }
      
      return target;
 }

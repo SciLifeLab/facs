@@ -105,16 +105,14 @@ int remove_all (float tole_rate, char *source, char *ref, char *list, char *pref
 	    {
 #pragma omp task firstprivate(head)
 	      {
-		if (head->location!=NULL) {
+		if (head->location!=NULL)
 		  if (type == 1)
 		    fasta_process_m (bl_2, head, tail, tole_rate, File_head);
 		  else
 		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
-	      }
 	    }
           }
 	      head = head->next;
-	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       save_result (source, File_head->filename, type, prefix, clean, clean2,
