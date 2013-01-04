@@ -11,7 +11,7 @@ all:$(PROG)
 tests: python
 	nosetests -v -s ../tests
 
-valgrind: all
+valgrind: python
 	valgrind --tool=memcheck --suppressions=../tests/utils/valgrind-python.supp nosetests -v -s ../tests/test_basic.py
 
 mpi:
