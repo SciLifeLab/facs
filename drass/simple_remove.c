@@ -114,7 +114,6 @@ int remove_all (float tole_rate, char *source, char *ref, char *list, char *pref
 	    }
           }
 	      head = head->next;
-	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       save_result (source, File_head->filename, type, prefix, clean, clean2,
