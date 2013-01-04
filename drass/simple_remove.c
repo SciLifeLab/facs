@@ -25,13 +25,46 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
-int remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
+
+int remove_main(int argc, char** argv)
 {
-  if (help == 1)
-    {
-      remove_help ();
-      exit (1);
-    }
+  if (argc < 2) remove_help();
+  
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  float tole_rate = 0;
+  char* ref = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1) {
+      switch (opt) {
+          case 't':
+              (optarg) && ((tole_rate = atof(optarg)), 1);
+              break;
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
+              break;
+          case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
+              (optarg) && (ref = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              remove_help();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              remove_help();
+      } 
+  } 
+  return remove_all(tole_rate, source, ref, list, target_path);
+}
+int remove_all (float tole_rate, char *source, char *ref, char *list, char *prefix)
+{
   
   /*-------------------------------------*/
   int type = 1;
@@ -61,6 +94,9 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
       load_bloom (File_head->filename, bl_2);
+      if (tole_rate==0)
+      tole_rate = mco_suggestion (bl_2->k_mer);
+
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -69,15 +105,14 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
 	    {
 #pragma omp task firstprivate(head)
 	      {
-		if (head->location!=NULL) {
+		if (head->location!=NULL)
 		  if (type == 1)
-		    fasta_process_m (bl_2, head, tail, tole_rate);
+		    fasta_process_m (bl_2, head, tail, tole_rate, File_head);
 		  else
-		    fastq_process_m (bl_2, head, tail, tole_rate);
+		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
 	    }
           }
 	      head = head->next;
-	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       save_result (source, File_head->filename, type, prefix, clean, clean2,
@@ -93,7 +128,7 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
 
 /*-------------------------------------*/
 void
-fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
+fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
   printf ("fastq processing...\n");
 
@@ -127,7 +162,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
       if (!temp_end)
 	temp_end = strchr (p, '\0');
       int result =
-	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate);
+	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head);
 
       if (result == 0)
 	{
@@ -171,7 +206,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
 
 /*-------------------------------------*/
 void
-fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
+fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
   printf ("fasta processing...\n");
 
@@ -197,7 +232,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate)
       if (!temp)
 	temp = next;
 
-      int result = fasta_read_check (p, temp, 'n', bl, tole_rate);
+      int result = fasta_read_check (p, temp, 'n', bl, tole_rate, File_head);
       if (result == 0)
 	{
 #pragma omp critical

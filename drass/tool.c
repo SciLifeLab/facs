@@ -14,8 +14,7 @@
 /*-------------------------------------*/
 
 int
-fastq_read_check (char *begin, int length, char model, bloom * bl,
-		  float tole_rate)
+fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_rate, F_set *File_head)
 {
   char *p = begin;
   int distance = length;
@@ -48,7 +47,7 @@ fastq_read_check (char *begin, int length, char model, bloom * bl,
 
       if (bloom_check (bl, key))
 	{
-	  result = fastq_full_check (bl, begin, length, model, tole_rate);
+	  result = fastq_full_check (bl, begin, length, model, tole_rate, File_head);
 	  if (result > 0)
 	    return result;
 	  else if (model == 'n')
@@ -59,13 +58,13 @@ fastq_read_check (char *begin, int length, char model, bloom * bl,
   if (model == 'r')
     return 0;
   else
-    return fastq_read_check (begin, length, 'r', bl, tole_rate);
+    return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
 }
 
 /*-------------------------------------*/
 int
 fastq_full_check (bloom * bl, char *p, int distance, char model,
-		  float tole_rate)
+		  float tole_rate, F_set *File_head)
 {
 
   //printf ("fastq full check...\n");
@@ -127,7 +126,8 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
   free (key);
   result = (float)(match_time*bl->k_mer+conse)/(float)(length*bl->k_mer-2*bl->dx+conse);
   //result = (float) match_s / (float) length;
-  
+  #pragma omp atomic
+  File_head->hits+=match_time;
   if (result >= tole_rate)
     return match_s;
   else
@@ -137,7 +137,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 /*-------------------------------------*/
 int
 fasta_read_check (char *begin, char *next, char model, bloom * bl,
-		  float tole_rate)
+		  float tole_rate, F_set *File_head)
 {
 
   char *p = strchr (begin + 1, '\n') + 1;
@@ -199,7 +199,7 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
 
       if (bloom_check (bl, key))
 	{
-	  result = fasta_full_check (bl, begin, next, model, tole_rate);
+	  result = fasta_full_check (bl, begin, next, model, tole_rate, File_head);
 	  if (result > 0)
 	    return result;
 	  //else if (model == 'n')     //use recursion to check the sequence forward and backward
@@ -213,13 +213,13 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
   if (model == 'r')
     return 0;
   else
-    return fasta_read_check (begin, next, 'r', bl, tole_rate);
+    return fasta_read_check (begin, next, 'r', bl, tole_rate, File_head);
 }
 
 /*-------------------------------------*/
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char model,
-		  float tole_rate)
+		  float tole_rate, F_set *File_head)
 {
   int match_s = 0, count = 0, mark = 1;
 
@@ -313,7 +313,10 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
   //printf ("result1->%f\n",result);
   //result = (float)(match_time*bl->k_mer)/(float)((next-begin-count_enter)*bl->k_mer-2*dx_add(bl->k_mer-1));
   result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter)*bl->k_mer-2*bl->dx+conse);
-  //printf ("result2->%f\n",result);
+  
+  #pragma omp atomic
+  File_head->hits+=match_time;
+
   if (result >= tole_rate)	//match >tole_rate considered as contaminated
     return match_s;
   else 

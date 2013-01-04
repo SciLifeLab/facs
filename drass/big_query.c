@@ -89,6 +89,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
 
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
+  File_head->hits = 0;
   File_head->filename = bloom_filter;
   load_bloom (File_head->filename, bl_2);  //load a bloom filter
   if (tole_rate==0)
@@ -153,7 +154,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   
     }				//end while
   
-  evaluate (detail, File_head->filename, File_head);
+  evaluate (detail, File_head->filename, File_head, query);
   gzclose(zip);
   bloom_destroy (bl_2);
   statistic_save (detail, query, target_path);

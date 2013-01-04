@@ -54,8 +54,8 @@ mode = NULL;
 
   if (strcmp(argv[1], "build") == 0) ret = build_main(argc-1, argv+1);
   else if (strcmp(argv[1], "query") == 0) ret = bq_main(argc-1, argv+1);
-  //else if (strcmp(argv[1], "check") == 0) ret = check_main(argc-1, argv+1);
-  //else if (strcmp(argv[1], "remove") == 0) ret = remove_main(argc-1, argv+1);
+  else if (strcmp(argv[1], "check") == 0) ret = check_main(argc-1, argv+1);
+  else if (strcmp(argv[1], "remove") == 0) ret = remove_main(argc-1, argv+1);
   else usage();
 
   return ret;
