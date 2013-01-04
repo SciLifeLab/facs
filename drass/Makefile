@@ -1,5 +1,5 @@
 CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -Wall -fopenmp -g -DNODEBUG -lm -lz
-.PHONY:  tests clean
+.PHONY: tests clean valgrind
 .SUFFIXES:.c .o
 PROG=facs
 
@@ -10,6 +10,9 @@ all:$(PROG)
 
 tests: python
 	nosetests -v -s ../tests
+
+valgrind: python
+	valgrind --tool=memcheck --suppressions=../tests/utils/valgrind-python.supp nosetests -v -s ../tests/test_basic.py
 
 mpi:
 	@echo Make sure you have MPI support on your cluster hint: module load openmpi

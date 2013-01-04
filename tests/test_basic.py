@@ -42,10 +42,8 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         """
         # Build bloom filter out of the reference file(s)
         for ref in os.listdir(self.reference):
-            print ref
             drass.build(os.path.join(self.reference, ref),
                         os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
-        pass
 
     def test_2_query(self):
         """ Generate dummy fastq files.
@@ -115,7 +113,6 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
                 self._download_to_dir(url, dirname)
 
     def _download_to_dir(self, url, dirname):
-        print dirname
         fname = os.path.basename(url)
 
         cl = ["wget", url, "-O", os.path.join(dirname, fname)]
@@ -124,10 +121,9 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
         # compressed tarball?
         if os.path.splitext(fname) == ".gz":
             cl = ["tar", "-xzvpf", os.path.basename(url)]
-
-        subprocess.check_call(cl)
-        os.rename(os.path.basename(dirname), dirname)
-        os.remove(os.path.basename(url))
+            subprocess.check_call(cl)
+        #os.rename(os.path.basename(dirname), dirname)
+        #os.remove(os.path.basename(url))
 
     def _mkdir_p(self, path):
         try:

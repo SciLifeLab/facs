@@ -38,8 +38,6 @@ static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
 
    if (!PyArg_ParseTuple(args, "ss|dd", &qry, &bloom, &tole_rate, &sampling_rate))
        return NULL;
-   printf ("qry->%s\n",qry);
-   printf ("bloom->%s\n",bloom);
    ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL);
 
    return Py_BuildValue("i", ret);
