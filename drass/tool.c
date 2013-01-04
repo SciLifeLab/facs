@@ -320,10 +320,9 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
     return 0;
 }
 
-	/*-------------------------------------*/
-	int
-	get_parainfo (char *full, Queue * head)
-	{
+int
+get_parainfo (char *full, Queue * head)
+{
 #ifdef DEBUG
 	  printf ("distributing...\n");
 #endif
@@ -334,65 +333,55 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
 	  short add = 0;
       int offset = NULL;
 	  Queue *pos = head;
+      Queue *x = NEW (Queue);
 
-      if (full != NULL)
+      if (full != NULL) {
           offset = strlen(full) / cores;
 
-	  if (*full == '>')
-	    type = 1;
-	  else if (*full == '@')
-	    type = 2;
-	  else
-	    {
-	      perror ("wrong format\n");
-	      exit (-1);
-	    }
-	  if (type == 1)
-	    {
-	      for (add = 0; add < cores; add++)
-		{
-		  Queue *x = NEW (Queue);
-
-		  if (add == 0 && *full != '>')
-
-		    temp = strchr (full, '>');	//drop the possible fragment
-
-		  if (add != 0)
-		    temp = strchr (full + offset * add, '>');
-		  
-          x->location = temp;
-		  x->number = &add;
-		  x->next = pos->next;
-		  pos->next = x;
-		  pos = pos->next;
-		}
-	    }
-	  else
-	    {
-
-	      for (add = 0; add < cores; add++)
-		{
-		  Queue *x = NEW (Queue);
-		  x->location = NULL;
-		  
-		  if (add != 0)
-              temp = fastq_relocate(full,offset*add);
-                   
-          if (previous!=temp)
-          {
-          previous = temp;
-	  x->location = temp;
-          //printf ("task->%0.50s\n",x->location);
-	  x->number = &add;
-	  x->next = pos->next;
-	  pos->next = x;
-	  pos = pos->next;
+          if (*full == '>')
+            type = 1;
+          else if (*full == '@')
+            type = 2;
+          else {
+              perror ("wrong format\n");
+              exit (-1);
           }
-	}
+      }
+      
+      if (type == 1) {
+              for (add = 0; add < cores; add++) {
+                  if (add == 0 && *full != '>')
+                    temp = strchr (full, '>');	//drop the possible fragment
 
+                  if (add != 0)
+                    temp = strchr (full + offset * add, '>');
+                  
+                  x->location = temp;
+                  x->number = &add;
+                  x->next = pos->next;
+                  pos->next = x;
+                  pos = pos->next;
+              }
+
+	  } else {
+
+	      for (add = 0; add < cores; add++) {
+              Queue *x = NEW (Queue);
+              x->location = NULL;
+              
+              if (add != 0)
+                  temp = fastq_relocate(full, offset*add);
+                       
+              if (previous!=temp) {
+                  previous = temp;
+                  x->location = temp;
+                  x->number = &add;
+                  x->next = pos->next;
+                  pos->next = x;
+                  pos = pos->next;
+              }
+	      }
     }
-
-
 
   return type;
 }
