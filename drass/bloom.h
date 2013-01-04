@@ -74,6 +74,7 @@ typedef struct file_list
         BIGCAST reads_num;
         BIGCAST reads_contam;
         BIGCAST hits;
+        BIGCAST all_k;
 	struct file_list *next;
 } F_set;
 /* these are modes to test_all() */
