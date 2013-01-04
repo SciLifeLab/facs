@@ -415,16 +415,17 @@ jump (char *target, int type, float sampling_rate)
 /*-------------------------------------*/
 char *fastq_relocate (char *data, int offset){
      char *target=NULL;
-     target = strstr (data + offset, "\n+");
+
+     if(data != NULL && offset != NULL)
+        target = strstr (data + offset, "\n+");
+
      if (!target)
          return NULL;
-     else
-         {
+     else {
          target = strchr (target+1,'\n')+1; 
          if (target!=NULL)
              target = strchr (target+1,'\n')+1;
-         
-         }
+     }
      
      return target;
 }
