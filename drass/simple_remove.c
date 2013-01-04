@@ -69,12 +69,13 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
 	    {
 #pragma omp task firstprivate(head)
 	      {
-		if (head->location!=NULL)
+		if (head->location!=NULL) {
 		  if (type == 1)
 		    fasta_process_m (bl_2, head, tail, tole_rate);
 		  else
 		    fastq_process_m (bl_2, head, tail, tole_rate);
-	      }
+	    }
+          }
 	      head = head->next;
 	    }
 	}			// End of single - no implied barrier (nowait)
@@ -224,7 +225,12 @@ void
 save_result (char *source, char *obj_file, int type, char *prefix,
 	     char *clean, char *clean2, char *contam, char *contam2)
 {
+#ifdef DEBUG
   printf ("saving...\n");
+#endif
+  char *so;
+  char *obj;
+
   char *match = (char *) malloc (400 * sizeof (char)),
     *mismatch = (char *) malloc (400 * sizeof (char)),
     *so_name = (char *) malloc (200 * sizeof (char)),
@@ -235,11 +241,8 @@ save_result (char *source, char *obj_file, int type, char *prefix,
   memset (so_name, 0, 200);
   memset (obj_name, 0, 200);
 
-  char *so;
-  (so = strrchr (source, '/')) && (so += 1, 1) || (so = NULL);
-
-  char *obj;
-  (obj = strrchr (obj_file, '/')) && (obj += 1, 1) || (obj = NULL);
+  so = strrchr (source, '/') && (so += 1, 1) || (so = NULL);
+  obj = strrchr (obj_file, '/') && (obj += 1, 1) || (obj = NULL);
 
   if (so)
     strncat (so_name, so, strrchr (source, '.') - so);

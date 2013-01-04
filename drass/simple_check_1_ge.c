@@ -103,7 +103,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 #endif
   
   char *p = info->location;
-  char *next, *temp, *temp_piece = NULL;
+  char *next = NULL, *temp = NULL, *temp_piece = NULL;
 
   if (info->location[0] != '@') {
     return;
@@ -223,9 +223,8 @@ statistic_save (char *detail, char *filename, char *prefix)
   strcat (save_file,".info");
 
 #ifdef DEBUG
-  printf ("filename->%s\n", filename);
-#endif
-
+  printf ("Basename->%s\n", filename);
   printf ("Info name->%s\n", save_file);
+#endif
   write_result (save_file, detail);
 }

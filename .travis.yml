@@ -11,15 +11,13 @@ before_install:
 #    - sudo rm -rf /usr/share/doc
 # Install dependencies
 #    - sudo aptitude install -y lib64gomp1 libgomp1 build-essential zlib1g-dev zlib1g
-    - sudo apt-get install -y build-essential zlib1g-dev zlib1g libgomp1
+    - sudo apt-get install -y build-essential zlib1g-dev zlib1g libgomp1 valgrind
     - gcc -v
     - lsb_release -a
 
 python:
     - 2.7
-install:
-    - cd drass && make 
 script:
-    - make tests
+    - cd drass && make valgrind
 notifications:
   email: false
