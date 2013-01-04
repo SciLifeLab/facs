@@ -20,5 +20,6 @@ python:
 script:
     - cd drass
     - make tests
+    - ls -alR ../tests/data
 notifications:
   email: false
