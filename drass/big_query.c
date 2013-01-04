@@ -203,7 +203,9 @@ BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
         
     gzseek (zip,offset,SEEK_SET);
     gzread (zip,data,chunk);
-    length = strlen(data);
+    
+    if (data != NULL)
+        length = strlen(data);
 
 #ifdef DEBUG
     printf ("data->%s\n",data);
