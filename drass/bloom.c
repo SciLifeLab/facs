@@ -258,11 +258,6 @@ char *prefix_make (char *filename, char *prefix, char *target)
     }  else if (target) {
         strcat (bloom_file,target);
     }
-       else if (!target && !prefix) {
-        strncat (bloom_file,position1,strrchr(position1,'.')-position1);
-        strcat (bloom_file, ".bloom"); 
-        bloom_file++;   
-    }
 
 #ifdef DEBUG
     printf("bloom_file->%s\n",bloom_file);
@@ -275,9 +270,6 @@ int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
-  printf ("prefix->%s\n",prefix);
-  printf ("target->%s\n",target);
-  printf ("filename->%s\n",filename);
   bloom_file = prefix_make(filename, prefix, target);
   int fd;
 

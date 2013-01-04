@@ -114,7 +114,7 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
-      evaluate (detail, File_head->filename, File_head, source);
+      evaluate (detail, File_head->filename, File_head);
       /*-------------------------------------*/
       File_head = File_head->next;
       head = head2;
@@ -227,7 +227,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
 /*-------------------------------------*/
 void
-evaluate (char *detail, char *filename, F_set * File_head, char *sourxe)
+evaluate (char *detail, char *filename, F_set * File_head)
 {
   char buffer[200] = { 0 };
   float contamination_rate =

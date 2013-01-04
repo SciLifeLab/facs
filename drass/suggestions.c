@@ -11,16 +11,8 @@
 #include <sys/types.h>
 #define MB 1048576
 
-float get_probability (BIGCAST hits, BIGCAST size, int k_mer)
-{
-BIGCAST times = size/(100*MB);
-float prob = hits/size;
-prob = (double)prob/(double)(100);
-if (prob < 1)
-return prob;
-else
-return 1;
-}
+
+/* dmitriy ryaboy */
 
 BIGCAST get_size (char *filename)
 {
