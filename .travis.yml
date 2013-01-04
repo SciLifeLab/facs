@@ -18,6 +18,7 @@ before_install:
 python:
     - 2.7
 script:
-    - cd drass && make valgrind
+    - cd drass
+    - make valgrind
 notifications:
   email: false
