@@ -129,7 +129,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
   #pragma omp atomic
   File_head->hits+=match_time;
   #pragma omp atomic 
-  File_head->all_k+=(length-k_mer);
+  File_head->all_k+=(length-bl->k_mer);
   if (result >= tole_rate)
     return match_s;
   else
@@ -319,7 +319,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
   #pragma omp atomic
   File_head->hits+=match_time;
   #pragma omp atomic
-  File_head->all_k+=(next-begin-count_enter-k_mer);
+  File_head->all_k+=(next-begin-count_enter-bl->k_mer);
 
   if (result >= tole_rate)	//match >tole_rate considered as contaminated
     return match_s;
