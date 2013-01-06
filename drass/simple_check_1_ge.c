@@ -102,7 +102,6 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	      {
 		if (head->location!=NULL)
                   {
-                  printf ("k_mer->%d\n",bl_2->k_mer);
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
@@ -120,14 +119,13 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
       File_head = File_head->next;
       head = head2;
       bloom_destroy (bl_2);
+      
     }				//end while
-
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
-
-  return 0;
+  return 1;
 }
 
 /*-------------------------------------*/

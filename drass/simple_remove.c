@@ -29,7 +29,6 @@ char *clean, *contam;
 int remove_main(int argc, char** argv)
 {
   if (argc < 2) remove_help();
-  
 /*-------defaults for bloom filter building-------*/ 
   int opt;
   float tole_rate = 0;
@@ -96,13 +95,13 @@ int remove_all (float tole_rate, char *source, char *ref, char *list, char *pref
       load_bloom (File_head->filename, bl_2);
       if (tole_rate==0)
       tole_rate = mco_suggestion (bl_2->k_mer);
-
 #pragma omp parallel
       {
 #pragma omp single nowait
 	{
 	  while (head != tail)
 	    {
+            printf ("head->%0.10s\n",head->location);
 #pragma omp task firstprivate(head)
 	      {
 		if (head->location!=NULL) {
@@ -111,9 +110,9 @@ int remove_all (float tole_rate, char *source, char *ref, char *list, char *pref
 		  else
 		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
 	      }
-	    }
-          }
+              }
 	      head = head->next;
+        }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       save_result (source, File_head->filename, type, prefix, clean, clean2,
@@ -261,11 +260,10 @@ void
 save_result (char *source, char *obj_file, int type, char *prefix,
 	     char *clean, char *clean2, char *contam, char *contam2)
 {
-#ifdef DEBUG
-  printf ("saving...\n");
-#endif
-  char *so;
-  char *obj;
+  printf ("source->%s\n",source);
+  printf ("obj_file->%s\n",obj_file);
+  printf ("prefix->%s\n",prefix);
+  char *so = NULL, *obj = NULL;
 
   char *match = (char *) malloc (400 * sizeof (char)),
     *mismatch = (char *) malloc (400 * sizeof (char)),
@@ -276,20 +274,25 @@ save_result (char *source, char *obj_file, int type, char *prefix,
   memset (mismatch, 0, 400);
   memset (so_name, 0, 200);
   memset (obj_name, 0, 200);
-
-  so = strrchr (source, '/') && (so += 1, 1) || (so = NULL);
-  obj = strrchr (obj_file, '/') && (obj += 1, 1) || (obj = NULL);
-
+  
+  so = strrchr (source, '/');
+  obj = strrchr (obj_file,'/');
+  if (so)
+     so += 1;
+  else 
+     so = NULL;
+  if (obj)
+     obj += 1;
+  else
+     obj = NULL;
   if (so)
     strncat (so_name, so, strrchr (source, '.') - so);
   else
     strncat (so_name, source, strrchr (source, '.') - source);
-
   if (obj)
     strncat (obj_name, obj, strrchr (obj_file, '.') - obj);
   else
     strncat (obj_name, obj_file, strrchr (obj_file, '.') - obj_file);
-
   if (prefix)
     {
       strcat (match, prefix);
