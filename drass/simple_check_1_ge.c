@@ -257,6 +257,8 @@ statistic_save (char *detail, char *filename, char *prefix)
 {
   char *save_file = NULL;
   save_file = prefix_make (filename, NULL, prefix);
+  if (save_file[0]=='/')
+      save_file++;
   strcat (save_file,".info");
 
 #ifdef DEBUG
