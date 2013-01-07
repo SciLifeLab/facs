@@ -362,7 +362,9 @@ load_bloom (char *filename, bloom * bl)
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
 
   while (total_size > TWOG) {
-      read (fd, bl->vector + off, sizeof (char) * TWOG);
+      ret = read(fd, bl->vector + off, sizeof (char) * TWOG);
+      if (ret < 0)
+          perror("Problem reading bloom filter");
       total_size -= TWOG;
       off += TWOG;
   }
@@ -371,7 +373,7 @@ load_bloom (char *filename, bloom * bl)
 
 #ifdef DEBUG
   if (ret > 0)
-      printf ("successful bloom read...\n");
+      printf ("bloom filter read successfully\n");
   else ret = errno;
 #endif
 
