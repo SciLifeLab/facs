@@ -119,14 +119,13 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
       File_head = File_head->next;
       head = head2;
       bloom_destroy (bl_2);
+      
     }				//end while
-
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
-
-  return 0;
+  return 1;
 }
 
 /*-------------------------------------*/
@@ -258,6 +257,8 @@ statistic_save (char *detail, char *filename, char *prefix)
 {
   char *save_file = NULL;
   save_file = prefix_make (filename, NULL, prefix);
+  if (save_file[0]=='/')
+      save_file++;
   strcat (save_file,".info");
 
 #ifdef DEBUG

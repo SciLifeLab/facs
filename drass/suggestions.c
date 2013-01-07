@@ -11,8 +11,39 @@
 #include <sys/types.h>
 #define MB 1048576
 
-
-/* dmitriy ryaboy */
+float get_probability (BIGCAST hits, BIGCAST total, int k_mer)
+{
+double times = (double)total/(100*MB);
+double prob = 0;
+int rand_hit = 0;
+((k_mer/3)==0)&&(k_mer=k_mer,1)||(k_mer-(k_mer%3));
+switch (k_mer)
+{
+  case 9:
+  rand_hit = 10;
+  break;
+  case 12:
+  rand_hit = 20;
+  break;
+  case 15:
+  rand_hit = 40;
+  break;
+  case 18:
+  rand_hit = 80;
+  break;
+  case 21:
+  rand_hit = 100;
+  break;
+  default:
+  printf ("cant handle this k_mer so far\n");
+  exit(-1);
+}
+prob = (double)hits/times;
+if (prob<rand_hit)
+    return 0;
+else
+    return hits/total; 
+}
 
 BIGCAST get_size (char *filename)
 {

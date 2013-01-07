@@ -25,7 +25,47 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
+<<<<<<< .merge_file_0XkkS5
 int remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
+=======
+
+int remove_main(int argc, char** argv)
+{
+  if (argc < 2) remove_help();
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  float tole_rate = 0;
+  char* ref = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1) {
+      switch (opt) {
+          case 't':
+              (optarg) && ((tole_rate = atof(optarg)), 1);
+              break;
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
+              break;
+          case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
+              (optarg) && (ref = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              remove_help();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              remove_help();
+      } 
+  } 
+  return remove(tole_rate, source, ref, list, target_path);
+}
+int remove(float tole_rate, char *source, char *ref, char *list, char *prefix)
 {
   if (help == 1)
     {
@@ -61,6 +101,9 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
       load_bloom (File_head->filename, bl_2);
+      
+      if (tole_rate==0)
+      	tole_rate = mco_suggestion (bl_2->k_mer);
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -94,7 +137,6 @@ int remove_main (float tole_rate, char *source, char *ref, char *list, char *pre
 void
 fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
-  printf ("fastq processing...\n");
 
   int read_num = 0, read_contam = 0;
   char *p = info->location;
@@ -224,11 +266,10 @@ void
 save_result (char *source, char *obj_file, int type, char *prefix,
 	     char *clean, char *clean2, char *contam, char *contam2)
 {
-#ifdef DEBUG
-  printf ("saving...\n");
-#endif
-  char *so;
-  char *obj;
+  printf ("source->%s\n",source);
+  printf ("obj_file->%s\n",obj_file);
+  printf ("prefix->%s\n",prefix);
+  char *so = NULL, *obj = NULL;
 
   char *match = (char *) malloc (400 * sizeof (char)),
     *mismatch = (char *) malloc (400 * sizeof (char)),
@@ -239,20 +280,25 @@ save_result (char *source, char *obj_file, int type, char *prefix,
   memset (mismatch, 0, 400);
   memset (so_name, 0, 200);
   memset (obj_name, 0, 200);
-
-  so = strrchr (source, '/') && (so += 1, 1) || (so = NULL);
-  obj = strrchr (obj_file, '/') && (obj += 1, 1) || (obj = NULL);
-
+  
+  so = strrchr (source, '/');
+  obj = strrchr (obj_file,'/');
+  if (so)
+     so += 1;
+  else 
+     so = NULL;
+  if (obj)
+     obj += 1;
+  else
+     obj = NULL;
   if (so)
     strncat (so_name, so, strrchr (source, '.') - so);
   else
     strncat (so_name, source, strrchr (source, '.') - source);
-
   if (obj)
     strncat (obj_name, obj, strrchr (obj_file, '.') - obj);
   else
     strncat (obj_name, obj_file, strrchr (obj_file, '.') - obj_file);
-
   if (prefix)
     {
       strcat (match, prefix);
