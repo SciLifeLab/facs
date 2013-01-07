@@ -337,6 +337,7 @@ int
 load_bloom (char *filename, bloom * bl)
 {
   int fd = 0;
+  int ret;
 
 #ifdef DEBUG
   printf ("bloom name->%s\n", filename);
@@ -351,6 +352,7 @@ load_bloom (char *filename, bloom * bl)
       perror (filename);
       return -1;
   }
+
   read (fd, bl, sizeof (bloom));
 
   bl->vector =
@@ -365,15 +367,16 @@ load_bloom (char *filename, bloom * bl)
       off += TWOG;
   }
 
-  read (fd, bl->vector + off, sizeof (char) * total_size);
-  close (fd);
+  ret = read (fd, bl->vector + off, sizeof (char) * total_size);
 
 #ifdef DEBUG
-  printf ("successful bloom read...\n");
+  if (ret > 0)
+      printf ("successful bloom read...\n");
+  else ret = errno;
 #endif
-  close (fd);
 
-  return 0;
+  close (fd);
+  return ret;
 }
 
 void
