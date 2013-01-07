@@ -101,7 +101,6 @@ int remove_all (float tole_rate, char *source, char *ref, char *list, char *pref
 	{
 	  while (head != tail)
 	    {
-            printf ("head->%0.10s\n",head->location);
 #pragma omp task firstprivate(head)
 	      {
 		if (head->location!=NULL) {
@@ -130,7 +129,6 @@ int remove_all (float tole_rate, char *source, char *ref, char *list, char *pref
 void
 fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
-  printf ("fastq processing...\n");
 
   int read_num = 0, read_contam = 0;
   char *p = info->location;
