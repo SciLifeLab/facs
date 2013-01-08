@@ -243,7 +243,8 @@ report_capacity (bloom * bloom)
   return bloom->stat.capacity;
 }
 
-char *prefix_make (char *filename, char *prefix, char *target)
+char* 
+prefix_make (char *filename, char *prefix, char *target)
 {
     char *position1 = strrchr (filename, '/');
 
@@ -277,14 +278,22 @@ int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
+  int fd;
+
   bloom_file = prefix_make(filename, prefix, target);
-  if (bloom_file[0]=='/')
-      bloom_file++;
+
+#ifdef DEBUG
+  printf("Bloom file to be written in: %s\n", bloom_file);
+#endif
+
+
+  //if (bloom_file[0]=='/')
+  //    bloom_file++;
   if (prefix==NULL && target==NULL)
       strcat (bloom_file,".bloom");
   else if (is_dir(target))
       strcat (bloom_file,".bloom");
-  int fd;
+
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
@@ -341,6 +350,7 @@ int
 load_bloom (char *filename, bloom * bl)
 {
   int fd = 0;
+  int ret;
 
 #ifdef DEBUG
   printf ("bloom name->%s\n", filename);
@@ -355,6 +365,7 @@ load_bloom (char *filename, bloom * bl)
       perror (filename);
       return -1;
   }
+
   read (fd, bl, sizeof (bloom));
 
   bl->vector =
@@ -364,20 +375,23 @@ load_bloom (char *filename, bloom * bl)
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
 
   while (total_size > TWOG) {
-      read (fd, bl->vector + off, sizeof (char) * TWOG);
+      ret = read(fd, bl->vector + off, sizeof (char) * TWOG);
+      if (ret < 0)
+          perror("Problem reading bloom filter");
       total_size -= TWOG;
       off += TWOG;
   }
 
-  read (fd, bl->vector + off, sizeof (char) * total_size);
-  close (fd);
+  ret = read (fd, bl->vector + off, sizeof (char) * total_size);
 
 #ifdef DEBUG
-  printf ("successful bloom read...\n");
+  if (ret > 0)
+      printf ("bloom filter read successfully\n");
+  else ret = errno;
 #endif
-  close (fd);
 
-  return 0;
+  close (fd);
+  return ret;
 }
 
 void

@@ -192,7 +192,7 @@ BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
     char c, v;
     char *pos = NULL;
     int length = 0;
-    //if (strstr(filename,".fastq")||strstr(filename,".fq"))
+    
     if (type == 2)
         v = '@';
     else 
@@ -202,10 +202,9 @@ BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
         while (offset <10*ONE)
         {
             c = gzgetc(zip);
-     //    putchar (c);
             if (c == v)
                 break;
-        offset++;
+            offset++;
         }
         
     gzseek (zip,offset,SEEK_SET);
@@ -269,7 +268,8 @@ BIGCAST CHUNKgz(gzFile zip, BIGCAST offset,int chunk,char *position,char *extra,
 	        extra = (char*)malloc((position-x+1)*sizeof(char));
 	        memcpy (x,extra,position-x+1);
 	        offset+=(position-x+1);
-return offset;	
+
+        return offset;	
 }
 
 char *bac_2_n (char *filename)
