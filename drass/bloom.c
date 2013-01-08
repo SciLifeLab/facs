@@ -243,7 +243,8 @@ report_capacity (bloom * bloom)
   return bloom->stat.capacity;
 }
 
-char *prefix_make (char *filename, char *prefix, char *target)
+char* 
+prefix_make (char *filename, char *prefix, char *target)
 {
     char *position1 = strrchr (filename, '/');
 
@@ -277,14 +278,22 @@ int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
+  int fd;
+
   bloom_file = prefix_make(filename, prefix, target);
-  if (bloom_file[0]=='/')
-      bloom_file++;
+
+#ifdef DEBUG
+  printf("Bloom file to be written in: %s\n", bloom_file);
+#endif
+
+
+  //if (bloom_file[0]=='/')
+  //    bloom_file++;
   if (prefix==NULL && target==NULL)
       strcat (bloom_file,".bloom");
   else if (is_dir(target))
       strcat (bloom_file,".bloom");
-  int fd;
+
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
