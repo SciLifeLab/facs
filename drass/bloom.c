@@ -270,8 +270,6 @@ char *prefix_make (char *filename, char *prefix, char *target)
             strncat (bloom_file,filename,strrchr(filename,'.')-filename);
        }
 
-    printf("bloom_file->%s\n",bloom_file);
-    
     return bloom_file;
 }
 

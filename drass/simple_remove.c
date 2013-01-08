@@ -25,9 +25,6 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
-<<<<<<< .merge_file_0XkkS5
-int remove_main (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
-=======
 
 int remove_main(int argc, char** argv)
 {
@@ -63,16 +60,10 @@ int remove_main(int argc, char** argv)
               remove_help();
       } 
   } 
-  return remove(tole_rate, source, ref, list, target_path);
+  return remove_all(tole_rate, source, ref, list, target_path);
 }
-int remove(float tole_rate, char *source, char *ref, char *list, char *prefix)
+int remove_all(float tole_rate, char *source, char *ref, char *list, char *prefix)
 {
-  if (help == 1)
-    {
-      remove_help ();
-      exit (1);
-    }
-  
   /*-------------------------------------*/
   int type = 1;
   char *position;
