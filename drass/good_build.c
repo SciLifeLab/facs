@@ -39,7 +39,7 @@ build_main (int argc, char **argv)
 
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  int k_mer = 21;
+  int k_mer = 0;
   float error_rate = 0.0005;
 
   char* list = NULL;
@@ -47,13 +47,14 @@ build_main (int argc, char **argv)
   char* target_path = NULL;
   char* source = NULL;
   printf ("1st command->%s\n",argv[0]);
-  while ((opt = getopt (argc, argv, "eko:r:lh")) != -1) {
+  while ((opt = getopt (argc, argv, "ek:o:r:lh")) != -1) {
       switch (opt) {
           case 'e':
               (optarg) && ((error_rate = atof (optarg)), 1);
               break;
           case 'k':
               (optarg) && ((k_mer = atoi (optarg)), 1);
+              printf ("k_mer->%d\n",k_mer);
               break;
           case 'o':
               (optarg) && ((target_path = optarg), 1); 
@@ -119,6 +120,7 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer, char* file
 
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
 	      bl->stat.ideal_hashes, NULL, flags);
+  printf ("k_mer->%d\n",k_mer);
   if (k_mer!=0)
       bl->k_mer = k_mer;
   else
@@ -132,6 +134,7 @@ build(char *ref_name, char *target_path, int k_mer, double error_rate, char *pre
   char *position = mmaping (ref_name);
 
   bloom *bl = NEW (bloom);
+  printf ("k_mer->%d\n",k_mer);
   if (k_mer!=0)
       bl->k_mer = k_mer;
   else

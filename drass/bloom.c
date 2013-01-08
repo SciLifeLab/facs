@@ -245,28 +245,30 @@ report_capacity (bloom * bloom)
 
 char *prefix_make (char *filename, char *prefix, char *target)
 {
-    char *position1;
+    char *position1 = strrchr (filename, '/');
 
     char *bloom_file = (char *) malloc (300 * sizeof (char));
     memset (bloom_file, 0, 300);
-
-    position1 = strrchr (filename, '/');
-
     if (is_dir(target)) {
         strcat (bloom_file,target);
-        strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+        strcat (bloom_file,filename);
     }  else if (target) {
         strcat (bloom_file,target);
     }
-       else if (!target && !prefix) {
-        strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+       else if (target!=NULL && prefix!=NULL) {
+        if (position1!=NULL)
+            strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+        else
+            strncat (bloom_file,filename,strrchr(filename,'.')-filename);
         strcat (bloom_file, ".bloom"); 
-        bloom_file++;   
     }
-
-#ifdef DEBUG
-    printf("bloom_file->%s\n",bloom_file);
-#endif
+       else
+       {
+        if (position1!=NULL)
+            strncat (bloom_file,position1,strrchr(position1,'.')-position1);
+        else
+            strncat (bloom_file,filename,strrchr(filename,'.')-filename);
+       }
 
     return bloom_file;
 }
@@ -275,12 +277,14 @@ int
 save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
-  printf ("prefix->%s\n",prefix);
-  printf ("target->%s\n",target);
-  printf ("filename->%s\n",filename);
   bloom_file = prefix_make(filename, prefix, target);
+  if (bloom_file[0]=='/')
+      bloom_file++;
+  if (prefix==NULL && target==NULL)
+      strcat (bloom_file,".bloom");
+  else if (is_dir(target))
+      strcat (bloom_file,".bloom");
   int fd;
-
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux

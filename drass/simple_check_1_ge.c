@@ -102,7 +102,6 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	      {
 		if (head->location!=NULL)
                   {
-                  //printf ("location->%0.6s\n",head->location);
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
@@ -115,19 +114,18 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
-      evaluate (detail, File_head->filename, File_head, source);
+      evaluate (detail, File_head->filename, File_head);
       /*-------------------------------------*/
       File_head = File_head->next;
       head = head2;
       bloom_destroy (bl_2);
+      
     }				//end while
-
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
 
   //check ("test.fna","k_12.bloom","r", prefix, 1, 0.8);
-
-  return 0;
+  return 1;
 }
 
 /*-------------------------------------*/
@@ -228,7 +226,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
 /*-------------------------------------*/
 void
-evaluate (char *detail, char *filename, F_set * File_head, char *sourxe)
+evaluate (char *detail, char *filename, F_set * File_head)
 {
   char buffer[200] = { 0 };
   float contamination_rate =
@@ -259,6 +257,8 @@ statistic_save (char *detail, char *filename, char *prefix)
 {
   char *save_file = NULL;
   save_file = prefix_make (filename, NULL, prefix);
+  if (save_file[0]=='/')
+      save_file++;
   strcat (save_file,".info");
 
 #ifdef DEBUG

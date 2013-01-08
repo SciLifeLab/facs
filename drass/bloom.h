@@ -74,6 +74,7 @@ typedef struct file_list
         BIGCAST reads_num;
         BIGCAST reads_contam;
         BIGCAST hits;
+        BIGCAST all_k;
 	struct file_list *next;
 } F_set;
 /* these are modes to test_all() */
@@ -105,7 +106,6 @@ extern int test (char *big, BIGNUM index);
 extern BIGNUM bloom_hash(bloom *bloom,char *str, int i, int length);
 extern int bloom_hash_old(bloom *bloom,char *str, int i);
 
-extern float get_probability (BIGCAST hits, BIGCAST size, int k_mer);
 extern BIGNUM find_close_prime(BIGNUM m);
 extern int get_suggestion(struct bloomstat *stats, BIGNUM n,double e);
 extern BIGCAST get_size (char *filename);
