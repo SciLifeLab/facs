@@ -376,7 +376,8 @@ get_parainfo (char *full, Queue * head)
 	      for (add = 0; add < cores; add++) {
               Queue *x = NEW (Queue);
               x->location = NULL;
-              length = strchr(strchr(x,'\n')+1,'\n')-(strchr(x,'\n')+1);
+              char *tx = strchr(full,'\n');
+              length = strchr(tx+1,'\n')-(tx+1);
               if (add != 0)
                   temp = fastq_relocate(full, offset*add, length);
                        
@@ -430,10 +431,10 @@ char *fastq_relocate (char *data, int offset, int length){
      if (!target)
          return NULL;
      else {
-         if ((strchr(target+1,'\n')-target)!=length)
-         target = strchr (target+1,'\n')+1; 
+         if ((strchr(target+1,'\n')-target+1)!=length)
+            target = strchr (target+1,'\n')+1; 
          //if (target!=NULL)
-         target = strchr (target+1,'\n')+1;
+            target = strchr (target+1,'\n')+1;
      }
      
      return target;

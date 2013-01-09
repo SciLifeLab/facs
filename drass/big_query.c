@@ -213,11 +213,6 @@ BIGCAST CHUNKer(gzFile zip,BIGCAST offset,int chunk,char *data,int type)
     if (data != NULL)
         length = strlen(data);
 
-#ifdef DEBUG
-    printf ("data->%s\n",data);
-    printf ("length->%d\n",length);
-#endif
-
     if (length>=chunk) {
         if (type == 2) {
             pos = strrstr (data,"\n+");
