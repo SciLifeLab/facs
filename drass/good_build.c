@@ -134,12 +134,11 @@ build(char *ref_name, char *target_path, int k_mer, double error_rate, char *pre
   char *position = mmaping (ref_name);
 
   bloom *bl = NEW (bloom);
-  printf ("k_mer->%d\n",k_mer);
   if (k_mer!=0)
       bl->k_mer = k_mer;
   else
       bl->k_mer = kmer_suggestion(get_size(ref_name));
-
+  printf ("k_mer->%d\n",bl->k_mer);
   bl->stat.e = error_rate;
   bl->dx = dx_add (bl->k_mer);
   bl->stat.capacity = strlen (position);

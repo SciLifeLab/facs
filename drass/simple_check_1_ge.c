@@ -85,7 +85,6 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
   File_head = make_list (ref, list);
   /*-------------------------------------*/
   position = mmaping (source);
- 
   type = get_parainfo (position,head);
   /*-------------------------------------*/
   while (File_head)
@@ -99,7 +98,7 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	{
 	  while (head != tail) {
 #pragma omp task firstprivate(head)
-	      {
+	      { 
 		if (head->location!=NULL)
                   {
 		  if (type == 1)
@@ -183,9 +182,9 @@ void
 fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	       float sampling_rate, float tole_rate)
 {
-#ifdef DEBUG
+  #ifdef DEBUG
   printf ("fasta processing...\n");
-#endif
+  #endif
   char *temp_next, *next, *temp;
 
   if (info->location == NULL)

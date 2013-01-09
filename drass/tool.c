@@ -334,35 +334,36 @@ get_parainfo (char *full, Queue * head)
 	  printf ("distributing...\n");
 #endif
 	  int type;
-      char *previous = NULL;
+          char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
 	  short add = 0;
-      int offset = NULL;
+          int offset = 0;
 	  Queue *pos = head;
-      Queue *x = NEW (Queue);
+          Queue *x = NEW (Queue);
+          int length = 0;
 
       if (full != NULL) {
           offset = strlen(full) / cores;
-
           if (*full == '>')
             type = 1;
           else if (*full == '@')
             type = 2;
-          else {
-              perror ("wrong format\n");
-              exit (-1);
+          else
+            {
+            perror ("wrong format\n");
+            exit (-1);
+            }
           }
-      }
       
       if (type == 1) {
               for (add = 0; add < cores; add++) {
+                  Queue *x = NEW (Queue);
                   if (add == 0 && *full != '>')
                     temp = strchr (full, '>');	//drop the possible fragment
 
                   if (add != 0)
                     temp = strchr (full + offset * add, '>');
-                  
                   x->location = temp;
                   x->number = &add;
                   x->next = pos->next;
@@ -375,9 +376,9 @@ get_parainfo (char *full, Queue * head)
 	      for (add = 0; add < cores; add++) {
               Queue *x = NEW (Queue);
               x->location = NULL;
-              
+              length = strchr(strchr(x,'\n')+1,'\n')-(strchr(x,'\n')+1);
               if (add != 0)
-                  temp = fastq_relocate(full, offset*add);
+                  temp = fastq_relocate(full, offset*add, length);
                        
               if (previous!=temp) {
                   previous = temp;
@@ -420,7 +421,7 @@ jump (char *target, int type, float sampling_rate)
 }
 
 /*-------------------------------------*/
-char *fastq_relocate (char *data, int offset){
+char *fastq_relocate (char *data, int offset, int length){
      char *target=NULL;
 
      if(data != NULL && offset != NULL)
@@ -429,9 +430,10 @@ char *fastq_relocate (char *data, int offset){
      if (!target)
          return NULL;
      else {
+         if ((strchr(target+1,'\n')-target)!=length)
          target = strchr (target+1,'\n')+1; 
-         if (target!=NULL)
-             target = strchr (target+1,'\n')+1;
+         //if (target!=NULL)
+         target = strchr (target+1,'\n')+1;
      }
      
      return target;
