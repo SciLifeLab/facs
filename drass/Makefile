@@ -9,7 +9,7 @@ AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.
 all:$(PROG)
 
 tests: python
-	nosetests -v -s ../tests/test.py
+	nosetests -v -s ../tests
 
 valgrind: python
 	valgrind --tool=memcheck --suppressions=../tests/utils/valgrind-python.supp nosetests -v -s ../tests/test_basic.py
