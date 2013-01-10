@@ -55,7 +55,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
-    def test_3_query_custom(self):
+    def test_4_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
@@ -64,7 +64,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
-    def test_4_query_custom_small_compressed(self):
+    def test_3_query_custom_small_compressed(self):
 	""" Query gzip compressed fastq files (less than 20MB).
 	"""
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")): 

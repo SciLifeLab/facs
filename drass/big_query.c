@@ -123,11 +123,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
 	    {
 #pragma omp task firstprivate(head)
 	      {
-
-#ifdef DEBUG
-    printf("head->%0.40s\n",head->location);
-#endif
-		if (head->location) {
+	if (head->location!=NULL) {
             if (type == 1) {
                 fasta_process (bl_2, head, tail, File_head, sampling_rate,
                                tole_rate);
@@ -145,9 +141,11 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
  
   if (position != NULL) {
       memset (position, 0, strlen(position));
-  //else {
-  //    perror("Cannot memset, wrong position on fastq file\n");
-  //    exit(-1);
+      free (position);
+      }
+  else {
+      perror("Cannot memset, wrong position on fastq file\n");
+      exit(-1);
   }
 
   clean_list (head2, tail);
