@@ -141,7 +141,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
  
   if (position != NULL) {
       memset (position, 0, strlen(position));
-      free (position);
+      //free (position);
       }
   else {
       perror("Cannot memset, wrong position on fastq file\n");
@@ -151,7 +151,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   clean_list (head2, tail);
   
     }				//end while
-  
+  free(position);
   evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
