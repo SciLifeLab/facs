@@ -8,31 +8,31 @@
 #include "remove.h"
 
 static char module_docstring[] =
-    "This module provides an interface for building and querying DRASS bloom filters";
+    "This module provides an interface for building and querying FACS bloom filters";
 static char bloom_docstring[] =
-    "Builds a DRASS bloom filter and performs queries against it.";
+    "Builds a FACS bloom filter and performs queries against it.";
 
 /* Available functions */
-static PyObject *drass_bloom_build(PyObject *self, PyObject *args);
-static PyObject *drass_bloom_query(PyObject *self, PyObject *args);
-static PyObject *drass_bloom_remove(PyObject *self, PyObject *args);
+static PyObject *facs_bloom_build(PyObject *self, PyObject *args);
+static PyObject *facs_bloom_query(PyObject *self, PyObject *args);
+static PyObject *facs_bloom_remove(PyObject *self, PyObject *args);
 
 static PyMethodDef module_methods[] = {
-        {"build", drass_bloom_build, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
-        {"query", drass_bloom_query, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
-        {"remove", drass_bloom_remove, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
+        {"build", facs_bloom_build, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
+        {"query", facs_bloom_query, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
+        {"remove", facs_bloom_remove, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
         {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initdrass(void)
+PyMODINIT_FUNC initfacs(void)
 {
-    PyObject *m = Py_InitModule3("drass", module_methods, module_docstring);
+    PyObject *m = Py_InitModule3("facs", module_methods, module_docstring);
     if (m == NULL)
         return;
 }
 
 
-static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
+static PyObject *facs_bloom_query(PyObject *self, PyObject *args)
 {
    double sampling_rate=1;
    double tole_rate=0;
@@ -46,12 +46,12 @@ static PyObject *drass_bloom_query(PyObject *self, PyObject *args)
    return Py_BuildValue("i", ret);
 }
 
-static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
+static PyObject *facs_bloom_build(PyObject *self, PyObject *args)
 {
    char *source, *bloom_filter, *prefix;
    int ret;
 
-   //DRASS operational defaults
+   //FACS operational defaults
    int k_mer=0;
    double error_rate=0.0005;
 
@@ -64,7 +64,7 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
 }
 
 
-static PyObject *drass_bloom_remove(PyObject *self, PyObject *args)
+static PyObject *facs_bloom_remove(PyObject *self, PyObject *args)
 {
    double tole_rate=0;
    char *src, *ref, *list, *prefix;

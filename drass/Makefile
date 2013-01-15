@@ -24,10 +24,10 @@ mpi:
 	#mpirun -np 1 ./mpi_bloom_l -l tzcoolman  -q test.fna
 
 python:
-	rm -rf build/ drass.so && python setup.py build_ext --inplace && python setup.py develop
+	rm -rf build/ ${PROG}.so && python setup.py build_ext --inplace && python setup.py develop
 
 clean:
-	rm -f core.* vgcore.* *.o *.so *.a ${PROG}
+	rm -f core.* vgcore.* *.o *.so *.a *.info ${PROG}
 
 
 .c.o:

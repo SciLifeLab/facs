@@ -496,7 +496,7 @@ build_help ()
   printf
     ("##########################################################################\n");
   printf ("---Bloom build----\n");
-  printf ("#  ./drass -m b [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m b [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
@@ -520,7 +520,7 @@ check_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination check---\n");
-  printf ("#  ./drass -m c [option] [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m c [option] [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
@@ -553,7 +553,7 @@ remove_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination remove---\n");
-  printf ("#  ./drass -m r [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m r [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
@@ -578,7 +578,7 @@ remove_l_help ()
   printf ("---contamination remove list mode---\n");
   printf ("Pretty like mode r but with slight difference\n");
   printf ("reads will be classified to the most like reference if\nmultiple reference files exist\n");
-  printf ("#  ./drass -m l [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m l [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
