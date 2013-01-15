@@ -60,9 +60,9 @@ int remove_main(int argc, char** argv)
               remove_help();
       } 
   } 
-  return remove_all(tole_rate, source, ref, list, target_path);
+  return remove_reads(source, ref, list, target_path, tole_rate);
 }
-int remove_all(float tole_rate, char *source, char *ref, char *list, char *prefix)
+int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_rate)
 {
   /*-------------------------------------*/
   int type = 1;

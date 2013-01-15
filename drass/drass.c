@@ -5,6 +5,7 @@
 #include "build.h"
 #include "check.h"
 #include "big_query.h"
+#include "remove.h"
 
 static char module_docstring[] =
     "This module provides an interface for building and querying DRASS bloom filters";
@@ -14,10 +15,12 @@ static char bloom_docstring[] =
 /* Available functions */
 static PyObject *drass_bloom_build(PyObject *self, PyObject *args);
 static PyObject *drass_bloom_query(PyObject *self, PyObject *args);
+static PyObject *drass_bloom_remove(PyObject *self, PyObject *args);
 
 static PyMethodDef module_methods[] = {
         {"build", drass_bloom_build, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
         {"query", drass_bloom_query, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
+        {"remove", drass_bloom_remove, METH_VARARGS | METH_KEYWORDS, bloom_docstring},
         {NULL, NULL, 0, NULL}
 };
 
@@ -56,6 +59,21 @@ static PyObject *drass_bloom_build(PyObject *self, PyObject *args)
        return NULL;
    
    ret = build(source, bloom_filter, k_mer, error_rate, prefix);
+
+   return Py_BuildValue("i", ret);
+}
+
+
+static PyObject *drass_bloom_remove(PyObject *self, PyObject *args)
+{
+   double tole_rate=0;
+   char *src, *ref, *list, *prefix;
+   int ret;
+
+   if (!PyArg_ParseTuple(args, "ss|ssd", &src, &ref, &list, &prefix, &tole_rate))
+       return NULL;
+   
+   ret = remove_reads(src, ref, NULL, NULL, tole_rate);
 
    return Py_BuildValue("i", ret);
 }
