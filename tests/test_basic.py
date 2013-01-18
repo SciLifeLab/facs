@@ -2,7 +2,7 @@ import os
 import sys
 import errno
 import glob
-import drass
+import facs
 import unittest
 import subprocess
 import contextlib
@@ -36,7 +36,7 @@ class DrassBasicTest(unittest.TestCase):
         """
         # Build bloom filter out of the reference file(s)
         for ref in os.listdir(self.reference):
-            drass.build(os.path.join(self.reference, ref),
+            facs.build(os.path.join(self.reference, ref),
                         os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
 
     def test_2_query(self):
@@ -45,7 +45,7 @@ class DrassBasicTest(unittest.TestCase):
         for nreads in self.fastq_nreads:
             test_fname = "test%s.fastq" % nreads
             helper._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
-            drass.query(os.path.join(self.synthetic_fastq, test_fname),
+            facs.query(os.path.join(self.synthetic_fastq, test_fname),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
@@ -54,7 +54,7 @@ class DrassBasicTest(unittest.TestCase):
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
     	    print "\nQuerying against uncompressed sample %s" % sample
-            drass.query(os.path.join(self.custom_dir, sample),
+            facs.query(os.path.join(self.custom_dir, sample),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
@@ -64,4 +64,4 @@ class DrassBasicTest(unittest.TestCase):
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")): 
     	    print "\nQuerying against compressed sample %s" % sample
             if os.path.getsize(os.path.join(self.custom_dir, sample)) < 20*1024*1204:
-		drass.query(os.path.join(self.custom_dir, sample),os.path.join(self.bloom_dir, "U00096.2.bloom"))
+		facs.query(os.path.join(self.custom_dir, sample),os.path.join(self.bloom_dir, "U00096.2.bloom"))
