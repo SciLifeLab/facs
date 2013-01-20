@@ -28,13 +28,13 @@ def _generate_dummy_fastq(fname, num_reads):
 
     if not os.path.exists(fname):
         with open(fname, "w") as f:
-            f.write(self.header)
+            f.write(header)
             # Spike one ecoli read
-            f.write(self.ecoli_read)
+            f.write(ecoli_read)
 
             for r in xrange(num_reads):
                 # Identify reads uniquely for later debugging (task distribution, for instance)
-                f.write(self.header + 'TASK ID: ' + str(r) + '\n')
+                f.write(header + 'TASK ID: ' + str(r) + '\n')
                  
                 f.write('GATTACAT' * stride + '\n')
                 f.write('+' + '\n')
@@ -43,6 +43,9 @@ def _generate_dummy_fastq(fname, num_reads):
 def _download_test_files(data_dir):
     """Download required sequence and reference files.
     """
+
+    print "Downloading reference genome files..."
+
     DlInfo = collections.namedtuple("ecoli", "fname dirname version")
     download_data = [DlInfo("U00096.2.fasta", "reference", None)]
 
@@ -53,7 +56,7 @@ def _download_test_files(data_dir):
         if not os.path.exists(dirname):
             os.mkdir(dirname)
         if not os.path.exists(os.path.join(dirname, dl.fname)):
-            self._download_to_dir(url, dirname)
+            _download_to_dir(url, dirname)
 
 def _download_to_dir(url, dirname):
     fname = os.path.basename(url)
