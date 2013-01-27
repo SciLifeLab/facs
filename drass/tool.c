@@ -372,10 +372,12 @@ get_parainfo (char *full, Queue * head)
               }
 
 	  } else {
+              //char *tx = strchr(full,'\n');
+              //length = strchr(tx+1,'\n')-(tx+1);
+     
+	      for (add = 0; add < cores; add++) {
               char *tx = strchr(full,'\n');
               length = strchr(tx+1,'\n')-(tx+1);
-              printf ("reads length->%d\n",length);
-	      for (add = 0; add < cores; add++) {
               Queue *x = NEW (Queue);
               x->location = NULL;
               //char *tx = strchr(full,'\n');
@@ -424,23 +426,27 @@ jump (char *target, int type, float sampling_rate)
 }
 
 /*-------------------------------------*/
+
 char *fastq_relocate (char *data, int offset, int length){
      char *target=NULL;
-
-     if(data != NULL && offset != NULL)
-        target = strstr (data + offset, "\n+");
-
-     if (!target)
-         return NULL;
-     else {
-         //if ((strchr(target+1,'\n')-target+1)!=length)
-            target = strchr (target+1,'\n')+1; 
-         //if (target!=NULL)
-            target = strchr (target+1,'\n')+1;
+     int current_length = 0, read_length = 0;
+     if(data != NULL && offset != 0)
+        {
+         target = strstr (data + offset, "\n+");
+         if (!target)
+              return NULL;
+         else {
+             current_length = strchr(target+1,'\n')-target+1;
+             read_length = fq_read_length (target-1);
+             if (read_length=current_length)
+                 target = strchr (target+1,'\n')+1; 
+             if (target!=NULL)
+                 target = strchr (target+1,'\n')+1;
+              }
      }
-     
      return target;
 }
+
 /*-------------------------------------*/
 int 
 dx_add (int k_mer)
@@ -450,4 +456,12 @@ dx_add (int k_mer)
    for (x=1;x<k_mer;x++)
         y+=x;
    return y;
+}
+/*-------------------------------------*/
+int fq_read_length (char *data)
+{
+char *origin = data;
+while (*data!='\n')
+      data--;
+return origin-data;
 }

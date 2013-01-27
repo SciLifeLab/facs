@@ -92,7 +92,7 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
       load_bloom (File_head->filename, bl_2);
       if (tole_rate==0)
           tole_rate = mco_suggestion(bl_2->k_mer);
-#pragma omp parallel
+#pragma omp parallel num_threads(1)
       {
 #pragma omp single nowait
 	{
@@ -101,6 +101,7 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	      { 
 		if (head->location!=NULL)
                   {
+                  printf ("head->%0.60s\n",head->location);
 		  if (type == 1)
 		    fasta_process (bl_2, head, tail, File_head, sampling_rate,
 				   tole_rate);
@@ -114,11 +115,11 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       evaluate (detail, File_head->filename, File_head);
+
       /*-------------------------------------*/
       File_head = File_head->next;
       head = head2;
       bloom_destroy (bl_2);
-      
     }				//end while
   statistic_save (detail, source, prefix);
   munmap (position, strlen (position));
