@@ -36,7 +36,7 @@ class DrassBasicTest(unittest.TestCase):
         """
         for ref in os.listdir(self.reference):
             facs.build(os.path.join(self.reference, ref),
-                       os.path.join(self.bloom_dir, os.path.splitext(ref)[0]))
+		os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
 
     def test_2_query(self):
         """ Generate dummy fastq files.
