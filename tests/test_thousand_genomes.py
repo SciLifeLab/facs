@@ -2,7 +2,7 @@ import os
 import sys
 import errno
 import glob
-import drass
+import facs
 import unittest
 import subprocess
 import contextlib
@@ -21,7 +21,7 @@ class ThousandGenomesTest(unittest.TestCase):
         """ Query gzip compressed fastq files
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
-            drass.query(os.path.join(self.custom_dir, sample),
+            facs.query(os.path.join(self.custom_dir, sample),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
     #XXX

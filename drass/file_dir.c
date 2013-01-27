@@ -54,32 +54,32 @@ make_list (char *file_user, char *list_user)
 
   F_set *head = NEW (F_set);
   F_set *head1 = head;
+  
+  char *mimi = NULL;
+  char *pos = NULL;
   int number = 0;
 
   if (list_user)
     {
-  
       list_user = mmaping (list_user);
-      char *pos;
-
 
       while (list_user != '\0')
 	{
 
-	  char *mimi = (char *) malloc (300 * sizeof (char) + 1);
+	  mimi = (char *) malloc (300 * sizeof (char) + 1);
 	  memset (mimi, 0, 300);
 
-	  F_set *crap = NEW (F_set);
+	  F_set *fset = NEW (F_set);
 
 	  if ((pos = strchr (list_user, '\n'))!=NULL)
 	    strncat (mimi, list_user, pos - list_user);
 	  else
 	    break;
 
-	  crap->filename = mimi;
-	  crap->number = number;
-	  crap->next = head->next;
-	  head->next = crap;
+	  fset->filename = mimi;
+	  fset->number = number;
+	  fset->next = head->next;
+	  head->next = fset;
 	  head = head->next;
 	  list_user = pos + 1;
 	  number++;
@@ -89,10 +89,10 @@ make_list (char *file_user, char *list_user)
   else if (is_file (file_user))
     {
    
-      F_set *crap = NEW (F_set);
-      crap->filename = file_user;
-      crap->next = head->next;
-      head->next = crap;
+      F_set *fset = NEW (F_set);
+      fset->filename = file_user;
+      fset->next = head->next;
+      head->next = fset;
       head = head->next;
       head->next = NULL;
     }
@@ -117,17 +117,21 @@ make_list (char *file_user, char *list_user)
 
 	  if (!strstr (dir_info->d_name, ".bloom"))
 	    continue;
+
 	  printf ("file_path->%s\n", file_path);
-	  F_set *crap = NEW (F_set);
-	  crap->filename = file_path;
-	  crap->number = &number;
-	  printf ("crap->%d\n", crap->number);
-	  crap->next = head->next;
-	  head->next = crap;
+	  F_set *fset = NEW (F_set);
+	  fset->filename = file_path;
+	  fset->number = &number;
+	  printf ("fset->%d\n", fset->number);
+	  fset->next = head->next;
+	  head->next = fset;
 	  head = head->next;
 	  number++;
 	}
     }
+
+  //free(file_path);
+  //free(mimi);
   head1->next->reads_num = 0;
   head1->next->reads_contam = 0;
   return head1->next;
