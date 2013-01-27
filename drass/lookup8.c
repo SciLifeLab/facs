@@ -241,7 +241,7 @@ hash2 (register ub8 *k, register ub8 length, register ub8 level)
 */
 
 ub8
-hash3 (register ub1 *k, register ub8 length, register level)
+hash3 (register ub1 *k, register ub8 length, register ub8 level)
 /*
      register ub1 *k;		// the key
      register ub8 length;	// the length of the key

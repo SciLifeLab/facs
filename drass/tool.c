@@ -333,14 +333,14 @@ get_parainfo (char *full, Queue * head)
 #ifdef DEBUG
 	  printf ("distributing...\n");
 #endif
-	  int type;
+	  int type = 0;
           char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
 	  short add = 0;
           int offset = 0;
 	  Queue *pos = head;
-          Queue *x = NEW (Queue);
+       //   Queue *x = NEW (Queue);
           int length = 0;
 
       if (full != NULL) {
@@ -427,7 +427,7 @@ jump (char *target, int type, float sampling_rate)
 char *fastq_relocate (char *data, int offset, int length){
      char *target=NULL;
 
-     if(data != NULL && offset != NULL)
+     if(data != NULL && offset != 0)
         target = strstr (data + offset, "\n+");
 
      if (!target)

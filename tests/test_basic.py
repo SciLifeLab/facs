@@ -34,10 +34,9 @@ class DrassBasicTest(unittest.TestCase):
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
-        # Build bloom filter out of the reference file(s)
         for ref in os.listdir(self.reference):
             facs.build(os.path.join(self.reference, ref),
-                        os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+		os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
 
     def test_2_query(self):
         """ Generate dummy fastq files.
