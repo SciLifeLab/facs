@@ -44,8 +44,6 @@ def _download_test_files(data_dir):
     """Download required sequence and reference files.
     """
 
-    print "Downloading reference genome files..."
-
     DlInfo = collections.namedtuple("ecoli", "fname dirname version")
     download_data = [DlInfo("U00096.2.fasta", "reference", None)]
 

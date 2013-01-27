@@ -72,10 +72,16 @@ build_main (int argc, char **argv)
               return build_usage();
       } 
   } 
-  
-  if (!list)
+ 
+  printf("LIST IS %s\n", list);
+ 
+  if (!list) {
+#ifdef DEBUG
+    printf("[bloom build]: source is %s\n", source);
+    printf("[bloom build]: target is %s\n", target_path);
+#endif
     build(source, target_path, k_mer, error_rate, NULL);
-  else {
+  } else {
       bloom *bl_2 = NEW (bloom);
       Queue *head = NEW (Queue);
       Queue *tail = NEW (Queue);
@@ -84,7 +90,9 @@ build_main (int argc, char **argv)
       File_head = make_list (source, list);
       
       while (File_head) {
+#ifdef DEBUG
           printf ("Path->%s\n", File_head->filename);
+#endif
           //map query- into memory--------------
           position = mmaping (File_head->filename);
           if (*position == '>')
