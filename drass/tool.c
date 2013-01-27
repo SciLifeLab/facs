@@ -372,7 +372,9 @@ get_parainfo (char *full, Queue * head)
               }
 
 	  } else {
-
+              char *tx = strchr(full,'\n');
+              length = strchr(tx+1,'\n')-(tx+1);
+              printf ("reads length->%d\n",length);
 	      for (add = 0; add < cores; add++) {
               Queue *x = NEW (Queue);
               x->location = NULL;
