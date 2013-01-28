@@ -88,8 +88,9 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
   while (File_head)
     {
       load_bloom (File_head->filename, bl_2);
-      printf ("File name->%s ", File_head->filename);
+      printf ("File name->%s", File_head->filename);
       printf ("File number->%d\n", File_head->number);
+
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -112,12 +113,13 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       head = head2;
+
       bloom_destroy (bl_2);
       File_head = File_head->next;
+
     }				// End outside while
 
-  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2,
-	    position, type, prefix);
+  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2, position, type, prefix);
   munmap (position, strlen (position));
 
   printf ("finish processing...\n");
@@ -129,7 +131,6 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 void
 fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, char *clean, char *contam, float tole_rate)
 {
-  printf ("fastq processing...\n");
 
   int read_num = 0, result = 0, countup = 0;
   char *p = info->location;
@@ -145,7 +146,6 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
   if (info->score == NULL)
     {
       read_num = count_read (p, next,2);
-      printf ("read_num->%d\n", read_num);
       info->score = (short *) malloc (read_num * sizeof (short));
       info->number = (short *) malloc (read_num * sizeof (short));
     }
@@ -201,8 +201,6 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
 void
 fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail, char *clean, char *contam, float tole_rate)
 {
-  printf ("fasta processing...\n");
-
   int read_num = 0, result = 0, countup = 0, sign = 0;
 
   char *p = info->location;

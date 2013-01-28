@@ -87,18 +87,19 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
   position = mmaping (source);
   type = get_parainfo (position,head);
   /*-------------------------------------*/
-  while (File_head)
+  while (File_head!=NULL)
     {
       load_bloom (File_head->filename, bl_2);
       if (tole_rate==0)
           tole_rate = mco_suggestion(bl_2->k_mer);
-#pragma omp parallel num_threads(1)
+#pragma omp parallel 
       {
 #pragma omp single nowait
 	{
 	  while (head != tail) {
 #pragma omp task firstprivate(head)
 	      { 
+
 		if (head->location!=NULL)
                   {
 		  if (type == 1)
@@ -108,6 +109,7 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
 		    fastq_process (bl_2, head, tail, File_head, sampling_rate,
 		  		   tole_rate);
 		  }
+
 	      }
 	      head = head->next;
 	    }
@@ -115,8 +117,8 @@ int check_all (char *source, char *ref, float tole_rate, float sampling_rate, ch
       }				// End of parallel region - implied barrier
       evaluate (detail, File_head->filename, File_head);
 
-      /*-------------------------------------*/
       File_head = File_head->next;
+
       head = head2;
       bloom_destroy (bl_2);
     }				//end while
