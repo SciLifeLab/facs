@@ -60,9 +60,9 @@ int remove_main(int argc, char** argv)
               remove_help();
       } 
   } 
-  return remove_all(tole_rate, source, ref, list, target_path);
+  return remove_reads(source, ref, list, target_path, tole_rate);
 }
-int remove_all(float tole_rate, char *source, char *ref, char *list, char *prefix)
+int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_rate)
 {
   /*-------------------------------------*/
   int type = 1;
@@ -103,11 +103,12 @@ int remove_all(float tole_rate, char *source, char *ref, char *list, char *prefi
 	    {
 #pragma omp task firstprivate(head)
 	      {
-		if (head->location!=NULL)
+		if (head->location!=NULL) {
 		  if (type == 1)
 		    fasta_process_m (bl_2, head, tail, tole_rate, File_head);
 		  else
 		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
+                }
 	    }
           }
 	      head = head->next;

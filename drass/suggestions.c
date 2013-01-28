@@ -16,7 +16,7 @@ float get_probability (BIGCAST hits, BIGCAST total, int k_mer)
 double times = (double)total/(100*MB);
 double prob = 0;
 int rand_hit = 0;
-((k_mer/3)==0)&&(k_mer=k_mer,1)||(k_mer-(k_mer%3));
+//((k_mer/3)==0)&&(k_mer=k_mer,1)||(k_mer-(k_mer%3));
 switch (k_mer)
 {
   case 9:

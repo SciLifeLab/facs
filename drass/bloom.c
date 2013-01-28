@@ -322,18 +322,27 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       return 0;
     }
 
-  write (fd, bl, sizeof (bloom));
+  if(write (fd, bl, sizeof (bloom)) < 0) {
+      perror (" error writing bloom file ");
+      exit (EXIT_FAILURE);
+  }
 
   total_size = (long long) (bl->stat.elements / 8) + 1;
 
   BIGNUM off = 0;
   while (total_size > TWOG)
     {
-      write (fd, bl->vector + off, sizeof (char) * TWOG);
+      if(write(fd, bl->vector + off, sizeof (char) * TWOG) < 0) {
+	      perror (" error writing bloom file ");
+	      exit (EXIT_FAILURE);
+      }
       total_size -= TWOG;
       off += TWOG;
     }
-  write (fd, bl->vector + off, sizeof (char) * total_size);
+  if (write (fd, bl->vector + off, sizeof (char) * total_size) < 0){
+	      perror (" error writing bloom file ");
+	      exit (EXIT_FAILURE);
+  };
   close (fd);
 
   memset (bl->vector, 0,
@@ -366,7 +375,9 @@ load_bloom (char *filename, bloom * bl)
       return -1;
   }
 
-  read (fd, bl, sizeof (bloom));
+  if (read (fd, bl, sizeof (bloom)) < 0){
+     perror("Problem reading bloom filter");
+  };
 
   bl->vector =
     (char *) malloc (sizeof (char) *
@@ -400,7 +411,10 @@ write_result (char *filename, char *detail)
   int fd;
 
   fd = open (filename, O_CREAT | O_RDWR, S_IRWXU);
-  write (fd, detail, strlen (detail));
+  if (write (fd, detail, strlen (detail)) < 0) {
+      perror (" error writing result file ");
+      exit (EXIT_FAILURE);
+  }
 
   close (fd);
 }
@@ -496,7 +510,7 @@ build_help ()
   printf
     ("##########################################################################\n");
   printf ("---Bloom build----\n");
-  printf ("#  ./drass -m b [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m b [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
@@ -520,7 +534,7 @@ check_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination check---\n");
-  printf ("#  ./drass -m c [option] [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m c [option] [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
@@ -553,7 +567,7 @@ remove_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination remove---\n");
-  printf ("#  ./drass -m r [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m r [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
@@ -578,7 +592,7 @@ remove_l_help ()
   printf ("---contamination remove list mode---\n");
   printf ("Pretty like mode r but with slight difference\n");
   printf ("reads will be classified to the most like reference if\nmultiple reference files exist\n");
-  printf ("#  ./drass -m l [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs -m l [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -m Mode selection: b or build can be taken\n");
