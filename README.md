@@ -1,10 +1,17 @@
 FACS (Fast and Accurate Classification of Sequences) C implementation
 ======================================================================
 
-[![Build Status](https://travis-ci.org/tzcoolman/DRASS.png?branch=master)](DRASS)
+[![Build Status](https://travis-ci.org/scilifelab/facs.png?branch=master)](facs)
 
 WARNING: This program is under active development and this documentation might not reflect reality.
 Please file a GitHub issue and we will take care of it as soon as we can.
+
+Introduction
+------------
+
+FACS is the C implementation of a previous Perl module, please select the
+<a href="https://github.com/SciLifeLab/facs/tree/perl">perl branch</a> if
+you want to have a look at the old (unsupported) implementation.
 
 Overview
 --------
