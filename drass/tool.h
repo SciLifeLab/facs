@@ -2,6 +2,7 @@
 #define _TOOL
 
 #include "bloom.h"
+int fq_read_length (char *data);
 extern int dx_add (int k_mer);
 extern int get_parainfo (char *full, Queue *head);
 extern char *fastq_relocate (char *data, int offset, int length);

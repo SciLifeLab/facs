@@ -62,22 +62,24 @@ make_list (char *file_user, char *list_user)
   if (list_user)
     {
       list_user = mmaping (list_user);
-
       while (list_user != '\0')
 	{
 
-	  mimi = (char *) malloc (300 * sizeof (char) + 1);
-	  memset (mimi, 0, 300);
+	  mimi = (char *) malloc (200 * sizeof (char) + 1);
+	  memset (mimi, 0, 200);
 
 	  F_set *fset = NEW (F_set);
+          fset->filename = NULL;
+          fset->number = 0;
 
 	  if ((pos = strchr (list_user, '\n'))!=NULL)
 	    strncat (mimi, list_user, pos - list_user);
 	  else
 	    break;
-
+           
 	  fset->filename = mimi;
-	  fset->number = number;
+          int num = number;
+	  fset->number = num;
 	  fset->next = head->next;
 	  head->next = fset;
 	  head = head->next;

@@ -126,7 +126,7 @@ bloom_destroy (bloom * bloom)
   memset (bloom->vector, 0,
 	  sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
   free (bloom->vector);
-
+  bloom->vector = NULL;
 }
 
 int
@@ -252,7 +252,8 @@ prefix_make (char *filename, char *prefix, char *target)
     memset (bloom_file, 0, 300);
     if (is_dir(target)) {
         strcat (bloom_file,target);
-        strcat (bloom_file,filename);
+        if (position1!=NULL)
+            strncat (bloom_file,position1,strrchr(position1,'.')-position1);
     }  else if (target) {
         strcat (bloom_file,target);
     }
@@ -261,7 +262,8 @@ prefix_make (char *filename, char *prefix, char *target)
             strncat (bloom_file,position1,strrchr(position1,'.')-position1);
         else
             strncat (bloom_file,filename,strrchr(filename,'.')-filename);
-        strcat (bloom_file, ".bloom"); 
+        strcat (bloom_file, ".bloom");
+        bloom_file++;
     }
        else
        {
@@ -290,7 +292,10 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   //if (bloom_file[0]=='/')
   //    bloom_file++;
   if (prefix==NULL && target==NULL)
+      {
       strcat (bloom_file,".bloom");
+      bloom_file++;
+      }
   else if (is_dir(target))
       strcat (bloom_file,".bloom");
 

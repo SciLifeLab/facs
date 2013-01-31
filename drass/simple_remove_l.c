@@ -24,18 +24,47 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
-int
-remove_main_l (float tole_rate, char *source, char *ref, char *list, char *prefix, int help)
+int remove_l_main(int argc, char** argv)
 {
-  if (help == 1)
-    {
-      remove_l_help ();
-      exit (1);
-    }
-  long sec, usec, i;
-  struct timezone tz;
-  struct timeval tv, tv2;
-  gettimeofday (&tv, &tz);
+  if (argc < 2) remove_help();
+/*-------defaults for bloom filter building-------*/ 
+  int opt;
+  float tole_rate = 0;
+  char* ref = NULL;
+  char* list = NULL;
+  char* target_path = NULL;
+  char* source = NULL;
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1) {
+      switch (opt) {
+          case 't':
+              (optarg) && ((tole_rate = atof(optarg)), 1);
+              break;
+          case 'o':    
+              (optarg) && ((target_path = optarg), 1);
+              break;
+          case 'q':  
+              (optarg) && (source = optarg, 1);  
+              break;
+          case 'r':  
+              (optarg) && (ref = optarg, 1);  
+              break;
+          case 'l':
+              (optarg) && (list = optarg, 1);  
+              break;
+          case 'h':
+              remove_help();
+          case '?':
+              printf ("Unknown option: -%c\n", (char) optopt);
+              remove_help();
+      } 
+  } 
+  //return remove_l(source, ref, list, target_path, tole_rate);
+    return remove_l(tole_rate, source, ref, list, target_path);
+}
+/*-------------------------------------*/
+int
+remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
+{
 /*-------------------------------------*/
   char *position;
   int type = 1;
@@ -59,7 +88,7 @@ remove_main_l (float tole_rate, char *source, char *ref, char *list, char *prefi
   while (File_head)
     {
       load_bloom (File_head->filename, bl_2);
-      printf ("File name->%s ", File_head->filename);
+      printf ("File name->%s", File_head->filename);
       printf ("File number->%d\n", File_head->number);
 #pragma omp parallel
       {
@@ -83,21 +112,18 @@ remove_main_l (float tole_rate, char *source, char *ref, char *list, char *prefi
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       head = head2;
+
       bloom_destroy (bl_2);
       File_head = File_head->next;
+
     }				// End outside while
 
-  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2,
-	    position, type, prefix);
+  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2, position, type, prefix);
   munmap (position, strlen (position));
 
-  printf ("finish processing...\n");
 #ifdef DEBUG
-  gettimeofday (&tv2, &tz);
-  sec = tv2.tv_sec - tv.tv_sec;
-  usec = tv2.tv_usec - tv.tv_usec;
+  printf ("finish processing...\n");
 #endif
-  printf ("total=%ld sec\n", sec);
 
   return 0;
 }
@@ -106,8 +132,6 @@ remove_main_l (float tole_rate, char *source, char *ref, char *list, char *prefi
 void
 fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, char *clean, char *contam, float tole_rate)
 {
-  printf ("fastq processing...\n");
-
   int read_num = 0, result = 0, countup = 0;
   char *p = info->location;
   char *next, *temp_start, *temp_end;
@@ -122,7 +146,6 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
   if (info->score == NULL)
     {
       read_num = count_read (p, next,2);
-      printf ("read_num->%d\n", read_num);
       info->score = (short *) malloc (read_num * sizeof (short));
       info->number = (short *) malloc (read_num * sizeof (short));
     }
@@ -141,7 +164,7 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
 	temp_end = strchr (p, '\0');
 
       result =
-	fastq_read_check (p, strchr (p, '\n') - p, "normal", bl, tole_rate);
+	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate,File_head);
 
       if (result == 0)
 	{
@@ -178,14 +201,9 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
 void
 fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail, char *clean, char *contam, float tole_rate)
 {
-  printf ("fasta processing...\n");
-
   int read_num = 0, result = 0, countup = 0, sign = 0;
-
   char *p = info->location;
-
   char *next;
-
   char *temp = p;
 
   if (info->next == NULL)
@@ -208,8 +226,7 @@ fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail, cha
       if (!temp)
 	temp = next;
 
-      result = fasta_read_check (p, temp, "normal", bl, tole_rate);
-      //printf ("result->%d\n",result);
+      result = fasta_read_check (p, temp, 'n', bl, tole_rate, File_head);
       if (result == 0)
 	{
 #pragma omp critical
