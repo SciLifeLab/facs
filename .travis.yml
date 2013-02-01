@@ -18,7 +18,7 @@ before_install:
 python:
     - 2.7
 script:
-    - cd drass
+    - cd facs 
     - make tests
 notifications:
   email: false
