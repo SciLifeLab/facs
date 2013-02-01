@@ -1,7 +1,7 @@
 FACS (Fast and Accurate Classification of Sequences) C implementation
 ======================================================================
 
-[![Build Status](https://travis-ci.org/scilifelab/facs.png?branch=master)](facs)
+[![Build Status](https://travis-ci.org/SciLifeLab/facs.png?branch=master)](https://travis-ci.org/SciLifeLab/facs)
 
 WARNING: This program is under active development and this documentation might not reflect reality.
 Please file a GitHub issue and we will take care of it as soon as we can.
