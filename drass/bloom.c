@@ -384,9 +384,7 @@ load_bloom (char *filename, bloom * bl)
      perror("Problem reading bloom filter");
   };
 
-  bl->vector =
-    (char *) malloc (sizeof (char) *
-		     ((long long) (bl->stat.elements / 8) + 1));
+  bl->vector = (char *) malloc (sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
 
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
 
