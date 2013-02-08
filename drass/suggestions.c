@@ -11,6 +11,18 @@
 #include <sys/types.h>
 #define MB 1048576
 
+
+double get_mu (BIGNUM num_hit, double prob)
+{
+       return ((double)num_hit)*prob;
+}
+
+double get_sigma (BIGNUM num_hit, double prob)
+{
+       return (double)num_hit*prob*(1-prob);
+}
+
+/*
 float get_probability (BIGCAST hits, BIGCAST total, int k_mer)
 {
 double times = (double)total/(100*MB);
@@ -44,6 +56,8 @@ if (prob<rand_hit)
 else
     return hits/total; 
 }
+*/
+
 
 BIGCAST get_size (char *filename)
 {
