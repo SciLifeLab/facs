@@ -114,6 +114,7 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
       head = head2;
 
       bloom_destroy (bl_2);
+
       File_head = File_head->next;
 
     }				// End outside while
@@ -311,7 +312,7 @@ save_result_ml (char *source, char *obj_file, char *data, char *data2,
     {
       strcat (match, ".fastq");
     }
-  printf ("match->%s\n", match);
+  //printf ("match->%s\n", match);
 
   write_result (match, data2);
 
@@ -331,7 +332,7 @@ save_result_ml (char *source, char *obj_file, char *data, char *data2,
 int
 count_read (char *data, char *next, int type)
 {
-  printf ("count_read\n");
+  //printf ("count_read\n");
   int number = 1;
   char *pos, *temp_next;
   pos = data;
@@ -359,11 +360,12 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source, char *c
   char *pos, *next, *temp_next;
   int countup;
   Queue *head;
+  printf ("clean->%s\n",clean);
   save_result_ml (source, File_head2->filename, clean, clean2, 0, type, prefix);	// save the clean data
   free (clean2);
 
 //File_head2 = File_head2->next;
-//printf("1_dollar_%s\n",File_head2->filename);
+printf("1_dollar_%s\n",File_head2->filename);
   while (File_head2)
     {
       head = head2;
