@@ -227,12 +227,13 @@ finder (BIGNUM index, deref * dr)
 {
 
   //dr->index = (BIGNUM) (index / 8);
-  //dr->spot = pow (2, (index % 8));
+  //dr->spot = 1<<(2, (index % 8));
   dr->index = (BIGNUM) (index >> 3);
   //dr->spot = pow (2, (index % 8));
   //dr->spot = 0x80;
   //dr->spot = dr->spot >> (index & 0x07);
-  dr->spot = pow(2,(index & 0x07));
+  //dr->spot = pow(2,(index & 0x07));
+  dr->spot = 1<<(index & 0x07);
   return 0;
 }
 
@@ -384,9 +385,7 @@ load_bloom (char *filename, bloom * bl)
      perror("Problem reading bloom filter");
   };
 
-  bl->vector =
-    (char *) malloc (sizeof (char) *
-		     ((long long) (bl->stat.elements / 8) + 1));
+  bl->vector = (char *) malloc (sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
 
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
 
@@ -515,16 +514,15 @@ build_help ()
   printf
     ("##########################################################################\n");
   printf ("---Bloom build----\n");
-  printf ("#  ./facs -m b [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs build [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
-  printf ("#  -m Mode selection: b or build can be taken\n");
   printf ("#  -r reference file name or directory name\n");
   printf ("#  -l a list containing multiple reference filenames\n");
   printf ("!!! either -r or -l can only be allowed each time !!!\n");
   printf ("#  -k k_mer size (default size 21)\n");
   printf ("#  -e error rate (default rate 0.0005)\n");
-  printf ("#  -b 1 means show help description; 0 means normal bloom-build\n");
+  printf ("#  -h show help documents\n");
   printf
     ("#  -o output file name (default file is saved as the same as binary file)\n");
   printf
@@ -539,20 +537,20 @@ check_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination check---\n");
-  printf ("#  ./facs -m c [option] [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs check [option] [option] [option] [option] [option] <option>\n");
+  printf ("#  Either query dataset is compressed or larger than 2GB, use:");
+  printf ("#  ./facs query [option] [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
-  printf ("#  -m Mode selection: b or build can be taken\n");
-  printf ("#  -t tolerant rate (default rate 0.8)\n");
+  printf ("#  -t tolerant rate (The program will automatically select a value if you don't provide any.)\n");
   printf ("#  -s sampling rate (default rate 1)\n");
   printf ("#  -q query file name\n");
   printf ("#  -l a list containing all bloom files\n");
   printf ("#  -r single reference bloom filter file or directory\n");
   printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -b 1 means show help description; 0 means normal check\n");
+  printf ("#  -h help documents\n");
   printf
     ("#  -o output file name (default file is saved as the same path as the binary file)\n");
-  printf ("!  Either '-q' or '-l' is used at one run.\n");
 //printf("#\n");   
 //printf("#   *'1' is mode 1. For instance, when you use a ecoli filter and want to capture every contaminated read that caused by\n"); 
 //printf("#   ecoli in the 'human.fna' query file, use mode 1. Mode 2 is currently under evaluation\n");
@@ -572,16 +570,15 @@ remove_help ()
   printf
     ("##########################################################################\n");
   printf ("---contamination remove---\n");
-  printf ("#  ./facs -m r [option] [option] [option] [option] <option>\n");
+  printf ("#  ./facs remove [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
-  printf ("#  -m Mode selection: b or build can be taken\n");
-  printf ("#  -t tolerant rate (default rate 0.8)\n");
+  printf ("#  -t tolerant rate (The program will automatically select a value if you don't provide any.)\n");
   printf ("#  -q query file name\n");
   printf ("#  -l a list containing all bloom files\n");
   printf ("#  -r reference bloom filter file or dir\n");
   printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -b 1 means show help description; 0 means normal decontamination\n");
+  printf ("#  -h help documents\n");
   printf
     ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf
@@ -595,18 +592,17 @@ remove_l_help ()
   printf ("USAGE\n");
   printf ("##########################################################################\n");
   printf ("---contamination remove list mode---\n");
-  printf ("Pretty like mode r but with slight difference\n");
-  printf ("reads will be classified to the most like reference if\nmultiple reference files exist\n");
-  printf ("#  ./facs -m l [option] [option] [option] [option] <option>\n");
+  printf ("Similar with mode remove but with slight difference\n");
+  printf ("Reads will be classified to the most like reference if\nmultiple reference files exist\n");
+  printf ("#  ./facs classify [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
-  printf ("#  -m Mode selection: b or build can be taken\n");
-  printf ("#  -t tolerant rate (default rate 0.8)\n");
+  printf ("#  -t tolerant rate\n");
   printf ("#  -q query file name\n");
   printf ("#  -l a list containing all bloom files\n");
   printf ("#  -r reference bloom filter file or dir\n");
   printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -b 1 means show help description; 0 means normal decontamination\n");
+  printf ("#  -h help documents\n");
   printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
   printf ("##########################################################################\n");
   exit (1);

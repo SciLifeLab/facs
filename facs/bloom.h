@@ -89,7 +89,8 @@ typedef struct file_list
 #define ERR_UNKNOWN 3
 
 BIGNUM mkprime(BIGNUM startval);
-
+extern double get_mu (BIGNUM num_hit, double prob);
+extern double get_sigma (BIGNUM num_hit, double prob);
 
 extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity,
                       double error_rate, int hashes, hash_t hash, int flags);
