@@ -124,7 +124,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 	distance--;
     }				// end while
   free (key);
-  result = (float)(match_time*bl->k_mer+conse)/(float)(length*bl->k_mer-2*bl->dx+conse);
+  result = (float)(match_time*bl->k_mer+conse)/(float)(length*bl->k_mer-2*bl->dx+length-k_mer+1);
   //result = (float) match_s / (float) length;
   #pragma omp atomic
   File_head->hits+=match_time;
@@ -314,7 +314,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
   //result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter-bl->k_mer+2)*bl->k_mer+conse+2*dx_add(bl->k_mer));
   //printf ("result1->%f\n",result);
   //result = (float)(match_time*bl->k_mer)/(float)((next-begin-count_enter)*bl->k_mer-2*dx_add(bl->k_mer-1));
-  result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter)*bl->k_mer-2*bl->dx+conse);
+  result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter)*bl->k_mer-2*bl->dx+(next-begin-count_enter)-k_mer+1);
   
   #pragma omp atomic
   File_head->hits+=match_time;
