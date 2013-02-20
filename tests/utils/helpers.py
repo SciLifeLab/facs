@@ -10,6 +10,11 @@ from tempfile import NamedTemporaryFile
 import functools
 import urllib
 
+'''
+Code has been borrowed from Brad Chapman's et al CloudBiolinux:
+
+https://github.com/chapmanb/cloudbiolinux
+'''
 
 # Aux methods
 
@@ -40,21 +45,63 @@ def _generate_dummy_fastq(fname, num_reads):
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
 
+####
+#### Download reference genomes logic
+####
+
+class BroadGenome(_DownloadHelper):
+    """Retrieve genomes organized and sorted by Broad for use with GATK.
+
+    Uses the UCSC-name compatible versions of the GATK bundles.
+    """
+    def __init__(self, name, bundle_version, target_fasta, dl_name=None):
+        _DownloadHelper.__init__(self)
+        self.data_source = "UCSC"
+        self._name = name
+        self.dl_name = dl_name if dl_name is not None else name
+        self._target = target_fasta
+                        "{ver}/{org}/".format(ver=bundle_version, org=self.dl_name)
+
+    def download(self, seq_dir):
+        org_file = "%s.fa" % self._name
+        if not self._exists(org_file, seq_dir):
+            run("wget %s%s.gz" % (self._ftp_url, self._target))
+            run("gunzip %s.gz" % self._target)
+            run("mv %s %s" % (self._target, org_file))
+        return org_file, []
+
+def _download_ref_genomes(genome, path, fname):
+
+    urls = ['http://togows.dbcls.jp/entry/ncbi-nucleotide/{genome}'.format(genome=genome),
+            'ftp://gsapubftp-anonymous:@ftp.broadinstitute.org/bundle/2.3/ucsc.{genome}.fasta.gz'.format(genome=genome)
+           ]
+
+    cl = ["wget", url, "-O", os.path.join(dirname, fname)]
+    subprocess.check_call(cl)
+    
+    if fname.endswith(".gz"):
+            cl=['gunzip', fname]
+            subprocess.check_call(cl)
+            
+
 def _download_test_files(data_dir):
     """Download required sequence and reference files.
     """
+    genomes = {'hg19': 'hg19',
+               'ecoli': 'U00096.2.fasta']
 
-    DlInfo = collections.namedtuple("ecoli", "fname dirname version")
-    download_data = [DlInfo("U00096.2.fasta", "reference", None)]
-
-    for dl in download_data:
-        url = "http://togows.dbcls.jp/entry/ncbi-nucleotide/{fname}".format(fname=dl.fname)
-        dirname = os.path.join(data_dir, dl.dirname)
+    for gen in genomes:
+        _download_ref_genome(gen, data_dir, )
         
         if not os.path.exists(dirname):
             os.mkdir(dirname)
         if not os.path.exists(os.path.join(dirname, dl.fname)):
             _download_to_dir(url, dirname)
+
+
+###
+### Download custom local software logic
+###
 
 def _download_to_dir(url, dirname):
     fname = os.path.basename(url)
@@ -66,8 +113,6 @@ def _download_to_dir(url, dirname):
     if os.path.splitext(fname) == ".gz":
         cl = ["tar", "-xzvpf", os.path.basename(url)]
         subprocess.check_call(cl)
-    #os.rename(os.path.basename(dirname), dirname)
-    #os.remove(os.path.basename(url))
 
 def _mkdir_p(path):
     try:
