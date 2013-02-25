@@ -24,8 +24,8 @@ build_usage(void)
 {
     fprintf(stderr, "\nUsage: ./facs build [options]\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-r path/to/something.fasta\n");
-    fprintf(stderr, "\t-o have to use it, but does not write file! :_/ XXX\n");
+    fprintf(stderr, "\t-r path/to/reference_file.fasta\n");
+    fprintf(stderr, "\t-o .bloom filter file\n");
     return 1;
 }
 

@@ -28,7 +28,7 @@ Quickstart
 In order to fetch the source code, compile and run tests:
 
 ```
-$ git clone https://github.com/scilifelab/facs && cd facs && make -j8 && make tests
+$ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8 && make tests
 ```
 
 Please note that python's <a href="https://github.com/brainsik/virtualenv-burrito">virtualenv</a> is needed to run the tests.
