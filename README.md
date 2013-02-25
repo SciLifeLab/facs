@@ -25,13 +25,14 @@ It supports large genome files (>4GB), human genome, for instance.
 Quickstart
 ----------
 
-In order to fetch the source code, compile and run tests:
+In order to fetch the source code and compile, run:
 
 ```
-$ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8 && make tests
+$ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8
 ```
 
-Please note that python's <a href="https://github.com/brainsik/virtualenv-burrito">virtualenv</a> is needed to run the tests.
+Please note that python's <a href="https://github.com/brainsik/virtualenv-burrito">virtualenv</a>
+is needed to run the tests.
 
 Usage
 ------
