@@ -49,7 +49,7 @@ Contact: Enze Liu <enze.liu@scilifelab.se>
 
 Usage:   facs <command> [options]
 
-Command: build         build a bloom filter from a FASTA reference file
+Command: build         build a bloom filter from a FASTA/FASTA reference file
          query         query a bloom filter given a FASTQ/FASTA file
          remove        remove (contamination) sequences from FASTQ/FASTA file
 ```
