@@ -83,9 +83,8 @@ def _finalize_index(idx, fname):
 def rsync_genomes(genome_dir, genomes, genome_indexes):
     """Top level entry point to retrieve rsync'ed indexes from Galaxy.
     """
-    for gid in (x[1] for x in genomes):
+    for gid in genomes:
         galaxy_gid = org_remap.get(gid, gid)
-        print genome_dir, genomes, genome_indexes
         indexes = _get_galaxy_genomes(galaxy_gid, genome_dir, genomes, genome_indexes)
         for idx, fname in indexes.iteritems():
             _finalize_index(idx, fname)
@@ -122,18 +121,9 @@ def _rsync_genome_index(gid, idx, org_dir):
             with cd(idx_dir):
                 subprocess.check_call(["rsync", "-avzP", org_rsync, "."])
     if os.path.exists(idx_dir):
-        idxes = glob.glob("{idx_dir}/{gid}.fa*".format(idx_dir=idx_dir, gid=gid))
+        has_fa_ext = glob.glob("{idx_dir}/{gid}.fa*".format(idx_dir=idx_dir, gid=gid))
 
-        if idxes:
-            for i in idxes:
-                if i.endswith('.fa'):
-                    ext = ".fa"
-                else:
-                    ext = ""
-        else:
-            ext = ""
-
-#        ext = ".fa" if (has_fa_ext and idx not in ["seq"]) else ""
+        ext = ".fa" if (has_fa_ext and idx not in ["seq"]) else ""
         return os.path.join(idx_dir, gid + ext)
 
 @contextmanager
@@ -146,7 +136,7 @@ def cd(path):
         os.chdir(old_dir)
 
 def main():
-    rsync_genomes(os.path.abspath("."), [("phix", "phix", "phix")], ['ucsc'])
+    rsync_genomes(os.path.abspath("."), ["phix"], ['ucsc'])
 
 if __name__ == "__main__":
     main()
