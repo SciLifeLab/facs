@@ -65,10 +65,11 @@ def _finalize_index_seq(fname):
     """
     out_fasta = fname + ".fa"
     if not os.path.exists(out_fasta):
-        subprocess.check_call(["twoBitToFa", "{base}.2bit {out}".format(
-            base=fname, out=out_fasta)])
+        subprocess.check_call(["twoBitToFa", "{}.2bit".format(fname), out_fasta])
 
 finalize_fns = {"ucsc": _finalize_index_seq}
+
+
 
 def _finalize_index(idx, fname):
     """Perform final processing on an rsync'ed index file if necessary.
@@ -84,11 +85,10 @@ def rsync_genomes(genome_dir, genomes, genome_indexes):
     """
     for gid in (x[1] for x in genomes):
         galaxy_gid = org_remap.get(gid, gid)
+        print genome_dir, genomes, genome_indexes
         indexes = _get_galaxy_genomes(galaxy_gid, genome_dir, genomes, genome_indexes)
-        _finalize_index("ucsc", indexes["ucsc"])
         for idx, fname in indexes.iteritems():
             _finalize_index(idx, fname)
-        prep_locs(galaxy_gid, indexes, {})
 
 def _get_galaxy_genomes(gid, genome_dir, genomes, genome_indexes):
     """Retrieve the provided genomes and indexes from Galaxy rsync.
@@ -96,7 +96,7 @@ def _get_galaxy_genomes(gid, genome_dir, genomes, genome_indexes):
     out = {}
     org_dir = os.path.join(genome_dir, gid)
     if not os.path.exists(org_dir):
-        subprocess.check_call(['mkdir', '-p', 'org_dir'])
+        subprocess.check_call(['mkdir', '-p', org_dir])
     for idx in genome_indexes:
         galaxy_index_name = index_map.get(idx)
         index_file = None
@@ -116,12 +116,11 @@ def _rsync_genome_index(gid, idx, org_dir):
     idx_dir = os.path.join(org_dir, idx)
     if not os.path.exists(idx_dir):
         check_dir = subprocess.check_output(["rsync", "--list-only", "{server}".format(server=org_rsync)])
-        if org_dir in check_dir:
+        if check_dir:
             if not os.path.exists(idx_dir):
                 subprocess.check_call(['mkdir', '-p', idx_dir])
-                print idx_dir
             with cd(idx_dir):
-                subprocess.check_call(["rsync", "-avzP", org_rsync])
+                subprocess.check_call(["rsync", "-avzP", org_rsync, "."])
     if os.path.exists(idx_dir):
         idxes = glob.glob("{idx_dir}/{gid}.fa*".format(idx_dir=idx_dir, gid=gid))
 
@@ -147,7 +146,7 @@ def cd(path):
         os.chdir(old_dir)
 
 def main():
-    _get_galaxy_genomes("hg19", os.path.dirname(__file__), "hg19", ["seq"])
+    rsync_genomes(os.path.abspath("."), [("phix", "phix", "phix")], ['ucsc'])
 
 if __name__ == "__main__":
     main()
