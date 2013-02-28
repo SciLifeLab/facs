@@ -44,31 +44,17 @@ def _generate_dummy_fastq(fname, num_reads):
 def download_ref_genomes(dst, organism):
     """ Download sequence reference files.
     """
-    fname = galaxy.rsync_genomes(organism, organism, ["seq"])
+    fname = galaxy.rsync_genomes(organism, organism, ["ucsc"])
 #XXX    if not os.path.exists("twoBitToFa"):
 #        _download_twoBitToFa_bin(os.path.basename(fname))
-    galaxy._finalize_index_seq(fname)
 
 def _download_twoBitToFa_bin(dest_dir):
     twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
     subprocess.check_call(["wget", "--no-check-certificate", "{}".format(twobit_url),
                            "-O", dest_dir])
 
-def _download_test_files(data_dir):
-    """Download required sequence and reference files. (DEPRECATED)
-    """
 
-    DlInfo = collections.namedtuple("ecoli", "fname dirname version")
-    download_data = [DlInfo("U00096.2.fasta", "reference", None)]
-
-    for dl in download_data:
-        url = "http://togows.dbcls.jp/entry/ncbi-nucleotide/{fname}".format(fname=dl.fname)
-        dirname = os.path.join(data_dir, dl.dirname)
-        
-        if not os.path.exists(dirname):
-            os.mkdir(dirname)
-        if not os.path.exists(os.path.join(dirname, dl.fname)):
-            _download_to_dir(url, dirname)
+### Software management
 
 def _download_to_dir(url, dirname):
     fname = os.path.basename(url)

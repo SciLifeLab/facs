@@ -89,6 +89,8 @@ def rsync_genomes(genome_dir, genomes, genome_indexes):
         for idx, fname in indexes.iteritems():
             _finalize_index(idx, fname)
 
+    return os.path.abspath(fname)
+
 def _get_galaxy_genomes(gid, genome_dir, genomes, genome_indexes):
     """Retrieve the provided genomes and indexes from Galaxy rsync.
     """
