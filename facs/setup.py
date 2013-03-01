@@ -4,7 +4,7 @@ import sys, os
 
 version = '2.0'
 
-c_ext = Extension("facs", define_macros = [('DEBUG', '1'), ('FIFO', '1'), ('FILE_OFFSET_BITS', '64'), ('LARGE_FILE', '1')],
+c_ext = Extension("_facs", define_macros = [('DEBUG', '1'), ('FIFO', '1'), ('FILE_OFFSET_BITS', '64'), ('LARGE_FILE', '1')],
                            sources = ["facs.c", "tool.c", "bloom.c", "good_build.c",
                                       "suggestions.c", "lookup8.c", "file_dir.c",
                                       "simple_check_1_ge.c", "big_query.c", "simple_remove.c"],
