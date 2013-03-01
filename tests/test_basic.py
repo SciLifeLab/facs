@@ -8,8 +8,7 @@ import contextlib
 import collections
 
 import facs
-import facs.utils.helpers
-print dir(facs.utils.helpers)
+print(dir(facs))
 
 class DrassBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
