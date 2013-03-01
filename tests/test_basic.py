@@ -2,14 +2,13 @@ import os
 import sys
 import errno
 import glob
-import facs
 import unittest
 import subprocess
 import contextlib
 import collections
 
-import utils.helpers as helper
-
+import facs
+print(dir(facs))
 
 class DrassBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
@@ -23,13 +22,14 @@ class DrassBasicTest(unittest.TestCase):
 
         self.fastq_nreads = [1, 8, 200]
 
-        helper._mkdir_p(self.data_dir)
-        helper._mkdir_p(self.bloom_dir)
-        helper._mkdir_p(self.custom_dir)
-        helper._mkdir_p(self.synthetic_fastq)
+        utils.helpers._mkdir_p(self.data_dir)
+        utils.helpers._mkdir_p(self.reference)
+        utils.helpers._mkdir_p(self.bloom_dir)
+        utils.helpers._mkdir_p(self.custom_dir)
+        utils.helpers._mkdir_p(self.synthetic_fastq)
 
         # Downloads reference genome(s)
-        helper._download_test_files(self.data_dir)
+        utils.helpers.download_ref_genomes(self.data_dir, "ecoli")
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
@@ -43,7 +43,7 @@ class DrassBasicTest(unittest.TestCase):
         """
         for nreads in self.fastq_nreads:
             test_fname = "test%s.fastq" % nreads
-            helper._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
+            utils.helpers._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
             facs.query(os.path.join(self.synthetic_fastq, test_fname),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
@@ -54,7 +54,7 @@ class DrassBasicTest(unittest.TestCase):
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
     	    print "\nQuerying against uncompressed sample %s" % sample
             facs.query(os.path.join(self.custom_dir, sample),
-                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
+                       os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
 
     def test_4_query_custom_small_compressed(self):
