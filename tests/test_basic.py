@@ -8,8 +8,8 @@ import contextlib
 import collections
 
 import facs
-import utils.helpers as helper
-
+import facs.utils.helpers
+print dir(facs.utils.helpers)
 
 class DrassBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
@@ -23,14 +23,14 @@ class DrassBasicTest(unittest.TestCase):
 
         self.fastq_nreads = [1, 8, 200]
 
-        helper._mkdir_p(self.data_dir)
-        helper._mkdir_p(self.reference)
-        helper._mkdir_p(self.bloom_dir)
-        helper._mkdir_p(self.custom_dir)
-        helper._mkdir_p(self.synthetic_fastq)
+        utils.helpers._mkdir_p(self.data_dir)
+        utils.helpers._mkdir_p(self.reference)
+        utils.helpers._mkdir_p(self.bloom_dir)
+        utils.helpers._mkdir_p(self.custom_dir)
+        utils.helpers._mkdir_p(self.synthetic_fastq)
 
         # Downloads reference genome(s)
-        helper.download_ref_genomes(self.data_dir, "ecoli")
+        utils.helpers.download_ref_genomes(self.data_dir, "ecoli")
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
@@ -44,7 +44,7 @@ class DrassBasicTest(unittest.TestCase):
         """
         for nreads in self.fastq_nreads:
             test_fname = "test%s.fastq" % nreads
-            helper._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
+            utils.helpers._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
             facs.query(os.path.join(self.synthetic_fastq, test_fname),
                         os.path.join(self.bloom_dir, "U00096.2.bloom"))
 
