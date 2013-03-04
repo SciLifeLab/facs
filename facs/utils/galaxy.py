@@ -60,6 +60,11 @@ def _get_tool_conf(tool_name):
 
 # ## Finalize downloads
 
+def _download_twoBitToFa_bin(dest_dir):
+    twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
+    subprocess.check_call(["wget", "--no-check-certificate", "{}".format(twobit_url),
+                           "-O", dest_dir])
+
 def _finalize_index_seq(fname):
     """Convert UCSC 2bit file into fasta file.
     """
@@ -67,8 +72,8 @@ def _finalize_index_seq(fname):
     if not os.path.exists(out_fasta):
         subprocess.check_call(["twoBitToFa", "{}.2bit".format(fname), out_fasta])
 
-finalize_fns = {"ucsc": _finalize_index_seq}
 
+finalize_fns = {"ucsc": _finalize_index_seq}
 
 
 def _finalize_index(idx, fname):
@@ -80,7 +85,7 @@ def _finalize_index(idx, fname):
 
 # ## Retrieve data from Galaxy
 
-def rsync_genomes(genome_dir, genomes, genome_indexes):
+def rsync_genomes(genome_dir, genomes, genome_indexes=["ucsc"]):
     """Top level entry point to retrieve rsync'ed indexes from Galaxy.
     """
     for gid in genomes:
@@ -139,7 +144,7 @@ def cd(path):
 
 # testing purposes
 def main():
-    rsync_genomes(os.path.abspath("."), ["phix"], ['ucsc'])
+    rsync_genomes(os.path.abspath("."), ["phix"])
 
 if __name__ == "__main__":
     main()

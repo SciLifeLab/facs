@@ -41,11 +41,6 @@ def generate_dummy_fastq(fname, num_reads):
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
 
-def _download_twoBitToFa_bin(dest_dir):
-    twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
-    subprocess.check_call(["wget", "--no-check-certificate", "{}".format(twobit_url),
-                           "-O", dest_dir])
-
 
 ### Software management
 
