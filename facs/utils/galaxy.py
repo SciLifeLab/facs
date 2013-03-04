@@ -60,39 +60,39 @@ def _get_tool_conf(tool_name):
 
 # ## Finalize downloads
 
-def _download_twoBitToFa_bin(dest_dir):
+def download_twoBitToFa_bin(dst):
     twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
     subprocess.check_call(["wget", "--no-check-certificate", "{}".format(twobit_url),
-                           "-O", dest_dir])
+                           "-O", dst])
 
-def _finalize_index_seq(fname):
+def _finalize_index_seq(fname, binpath):
     """Convert UCSC 2bit file into fasta file.
     """
     out_fasta = fname + ".fa"
     if not os.path.exists(out_fasta):
-        subprocess.check_call(["twoBitToFa", "{}.2bit".format(fname), out_fasta])
+        subprocess.check_call([binpath, "{}.2bit".format(fname), out_fasta])
 
 
 finalize_fns = {"ucsc": _finalize_index_seq}
 
 
-def _finalize_index(idx, fname):
+def _finalize_index(idx, fname, binpath):
     """Perform final processing on an rsync'ed index file if necessary.
     """
     finalize_fn = finalize_fns.get(idx)
     if finalize_fn:
-        finalize_fn(fname)
+        finalize_fn(fname, binpath)
 
 # ## Retrieve data from Galaxy
 
-def rsync_genomes(genome_dir, genomes, genome_indexes=["ucsc"]):
+def rsync_genomes(genome_dir, genomes, genome_indexes, binpath):
     """Top level entry point to retrieve rsync'ed indexes from Galaxy.
     """
     for gid in genomes:
         galaxy_gid = org_remap.get(gid, gid)
         indexes = _get_galaxy_genomes(galaxy_gid, genome_dir, genomes, genome_indexes)
         for idx, fname in indexes.iteritems():
-            _finalize_index(idx, fname)
+            _finalize_index(idx, fname, binpath)
 
     return os.path.abspath(fname)
 
@@ -143,8 +143,8 @@ def cd(path):
         os.chdir(old_dir)
 
 # testing purposes
-def main():
-    rsync_genomes(os.path.abspath("."), ["phix"])
-
-if __name__ == "__main__":
-    main()
+#def main():
+#    rsync_genomes(os.path.abspath("."), ["phix"])
+#
+#if __name__ == "__main__":
+#    main()
