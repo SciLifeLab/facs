@@ -137,6 +137,7 @@ def cd(path):
     finally:
         os.chdir(old_dir)
 
+# testing purposes
 def main():
     rsync_genomes(os.path.abspath("."), ["phix"], ['ucsc'])
 

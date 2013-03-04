@@ -22,7 +22,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
 @Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aWZ^Y]bba^[_b]GTXX]aOPJPSB
 """
 
-def _generate_dummy_fastq(fname, num_reads):
+def generate_dummy_fastq(fname, num_reads):
     """ Generates simplest reads with dummy qualities
     """
     stride=13
@@ -40,13 +40,6 @@ def _generate_dummy_fastq(fname, num_reads):
                 f.write('GATTACAT' * stride + '\n')
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
-
-def download_ref_genomes(dst, organism):
-    """ Download sequence reference files.
-    """
-    fname = galaxy.rsync_genomes(organism, organism, ["ucsc"])
-#XXX    if not os.path.exists("twoBitToFa"):
-#        _download_twoBitToFa_bin(os.path.basename(fname))
 
 def _download_twoBitToFa_bin(dest_dir):
     twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
