@@ -377,7 +377,6 @@ load_bloom (char *filename, bloom * bl)
   fd = open64 (filename, O_RDONLY, PERMS);
 #endif
 
-printf ("dick\n");
   if (fd < 0) {
       perror (filename);
       exit(-1);
