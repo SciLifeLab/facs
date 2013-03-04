@@ -364,7 +364,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 int
 load_bloom (char *filename, bloom * bl)
 {
-  int fd = 0;
+  int fd;
   int ret;
 
 #ifdef DEBUG
@@ -376,9 +376,11 @@ load_bloom (char *filename, bloom * bl)
 #else
   fd = open64 (filename, O_RDONLY, PERMS);
 #endif
+
+printf ("dick\n");
   if (fd < 0) {
       perror (filename);
-      return -1;
+      exit(-1);
   }
 
   if (read (fd, bl, sizeof (bloom)) < 0){
