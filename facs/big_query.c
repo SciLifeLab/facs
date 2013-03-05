@@ -107,7 +107,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
       normal = 0;
       }
 
-  if (strstr(query, ".fastq") || strstr(query, ".fq"))
+  if (strstr(query, ".fastq")!=NULL || strstr(query, ".fq")!=NULL)
       type = 2;
   else
       type = 1;

@@ -43,7 +43,7 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
   }
    
       printf ("p->%0.30s\n",p);
-      printf ("next->%0.30\n",next);
+      printf ("next->%0.30s\n",next);
 
 
   while (p != next)
