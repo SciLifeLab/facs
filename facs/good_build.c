@@ -32,7 +32,7 @@ build_usage(void)
 int
 build_main (int argc, char **argv)
 {
-  if (argc < 2) return build_usage();
+  if (argc < 2) build_help();
 
   char *position;
   BIGNUM capacity;
@@ -46,7 +46,6 @@ build_main (int argc, char **argv)
   char* prefix = NULL;
   char* target_path = NULL;
   char* source = NULL;
-  printf ("1st command->%s\n",argv[0]);
   while ((opt = getopt (argc, argv, "ek:o:r:lh")) != -1) {
       switch (opt) {
           case 'e':
@@ -66,10 +65,10 @@ build_main (int argc, char **argv)
               (optarg) && (list = optarg, 1);  
               break;
           case 'h':
-              return build_usage();
+              build_help();
           case '?':
               printf ("Unknown option: -%c\n", (char) optopt);
-              return build_usage();
+              build_help();
       } 
   } 
  
