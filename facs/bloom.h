@@ -91,6 +91,7 @@ typedef struct file_list
 BIGNUM mkprime(BIGNUM startval);
 extern double get_mu (BIGNUM num_hit, double prob);
 extern double get_sigma (BIGNUM num_hit, double prob);
+extern BIGCAST get_size (char *filename);
 
 extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity,
                       double error_rate, int hashes, hash_t hash, int flags);
@@ -109,7 +110,6 @@ extern int bloom_hash_old(bloom *bloom,char *str, int i);
 
 extern BIGNUM find_close_prime(BIGNUM m);
 extern int get_suggestion(struct bloomstat *stats, BIGNUM n,double e);
-extern BIGCAST get_size (char *filename);
 extern int kmer_suggestion (BIGCAST size);
 extern float mco_suggestion (int k_mer);
 extern int is_prime(BIGNUM m);
