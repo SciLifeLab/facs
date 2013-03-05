@@ -38,6 +38,8 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
     next = info->next->location;
   } else {
     next = strchr (p, '\0');
+    if ((next-1)=='\n' && (next-2)=='\n')
+    next-=1;
   }
 
   while (p != next)
@@ -84,7 +86,11 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
   else if (info->next != tail)
     next = info->next->location;
   else
-    next = strchr (info->location, '\0');
+    {
+      next = strchr (info->location, '\0');
+      if ((next-1)=='\n' && (next-2)=='\n')
+      next -= 1;
+    }
 
   char *p = info->location;
 
