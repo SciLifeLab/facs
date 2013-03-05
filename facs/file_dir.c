@@ -131,7 +131,10 @@ make_list (char *file_user, char *list_user)
 	  number++;
 	}
     }
-
+  else {
+  perror (file_user);
+  exit(-1);
+  }
   //free(file_path);
   //free(mimi);
   head1->next->reads_num = 0;
