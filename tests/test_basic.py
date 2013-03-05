@@ -36,7 +36,7 @@ class DrassBasicTest(unittest.TestCase):
 		galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
         # Downloads reference genome(s)
-        galaxy.rsync_genomes(self.reference, ["phix", "hg19"], ["ucsc"], twobit_fa_path)
+        galaxy.rsync_genomes(self.reference, ["phix", "dm3"], ["ucsc"], twobit_fa_path)
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
