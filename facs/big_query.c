@@ -77,12 +77,12 @@ int bq_main(int argc, char** argv)
 
 int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
 {
-
+  
   gzFile zip;
-  int type = 0;
+  int type = 0, normal = 0;
   BIGCAST offset = 0;
-  char *detail = (char*) malloc((ONE*ONE*ONE)*sizeof(char));
-  char *position =  (char*) malloc((ONEG+1)*sizeof(char));
+  char *detail = (char*) calloc((ONE*ONE*ONE),sizeof(char));
+  char *position =  (char*) calloc((ONEG+1),sizeof(char));
   
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -94,20 +94,34 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   load_bloom (File_head->filename, bl_2);  //load a bloom filter
   if (tole_rate==0)
       tole_rate = mco_suggestion (bl_2->k_mer); 
-  
-  if ((zip = gzopen(query, "rb"))<0) {
-	 perror("query open error...\n");
-     exit(-1);
-  }
+ 
+  if ((get_size (query)<2*ONEG) && !strstr(query,".gz") & !strstr(query, ".tar"))
+      normal = 1; 
+  else
+      {
+      if ((zip = gzopen(query, "rb"))<0) 
+         {
+           perror("query open error...\n");
+           exit(-1);
+         }
+      normal = 0;
+      }
 
   if (strstr(query, ".fastq") || strstr(query, ".fq"))
       type = 2;
   else
       type = 1;
  
-  
-  while (offset!=-1) {   
-	offset = CHUNKer(zip,offset,ONEG,position,type);
+  while (offset!=-1) {
+    if (normal == 1)
+        {
+          position = mmaping (query);
+          offset = -1;
+        }
+    else
+        {
+          offset = CHUNKer(zip,offset,ONEG,position,type);
+        }   
     Queue *head = NEW (Queue);
     head->location = NULL;
     Queue *tail = NEW (Queue);
@@ -139,19 +153,25 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
 }				// End of parallel region - implied barrier
                 //evaluate (detail, File_head->filename, File_head);
  
-  if (position != NULL) {
-      memset (position, 0, strlen(position));
-      //free (position);
+  if (position != NULL && normal == 0) 
+      {
+         memset (position, 0, strlen(position));
       }
-  else {
-      perror("Cannot memset, wrong position on fastq file\n");
-      exit(-1);
-  }
+  else if (normal == 1)
+      {
+         munmap (position, strlen (position));
+      }
+  else 
+      {
+         perror("Cannot memset, wrong position on fastq file\n");
+         exit(-1);
+      }
 
   clean_list (head2, tail);
   
     }				//end while
-  free(position);
+  if (normal == 0)
+  free (position);
   evaluate (detail, File_head->filename, File_head);
   gzclose(zip);
   bloom_destroy (bl_2);
