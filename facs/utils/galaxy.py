@@ -5,6 +5,7 @@ http://wiki.galaxyproject.org/Admin/Data%20Integration
 from xml.etree import ElementTree
 import glob
 import os
+import stat
 import subprocess
 from contextlib import contextmanager
 
@@ -64,6 +65,8 @@ def download_twoBitToFa_bin(dst):
     twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
     subprocess.check_call(["wget", "--no-check-certificate", "{}".format(twobit_url),
                            "-O", dst])
+    st = os.stat(dst)
+    os.chmod(dst, st.st_mode | stat.S_IEXEC)
 
 def _finalize_index_seq(fname, binpath):
     """Convert UCSC 2bit file into fasta file.

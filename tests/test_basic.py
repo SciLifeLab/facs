@@ -42,19 +42,25 @@ class DrassBasicTest(unittest.TestCase):
         """ Build bloom filters out of the reference genomes directory.
         """
         for ref in os.listdir(self.reference):
-            facs.build(os.path.join(self.reference, ref),
-		os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+	    org = os.path.join(self.reference, ref, "seq", ref+".fa")
+	    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+	    print(org, bf)
+
+            facs.build(org, bf)
 
     def test_2_query(self):
         """ Generate dummy fastq files and query them against reference bloom filters.
         """
         for nreads in self.fastq_nreads:
             test_fname = "test%s.fastq" % nreads
-            helpers._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
+            helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
 
-	for ref in self.reference:
-		facs.query(os.path.join(self.synthetic_fastq, test_fname),
-			   os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+        for ref in os.listdir(self.reference):
+	    qry = os.path.join(self.synthetic_fastq, test_fname)
+	    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+	    print(qry, bf)
+
+	    facs.query(qry, bf)
 
 
     def test_3_query_custom(self):
