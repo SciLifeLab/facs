@@ -22,11 +22,11 @@ usage(void)
     fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
     fprintf(stderr, "Contact: Enze Liu <enze.liu@scilifelab.se>\n\n");
     fprintf(stderr, "Usage:   facs <command> [options]\n\n");
-    fprintf(stderr, "Command: build         build a bloom filter from a FASTA reference file\n");
+    fprintf(stderr, "Command: build         build a bloom filter from a FASTQ/FASTA reference file\n");
     fprintf(stderr, "         query         query a bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
     fprintf(stderr, "         check         query a bloom filter given a FASTQ/FASTA file. Faster than query\n");
     fprintf(stderr, "         remove        remove (contamination) sequences from FASTQ/FASTA file\n");
-    fprintf(stderr, "         classify      classify reads to the most likely reference genomes\n");
+    //fprintf(stderr, "         classify      classify reads to the most likely reference genomes\n");
     fprintf(stderr, "\n");
     return 1;
 }

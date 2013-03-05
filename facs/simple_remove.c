@@ -75,6 +75,7 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
   Queue *tail = NEW (Queue);
+  head->location = NULL;
   head->next = tail;
   Queue *head2 = head;
   F_set *File_head = NEW (F_set);
@@ -103,7 +104,8 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
 	    {
 #pragma omp task firstprivate(head)
 	      {
-		if (head->location!=NULL) {
+		if (head->location!=NULL) 
+                {
 		  if (type == 1)
 		    fasta_process_m (bl_2, head, tail, tole_rate, File_head);
 		  else
