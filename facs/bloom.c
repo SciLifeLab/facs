@@ -639,3 +639,10 @@ large_load (char *fifoname)
   fclose (fd);
   return data;
 }
+
+BIGCAST get_size (char *filename){
+    struct stat buf;
+    if(stat(filename, &buf)!= -1)
+      return buf.st_size;
+}
+
