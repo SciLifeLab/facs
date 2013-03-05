@@ -13,6 +13,8 @@ class ThousandGenomesTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """
     def setUp(self):
+	# XXX to be factored out
+        self.reference = os.path.join(os.path.dirname(__file__), "data", "reference")
         self.custom_dir = os.path.join(os.path.dirname(__file__), "data", "custom")
         self.bloom_dir = os.path.join(os.path.dirname(__file__), "data", "bloom")
         self._install_1000g_test_files(self.custom_dir)
@@ -21,8 +23,11 @@ class ThousandGenomesTest(unittest.TestCase):
         """ Query gzip compressed fastq files
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
-            facs.query(os.path.join(self.custom_dir, sample),
-                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
+        	sample_path = os.path.join(self.custom_dir, sample)
+		for ref in os.listdir(self.reference):
+		    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+		    print(sample_path, bf)
+            	    facs.query(sample_path, bf)
 
     #XXX
     #def test_1_query_NA21137_454(self):
@@ -44,7 +49,7 @@ class ThousandGenomesTest(unittest.TestCase):
         base_url = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data/%s" % individual
         fastq_url = os.path.join(base_url, "sequence_read", fname)
         dst = os.path.join(data_dir, fname)
-        
+
         if not os.path.exists(dst):
             print("downloading %s from %s" % (fname, base_url))
             cl = ["wget", fastq_url, "-O", dst]

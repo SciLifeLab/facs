@@ -9,6 +9,7 @@ import tempfile
 from tempfile import NamedTemporaryFile
 import functools
 import urllib
+import galaxy
 
 
 # Aux methods
@@ -21,7 +22,7 @@ AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTG
 @Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aWZ^Y]bba^[_b]GTXX]aOPJPSB
 """
 
-def _generate_dummy_fastq(fname, num_reads):
+def generate_dummy_fastq(fname, num_reads):
     """ Generates simplest reads with dummy qualities
     """
     stride=13
@@ -40,21 +41,8 @@ def _generate_dummy_fastq(fname, num_reads):
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
 
-def _download_test_files(data_dir):
-    """Download required sequence and reference files.
-    """
 
-    DlInfo = collections.namedtuple("ecoli", "fname dirname version")
-    download_data = [DlInfo("U00096.2.fasta", "reference", None)]
-
-    for dl in download_data:
-        url = "http://togows.dbcls.jp/entry/ncbi-nucleotide/{fname}".format(fname=dl.fname)
-        dirname = os.path.join(data_dir, dl.dirname)
-        
-        if not os.path.exists(dirname):
-            os.mkdir(dirname)
-        if not os.path.exists(os.path.join(dirname, dl.fname)):
-            _download_to_dir(url, dirname)
+### Software management
 
 def _download_to_dir(url, dirname):
     fname = os.path.basename(url)

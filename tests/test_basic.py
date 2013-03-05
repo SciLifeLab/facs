@@ -2,20 +2,20 @@ import os
 import sys
 import errno
 import glob
-import facs
 import unittest
 import subprocess
 import contextlib
 import collections
 
-import utils.helpers as helper
-
+import facs
+from facs.utils import helpers, galaxy
 
 class DrassBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """
     def setUp(self):
         self.data_dir  = os.path.join(os.path.dirname(__file__), "data")
+        self.progs = os.path.join(os.path.dirname(__file__), "data", "bin")
         self.reference = os.path.join(os.path.dirname(__file__), "data", "reference")
         self.bloom_dir = os.path.join(os.path.dirname(__file__), "data", "bloom")
         self.custom_dir = os.path.join(os.path.dirname(__file__), "data", "custom")
@@ -23,44 +23,60 @@ class DrassBasicTest(unittest.TestCase):
 
         self.fastq_nreads = [1, 8, 200]
 
-        helper._mkdir_p(self.data_dir)
-        helper._mkdir_p(self.bloom_dir)
-        helper._mkdir_p(self.custom_dir)
-        helper._mkdir_p(self.synthetic_fastq)
+        helpers._mkdir_p(self.data_dir)
+        helpers._mkdir_p(self.progs)
+        helpers._mkdir_p(self.reference)
+        helpers._mkdir_p(self.bloom_dir)
+        helpers._mkdir_p(self.custom_dir)
+        helpers._mkdir_p(self.synthetic_fastq)
+
+	# Check if 2bit decompressor is available
+	twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
+	if not os.path.exists(twobit_fa_path):
+		galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
         # Downloads reference genome(s)
-        helper._download_test_files(self.data_dir)
+        galaxy.rsync_genomes(self.reference, ["phix", "hg19"], ["ucsc"], twobit_fa_path)
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
         for ref in os.listdir(self.reference):
-            facs.build(os.path.join(self.reference, ref),
-		os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+	    org = os.path.join(self.reference, ref, "seq", ref+".fa")
+	    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+	    print(org, bf)
+
+            facs.build(org, bf)
 
     def test_2_query(self):
-        """ Generate dummy fastq files.
+        """ Generate dummy fastq files and query them against reference bloom filters.
         """
         for nreads in self.fastq_nreads:
             test_fname = "test%s.fastq" % nreads
-            helper._generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
-            facs.query(os.path.join(self.synthetic_fastq, test_fname),
-                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
+            helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
+
+        for ref in os.listdir(self.reference):
+	    qry = os.path.join(self.synthetic_fastq, test_fname)
+	    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+	    print(qry, bf)
+
+	    facs.query(qry, bf)
 
 
     def test_3_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
-    	    print "\nQuerying against uncompressed sample %s" % sample
-            facs.query(os.path.join(self.custom_dir, sample),
-                        os.path.join(self.bloom_dir, "U00096.2.bloom"))
+        	print "\nQuerying against uncompressed sample %s" % sample
+		for ref in self.reference:
+			facs.query(os.path.join(self.synthetic_fastq, test_fname),
+				   os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
 
 
     def test_4_query_custom_small_compressed(self):
 	""" Query gzip compressed fastq files (less than 20MB).
 	"""
-        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")): 
+        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
     	    print "\nQuerying against compressed sample %s" % sample
             if os.path.getsize(os.path.join(self.custom_dir, sample)) < 20*1024*1204:
 		facs.query(os.path.join(self.custom_dir, sample),os.path.join(self.bloom_dir, "U00096.2.bloom"))
