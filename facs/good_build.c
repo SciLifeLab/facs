@@ -19,6 +19,15 @@
 #include "file_dir.h"
 #include "tool.h"
 
+static int
+build_usage(void)
+{
+    fprintf(stderr, "\nUsage: ./facs build [options]\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "\t-r path/to/reference_file.fasta or .fastq\n");
+    fprintf(stderr, "\t-o .bloom filter file\n");
+    return 1;
+}
 
 int
 build_main (int argc, char **argv)
