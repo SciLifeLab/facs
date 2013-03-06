@@ -67,8 +67,6 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
   /*-------------------------------------*/
   int type = 1;
   char *position;
-  //char *clean;
-  //char *contam;
   char *clean2;
   char *contam2;
   /*-------------------------------------*/
@@ -83,6 +81,7 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
   /*-------------------------------------*/
   position = mmaping (source);
   type = get_parainfo (position, head);
+  //printf ("position->%0.10s\n",head->next->location);
   clean = (char *) malloc (strlen (position) * sizeof (char));
   contam = (char *) malloc (strlen (position) * sizeof (char));
   clean2 = clean;
@@ -96,6 +95,7 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
       
       if (tole_rate==0)
       	tole_rate = mco_suggestion (bl_2->k_mer);
+      //head = head->next;
 #pragma omp parallel
       {
 #pragma omp single nowait

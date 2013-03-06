@@ -42,14 +42,8 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
     next-=1;
   }
    
-      printf ("p->%0.30s\n",p);
-      printf ("next->%0.30s\n",next);
-
-
   while (p != next)
     {
-     //printf ("p->%0.30s\n",p);
-     // printf ("next->%0.30\n",next);
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
       if (p != temp)
@@ -57,7 +51,6 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 	  p = temp;
 	  continue;
 	}
-
 #pragma omp atomic
       File_head->reads_num++;
 
@@ -66,7 +59,6 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
 #pragma omp atomic
 	File_head->reads_contam++;
       }
-
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
