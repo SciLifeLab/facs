@@ -173,7 +173,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   if (normal == 0)
   free (position);
   evaluate (detail, File_head->filename, File_head);
-  gzclose(zip);
+  //if(zip != NULL) gzclose(zip);
   bloom_destroy (bl_2);
   statistic_save (detail, query, target_path);
   
