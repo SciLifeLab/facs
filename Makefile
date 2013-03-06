@@ -5,7 +5,7 @@ all:$(PROG)
 	cd facs; make
 
 tests: python
-	nosetests -P -v -s tests
+	cd tests && nosetests -v -s -P
 
 valgrind: python
 	valgrind --tool=memcheck --suppressions=facs/utils/valgrind-python.supp nosetests -P -v -s

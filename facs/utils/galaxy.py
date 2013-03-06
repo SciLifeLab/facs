@@ -64,7 +64,7 @@ def _get_tool_conf(tool_name):
 
 def download_twoBitToFa_bin(dst):
     twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
-    subprocess.check_call(["wget", "--no-check-certificate", "{}".format(twobit_url),
+    subprocess.check_call(["wget", "--no-check-certificate", "{url}".format(url=twobit_url),
                            "-O", dst])
     st = os.stat(dst)
     os.chmod(dst, st.st_mode | stat.S_IEXEC)
@@ -74,7 +74,7 @@ def _finalize_index_seq(fname, binpath):
     """
     out_fasta = fname + ".fa"
     if not os.path.exists(out_fasta):
-        subprocess.check_call([binpath, "{}.2bit".format(fname), out_fasta])
+        subprocess.check_call([binpath, "{fname}.2bit".format(fname=fname), out_fasta])
 
 
 finalize_fns = {"ucsc": _finalize_index_seq}
@@ -125,7 +125,7 @@ def _rsync_genome_index(gid, idx, org_dir):
         server=server, gid=gid, idx=idx)
     idx_dir = os.path.join(org_dir, idx)
     if not os.path.exists(idx_dir):
-        check_dir = subprocess.check_output(["rsync", "--list-only", "{server}".format(server=org_rsync)])
+        check_dir = subprocess.Popen(["rsync", "--list-only", "{server}".format(server=org_rsync)], stdout=subprocess.PIPE).communicate()[0]
         if check_dir:
             if not os.path.exists(idx_dir):
                 subprocess.check_call(['mkdir', '-p', idx_dir])

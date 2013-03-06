@@ -20,7 +20,7 @@ mpi:
 		$(CC) -c $(DFLAGS) $(INCLUDES) $< -o $@ $(CFLAGS) 
 
 clean:
-	rm -f core.* vgcore.* *.o *.so *.a *.info ${PROG}
+	rm -f *.pyc core.* vgcore.* *.o *.so *.a *.info ${PROG}
 
 ${PROG}:lib${PROG}.a $(AOBJS)
 
