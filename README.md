@@ -44,14 +44,14 @@ behave similarly.
 ```
 $ ./facs -h
 
-Program: facs (Sequence decontamination using bloom filters)
-Version: 0.1
+Program: facs - Sequence analysis using bloom filters
+Version: 2.0 
 Contact: Enze Liu <enze.liu@scilifelab.se>
 
 Usage:   facs <command> [options]
 
-Command: build         build a bloom filter from a FASTA/FASTA reference file
-         query         query a bloom filter given a FASTQ/FASTA file
+Command: build         build a bloom filter from a FASTA/FASTQ reference file
+         query         query a bloom filter given a FASTA/FASTQ file
          remove        remove (contamination) sequences from FASTQ/FASTA file
 ```
 
@@ -64,7 +64,7 @@ $ ./facs build -r ecoli.fasta -o ecoli.bloom
 That would generate a ecoli bloom filter that could be used to query a FASTQ file:
 
 ```
-$ ./facs query -b ecoli.bloom -r contaminated_sample.fastq.gz
+$ ./facs query -b ecoli.bloom -q contaminated_sample.fastq.gz
 ```
 
 Note that both plaintext fastq files and gzip-compressed files are supported transparently
@@ -79,7 +79,7 @@ ecoli in that particular sample:
         "contaminated_reads": 1,
         "total_hits": 90,
         "contamination_rate": 0.004975,
-        "bloom_filename":"tests/data/bloom/U00096.2.bloom"
+        "bloom_file":"tests/data/bloom/U00096.2.bloom"
 }
 ```
 
@@ -110,10 +110,3 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> facs.query("contaminated_sample.fastq.gz", "ecoli.bloom")
 >>> facs.remove("contaminated_sample.fastq.gz", "ecoli.bloom")
 ```
-
-
-Notes
------
-
-* All three scripts can be executed on both Linux and Mac system. But they don't support large bloom filter building and loading on MAC system.
-* FACS supports fasta and fastq formats. Make sure you use the correct extension name: .fna or .fasta and .fastq, respectively.

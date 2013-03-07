@@ -508,107 +508,6 @@ mmaping (char *source)
   return sm;
 }
 
-void
-build_help ()
-{
-  printf ("USAGE\n");
-  printf
-    ("##########################################################################\n");
-  printf ("---Bloom build----\n");
-  printf ("#  ./facs build [option] [option] [option] [option] <option>\n");
-  printf ("#\n");
-  printf ("#  Options:\n");
-  printf ("#  -r reference file name or directory name\n");
-  printf ("#  -l a list containing multiple reference filenames\n");
-  printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -k k_mer size (default size 21)\n");
-  printf ("#  -e error rate (default rate 0.0005)\n");
-  printf ("#  -h show help documents\n");
-  printf
-    ("#  -o output file name (default file is saved as the same as binary file)\n");
-  printf
-    ("##########################################################################\n");
-  exit (1);
-}
-
-void
-check_help ()
-{
-  printf ("USAGE\n");
-  printf
-    ("##########################################################################\n");
-  printf ("---contamination check---\n");
-  printf ("#  ./facs check [option] [option] [option] [option] [option] <option>\n");
-  printf ("#  Either query dataset is compressed or larger than 2GB, use:");
-  printf ("#  ./facs query [option] [option] [option] [option] [option] <option>\n");
-  printf ("#\n");
-  printf ("#  Options:\n");
-  printf ("#  -t tolerant rate (The program will automatically select a value if you don't provide any.)\n");
-  printf ("#  -s sampling rate (default rate 1)\n");
-  printf ("#  -q query file name\n");
-  printf ("#  -l a list containing all bloom files\n");
-  printf ("#  -r single reference bloom filter file or directory\n");
-  printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -h help documents\n");
-  printf
-    ("#  -o output file name (default file is saved as the same path as the binary file)\n");
-//printf("#\n");   
-//printf("#   *'1' is mode 1. For instance, when you use a ecoli filter and want to capture every contaminated read that caused by\n"); 
-//printf("#   ecoli in the 'human.fna' query file, use mode 1. Mode 2 is currently under evaluation\n");
-//printf("# \n");
-//printf("#   *When you would like to remove every possible contamination in human.fna, you can use a human bloom filter and mode 2 \n");
-//printf("#   to do that. It will capture everything that doesn't belong to human.\n");
-//printf("#\n");
-  printf
-    ("##########################################################################\n");
-  exit (1);
-}
-
-void
-remove_help ()
-{
-  printf ("USAGE\n");
-  printf
-    ("##########################################################################\n");
-  printf ("---contamination remove---\n");
-  printf ("#  ./facs remove [option] [option] [option] [option] <option>\n");
-  printf ("#\n");
-  printf ("#  Options:\n");
-  printf ("#  -t tolerant rate (The program will automatically select a value if you don't provide any.)\n");
-  printf ("#  -q query file name\n");
-  printf ("#  -l a list containing all bloom files\n");
-  printf ("#  -r reference bloom filter file or dir\n");
-  printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -h help documents\n");
-  printf
-    ("#  -o output file name (default file is saved as the same path as the binary file)\n");
-  printf
-    ("##########################################################################\n");
-  exit (1);
-}
-
-void
-remove_l_help ()
-{
-  printf ("USAGE\n");
-  printf ("##########################################################################\n");
-  printf ("---contamination remove list mode---\n");
-  printf ("Similar with mode remove but with slight difference\n");
-  printf ("Reads will be classified to the most like reference if\nmultiple reference files exist\n");
-  printf ("#  ./facs classify [option] [option] [option] [option] <option>\n");
-  printf ("#\n");
-  printf ("#  Options:\n");
-  printf ("#  -t tolerant rate\n");
-  printf ("#  -q query file name\n");
-  printf ("#  -l a list containing all bloom files\n");
-  printf ("#  -r reference bloom filter file or dir\n");
-  printf ("!!! either -r or -l can only be allowed each time !!!\n");
-  printf ("#  -h help documents\n");
-  printf ("#  -o output file name (default file is saved as the same path as the binary file)\n");
-  printf ("##########################################################################\n");
-  exit (1);
-}
-
 char *
 large_load (char *fifoname)
 {
@@ -644,5 +543,7 @@ BIGCAST get_size (char *filename){
     struct stat buf;
     if(stat(filename, &buf)!= -1)
       return buf.st_size;
+    else
+      return 0;
 }
 

@@ -71,12 +71,3 @@ class DrassBasicTest(unittest.TestCase):
 		for ref in self.reference:
 			facs.query(os.path.join(self.synthetic_fastq, test_fname),
 				   os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
-
-
-    def test_4_query_custom_small_compressed(self):
-	""" Query gzip compressed fastq files (less than 20MB).
-	"""
-        for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq.gz")):
-    	    print "\nQuerying against compressed sample %s" % sample
-            if os.path.getsize(os.path.join(self.custom_dir, sample)) < 20*1024*1204:
-		facs.query(os.path.join(self.custom_dir, sample),os.path.join(self.bloom_dir, "U00096.2.bloom"))

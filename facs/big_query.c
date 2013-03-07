@@ -26,7 +26,13 @@ query_usage(void)
 {
     fprintf(stderr, "\nUsage: ./facs query [options]\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-r reference bloom filter to query against\n");
+    fprintf(stderr, "\t-b reference bloom filter to query against\n");
+    fprintf(stderr, "\t-q FASTA/FASTQ file containing the query\n");
+    fprintf(stderr, "\t-l input list containing all bloom filters, one per line\n");
+    fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
+    fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
+    fprintf(stderr, "\t-s sampling rate, default is 1 so it reads the whole query file\n");
+    fprintf(stderr, "\n");
     return 1;
 }
 
@@ -36,14 +42,15 @@ int bq_main(int argc, char** argv)
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  float tole_rate = 0;
-  float sampling_rate = 1;
+  double tole_rate = 0;
+  double sampling_rate = 1;
 
   char* ref = NULL;
   char* list = NULL;
   char* target_path = NULL;
   char* source = NULL;
 
+  // XXX: make r and l mutually exclusive
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
       switch (opt) {
           case 't':
@@ -52,37 +59,41 @@ int bq_main(int argc, char** argv)
           case 's':
               (optarg) && ((sampling_rate = atof(optarg)), 1);
               break;
-          case 'o':    
+          case 'b':    
               (optarg) && ((target_path = optarg), 1);
               break;
           case 'q':  
               (optarg) && (source = optarg, 1);  
-              break;
-          case 'r':  
-              (optarg) && (ref = optarg, 1);  
               break;
           case 'l':
               (optarg) && (list = optarg, 1);  
               break;
           case 'h':
               return query_usage();
-          case '?':
+          default:
               printf ("Unknown option: -%c\n", (char) optopt);
               return query_usage();
       } 
   } 
+
+  fprintf(stdout, "WHAAAT\n");
+
+  if(!target_path && !source) {
+    fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+    exit(-1);
+  }
 
   return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }
 
 int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
 {
-  
-  gzFile zip;
+  gzFile zip = NULL;
   int type = 0, normal = 0;
   BIGCAST offset = 0;
   char *detail = (char*) calloc((ONE*ONE*ONE),sizeof(char));
-  char *position =  (char*) calloc((ONEG+1),sizeof(char));
+  char *position = NULL; 
+  //=  (char*) calloc((ONEG+1),sizeof(char));
   
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -95,7 +106,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   if (tole_rate==0)
       tole_rate = mco_suggestion (bl_2->k_mer); 
  
-  if ((get_size (query)<2*ONEG) && !strstr(query,".gz") & !strstr(query, ".tar"))
+  if ((get_size (query)<2*ONEG) && !strstr(query,".gz") && !strstr(query, ".tar"))
       normal = 1; 
   else
       {
@@ -107,11 +118,13 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
       normal = 0;
       }
 
-  if (strstr(query, ".fastq") || strstr(query, ".fq"))
+  if (strstr(query, ".fastq")!=NULL || strstr(query, ".fq")!=NULL)
       type = 2;
   else
       type = 1;
- 
+  
+  if (normal == 0)
+      position = (char*) calloc((ONEG+1),sizeof(char));
   while (offset!=-1) {
     if (normal == 1)
         {
@@ -171,9 +184,12 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   
     }				//end while
   if (normal == 0)
-  free (position);
+	  free (position);
+
   evaluate (detail, File_head->filename, File_head);
-  //if(zip != NULL) gzclose(zip);
+  
+  if (normal == 0)
+  	gzclose(zip);
   bloom_destroy (bl_2);
   statistic_save (detail, query, target_path);
   

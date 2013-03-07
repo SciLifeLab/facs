@@ -28,7 +28,7 @@ PyMODINIT_FUNC init_facs(void)
 {
     PyObject *m = Py_InitModule3("_facs", module_methods, module_docstring);
     if (m == NULL)
-        return -1;
+        return;
 }
 
 
