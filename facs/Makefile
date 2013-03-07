@@ -26,7 +26,7 @@ python:
 	rm -rf build/ ${PROG}.so && python setup.py build_ext --inplace && python setup.py develop
 
 clean:
-	rm -f core.* vgcore.* *.o *.so *.a *.info ${PROG}
+	rm -f *.pyc core.* vgcore.* *.o *.so *.a *.info ${PROG}
 
 
 .c.o:
