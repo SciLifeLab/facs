@@ -26,9 +26,23 @@
 char *clean, *contam;
 /*-------------------------------------*/
 
+static int
+remove_usage(void)
+{
+    fprintf(stderr, "\nUsage: ./facs remove [options]\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "\t-b reference bloom filter to query against\n");
+    fprintf(stderr, "\t-q FASTA/FASTQ file containing the query\n");
+    fprintf(stderr, "\t-l input list containing all bloom filters, one per line\n");
+    fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
+    fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
+    fprintf(stderr, "\n");
+    return 1;
+}
+
 int remove_main(int argc, char** argv)
 {
-  if (argc < 2) remove_help();
+  if (argc < 2) remove_usage();
 /*-------defaults for bloom filter building-------*/ 
   int opt;
   float tole_rate = 0;
@@ -54,35 +68,42 @@ int remove_main(int argc, char** argv)
               (optarg) && (list = optarg, 1);  
               break;
           case 'h':
-              remove_help();
-          case '?':
+              return remove_usage();
+          default:
               printf ("Unknown option: -%c\n", (char) optopt);
-              remove_help();
+              return remove_usage();
       } 
   } 
+  
+  if(!target_path && !source) {
+      fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+      exit(-1);
+  }
+ 
   return remove_reads(source, ref, list, target_path, tole_rate);
 }
 int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_rate)
 {
   /*-------------------------------------*/
-  int type = 1;
+  int type = 0;
   char *position;
-  //char *clean;
-  //char *contam;
   char *clean2;
   char *contam2;
   /*-------------------------------------*/
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
-  Queue *tail = NEW (Queue);
   head->location = NULL;
+  Queue *tail = NEW (Queue);
   head->next = tail;
   Queue *head2 = head;
+  //F_set *File_head = NEW (F_set);
+  position = mmaping (source);
+  type = get_parainfo (position, head);
   F_set *File_head = NEW (F_set);
   File_head = make_list (ref, list);
   /*-------------------------------------*/
-  position = mmaping (source);
-  type = get_parainfo (position, head);
+  //position = mmaping (source);
+  //type = get_parainfo (position, head);
   clean = (char *) malloc (strlen (position) * sizeof (char));
   contam = (char *) malloc (strlen (position) * sizeof (char));
   clean2 = clean;
@@ -96,6 +117,7 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
       
       if (tole_rate==0)
       	tole_rate = mco_suggestion (bl_2->k_mer);
+      //head = head->next;
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -111,10 +133,10 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
 		  else
 		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
                 }
-	    }
-          }
+             }
 	      head = head->next;
-	}			// End of single - no implied barrier (nowait)
+             }
+	 }			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       save_result (source, File_head->filename, type, prefix, clean, clean2,
 		   contam, contam2);
@@ -208,7 +230,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 void
 fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
-  printf ("fasta processing...\n");
+  //printf ("fasta processing...\n");
 
   int read_num = 0, read_contam = 0;
 
@@ -252,7 +274,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 	}
       p = temp;
     }
-  printf ("all->%d\ncontam->%d\n", read_num, read_contam);
+  //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
 }
 
 /*-------------------------------------*/

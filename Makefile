@@ -5,13 +5,14 @@ all:$(PROG)
 	cd facs; make
 
 tests: python
-	nosetests -P -v -s tests
+	cd tests && nosetests -v -s -P
 
 valgrind: python
 	valgrind --tool=memcheck --suppressions=facs/utils/valgrind-python.supp nosetests -P -v -s
 
-python:
-	rm -rf build/ ${PROG}.so && python setup.py build_ext && python setup.py install
+python: clean
+	python setup.py build_ext && python setup.py install
 
 clean:
+	rm -rf build dist $(PROG).egg-info
 	cd facs; make clean
