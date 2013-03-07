@@ -24,7 +24,6 @@ usage(void)
     fprintf(stderr, "Usage:   facs <command> [options]\n\n");
     fprintf(stderr, "Command: build         build a bloom filter from a FASTQ/FASTA reference file\n");
     fprintf(stderr, "         query         query a bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
-    //fprintf(stderr, "         check         query a bloom filter given a FASTQ/FASTA file. Faster than query\n");
     fprintf(stderr, "         remove        remove (contamination) sequences from FASTQ/FASTA file\n");
     //fprintf(stderr, "         classify      classify reads to the most likely reference genomes\n");
     fprintf(stderr, "\n");
@@ -55,8 +54,7 @@ mode = NULL;
   if (argc < 2) return usage();
 
   if (strcmp(argv[1], "build") == 0) ret = build_main(argc-1, argv+1);
-  //else if (strcmp(argv[1], "check") == 0) ret = check_main(argc-1, argv+1);
-  else if (strcmp(argv[1], "check") == 0) ret = bq_main(argc-1, argv+1);
+  else if (strcmp(argv[1], "query") == 0) ret = bq_main(argc-1, argv+1);
   else if (strcmp(argv[1], "remove") == 0) ret = remove_main(argc-1, argv+1);
   else if (strcmp(argv[1], "classify") == 0) ret = remove_l_main(argc-1,argv+1);
   else usage();

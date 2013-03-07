@@ -32,6 +32,7 @@ query_usage(void)
     fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
     fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
     fprintf(stderr, "\t-s sampling rate, default is 1 so it reads the whole query file\n");
+    fprintf(stderr, "\n");
     return 1;
 }
 
@@ -49,7 +50,7 @@ int bq_main(int argc, char** argv)
   char* target_path = NULL;
   char* source = NULL;
 
-// XXX: make r and l mutually exclusive
+  // XXX: make r and l mutually exclusive
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
       switch (opt) {
           case 't':
@@ -75,16 +76,23 @@ int bq_main(int argc, char** argv)
       } 
   } 
 
+  fprintf(stdout, "WHAAAT\n");
+
+  if(!target_path && !source) {
+    fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+    exit(-1);
+  }
+
   return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }
 
 int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
 {
-  gzFile zip;
+  gzFile zip = NULL;
   int type = 0, normal = 0;
   BIGCAST offset = 0;
   char *detail = (char*) calloc((ONE*ONE*ONE),sizeof(char));
-  char *position; 
+  char *position = NULL; 
   //=  (char*) calloc((ONEG+1),sizeof(char));
   
   bloom *bl_2 = NEW (bloom);

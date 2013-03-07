@@ -36,6 +36,7 @@ remove_usage(void)
     fprintf(stderr, "\t-l input list containing all bloom filters, one per line\n");
     fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
     fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
+    fprintf(stderr, "\n");
     return 1;
 }
 
@@ -67,13 +68,18 @@ int remove_main(int argc, char** argv)
               (optarg) && (list = optarg, 1);  
               break;
           case 'h':
-              remove_usage();
-              break;
+              return remove_usage();
           default:
               printf ("Unknown option: -%c\n", (char) optopt);
-              remove_usage();
+              return remove_usage();
       } 
   } 
+  
+  if(!target_path && !source) {
+      fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+      exit(-1);
+  }
+ 
   return remove_reads(source, ref, list, target_path, tole_rate);
 }
 int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_rate)
