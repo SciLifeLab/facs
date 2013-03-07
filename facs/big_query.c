@@ -51,7 +51,7 @@ int bq_main(int argc, char** argv)
   char* source = NULL;
 
   // XXX: make r and l mutually exclusive
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
+    while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
       switch (opt) {
           case 't':
               (optarg) && ((tole_rate = atof(optarg)), 1);
@@ -59,29 +59,32 @@ int bq_main(int argc, char** argv)
           case 's':
               (optarg) && ((sampling_rate = atof(optarg)), 1);
               break;
-          case 'b':    
+          case 'o':
               (optarg) && ((target_path = optarg), 1);
               break;
-          case 'q':  
-              (optarg) && (source = optarg, 1);  
+          case 'q':
+              (optarg) && (source = optarg, 1);
+              break;
+          case 'r':
+              (optarg) && (ref = optarg, 1);
               break;
           case 'l':
-              (optarg) && (list = optarg, 1);  
+              (optarg) && (list = optarg, 1);
               break;
           case 'h':
               return query_usage();
-          default:
+          case '?':
               printf ("Unknown option: -%c\n", (char) optopt);
               return query_usage();
-      } 
-  } 
-
-  fprintf(stdout, "WHAAAT\n");
-
-  if(!target_path && !source) {
-    fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
-    exit(-1);
+      }
   }
+
+  //fprintf(stdout, "WHAAAT\n");
+
+  //if(!target_path && !source) {
+  //  fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+  //  exit(-1);
+  //}
 
   return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }
