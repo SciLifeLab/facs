@@ -38,7 +38,7 @@ query_usage(void)
 
 int bq_main(int argc, char** argv)
 {
-  if (argc < 2) check_help();
+  if (argc < 2) query_usage();
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
