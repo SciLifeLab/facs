@@ -24,9 +24,9 @@ static PyMethodDef module_methods[] = {
         {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initfacs(void)
+PyMODINIT_FUNC init_facs(void)
 {
-    PyObject *m = Py_InitModule3("facs", module_methods, module_docstring);
+    PyObject *m = Py_InitModule3("_facs", module_methods, module_docstring);
     if (m == NULL)
         return;
 }
