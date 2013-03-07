@@ -24,9 +24,29 @@
 /*-------------------------------------*/
 char *clean, *contam;
 /*-------------------------------------*/
+
+/*
+ *
+ * THIS IS REDUNDANT CODE, SHOULD BE MERGED WITH REMOVE
+ *
+ */
+static int
+remove_l_usage(void)
+{
+    fprintf(stderr, "\nUsage: ./facs remove [options]\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "\t-b reference bloom filter to query against\n");
+    fprintf(stderr, "\t-q FASTA/FASTQ file containing the query\n");
+    fprintf(stderr, "\t-l input list containing all bloom filters, one per line\n");
+    fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
+    fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
+    return 1;
+}
+
+
 int remove_l_main(int argc, char** argv)
 {
-  if (argc < 2) remove_help();
+  if (argc < 2) remove_l_usage();
 /*-------defaults for bloom filter building-------*/ 
   int opt;
   float tole_rate = 0;
@@ -52,10 +72,10 @@ int remove_l_main(int argc, char** argv)
               (optarg) && (list = optarg, 1);  
               break;
           case 'h':
-              remove_help();
-          case '?':
+              remove_l_usage();
+          default:
               printf ("Unknown option: -%c\n", (char) optopt);
-              remove_help();
+              remove_l_usage();
       } 
   } 
   //return remove_l(source, ref, list, target_path, tole_rate);

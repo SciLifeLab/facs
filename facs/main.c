@@ -11,14 +11,14 @@
 /*------------------------------*/ 
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.1"
+#define PACKAGE_VERSION "2.0"
 #endif
 
 static int
 usage(void)
 {
     fprintf(stderr, "\n");
-    fprintf(stderr, "Program: facs (Sequence decontamination using bloom filters)\n");
+    fprintf(stderr, "Program: facs - Sequence analysis using bloom filters\n");
     fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
     fprintf(stderr, "Contact: Enze Liu <enze.liu@scilifelab.se>\n\n");
     fprintf(stderr, "Usage:   facs <command> [options]\n\n");

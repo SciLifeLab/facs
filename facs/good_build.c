@@ -24,15 +24,18 @@ build_usage(void)
 {
     fprintf(stderr, "\nUsage: ./facs build [options]\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-r path/to/reference_file.fasta or .fastq\n");
-    fprintf(stderr, "\t-o .bloom filter file\n");
+    fprintf(stderr, "\t-r reference FASTA/FASTQ file\n");
+    fprintf(stderr, "\t-o Output bloom filter file\n");
+    fprintf(stderr, "\t-l text file containing all reference files, will build individual bloom filters for each\n");
+    fprintf(stderr, "\t-k k-mer size, default is automatically estimated from the reference file\n");
+    fprintf(stderr, "\t-e allowed false positive frequency, default is 0.0005\n");
     return 1;
 }
 
 int
 build_main (int argc, char **argv)
 {
-  if (argc < 2) build_help();
+  if (argc < 2) build_usage();
 
   char *position;
   BIGNUM capacity;
@@ -46,6 +49,8 @@ build_main (int argc, char **argv)
   char* prefix = NULL;
   char* target_path = NULL;
   char* source = NULL;
+
+  //XXX make -l and -r mutually exclusive
   while ((opt = getopt (argc, argv, "ek:o:r:lh")) != -1) {
       switch (opt) {
           case 'e':
@@ -65,14 +70,12 @@ build_main (int argc, char **argv)
               (optarg) && (list = optarg, 1);  
               break;
           case 'h':
-              build_help();
-          case '?':
+              build_usage();
+          default:
               printf ("Unknown option: -%c\n", (char) optopt);
-              build_help();
+              build_usage();
       } 
   } 
- 
-  printf("LIST IS %s\n", list);
  
   if (!list) {
 #ifdef DEBUG

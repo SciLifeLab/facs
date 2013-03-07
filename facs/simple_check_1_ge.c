@@ -132,7 +132,7 @@ evaluate (char *detail, char *filename, F_set * File_head)
   printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
   printf ("\t\"total_hits\": %lld,\n", File_head->hits);
   printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
-  printf ("\t\"bloom_filename\":\"%s\"\n", filename);
+  printf ("\t\"bloom_file\":\"%s\"\n", filename);
   printf("}\n");
 
 #ifdef DEBUG
