@@ -36,8 +36,8 @@ int bq_main(int argc, char** argv)
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  float tole_rate = 0;
-  float sampling_rate = 1;
+  double tole_rate = 0;
+  double sampling_rate = 1;
 
   char* ref = NULL;
   char* list = NULL;
@@ -75,13 +75,14 @@ int bq_main(int argc, char** argv)
   return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }
 
-int query(char* query, char* bloom_filter, float tole_rate, float sampling_rate, char* list, char* target_path)
+int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
 {
   gzFile zip;
   int type = 0, normal = 0;
   BIGCAST offset = 0;
   char *detail = (char*) calloc((ONE*ONE*ONE),sizeof(char));
-  char *position =  (char*) calloc((ONEG+1),sizeof(char));
+  char *position; 
+  //=  (char*) calloc((ONEG+1),sizeof(char));
   
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -110,7 +111,9 @@ int query(char* query, char* bloom_filter, float tole_rate, float sampling_rate,
       type = 2;
   else
       type = 1;
- 
+  
+  if (normal == 0)
+      position = (char*) calloc((ONEG+1),sizeof(char));
   while (offset!=-1) {
     if (normal == 1)
         {

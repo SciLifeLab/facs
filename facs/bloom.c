@@ -514,7 +514,7 @@ build_help ()
   printf ("USAGE\n");
   printf
     ("##########################################################################\n");
-  printf ("---Bloom build----\n");
+  printf ("---facs build----\n");
   printf ("#  ./facs build [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
@@ -539,8 +539,6 @@ check_help ()
     ("##########################################################################\n");
   printf ("---contamination check---\n");
   printf ("#  ./facs check [option] [option] [option] [option] [option] <option>\n");
-  printf ("#  Either query dataset is compressed or larger than 2GB, use:");
-  printf ("#  ./facs query [option] [option] [option] [option] [option] <option>\n");
   printf ("#\n");
   printf ("#  Options:\n");
   printf ("#  -t tolerant rate (The program will automatically select a value if you don't provide any.)\n");
