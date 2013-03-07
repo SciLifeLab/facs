@@ -38,9 +38,11 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
     next = info->next->location;
   } else {
     next = strchr (p, '\0');
-    if ((next[-1])=='\n')
-       {next-=1;}
-    else if (strchr(p,'\r')&&(next-2)!='\r')
+    //if (next[-2]=='\r')
+    //printf ("%d\n",next[-1]);
+    if ((next[-1])=='\n' && next[-2]=='\n')
+       next-=1;
+    else if (next[-4]=='\r'&& next[-3]=='\n')
        next-=2;
   }
    
