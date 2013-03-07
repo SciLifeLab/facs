@@ -51,7 +51,7 @@ int bq_main(int argc, char** argv)
   char* source = NULL;
 
   // XXX: make r and l mutually exclusive
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
+  while ((opt = getopt (argc, argv, "t:s:b:q:l:h")) != -1) {
       switch (opt) {
           case 't':
               (optarg) && ((tole_rate = atof(optarg)), 1);
@@ -60,7 +60,7 @@ int bq_main(int argc, char** argv)
               (optarg) && ((sampling_rate = atof(optarg)), 1);
               break;
           case 'b':    
-              (optarg) && ((target_path = optarg), 1);
+              (optarg) && ((ref = optarg), 1);
               break;
           case 'q':  
               (optarg) && (source = optarg, 1);  
@@ -75,8 +75,6 @@ int bq_main(int argc, char** argv)
               return query_usage();
       } 
   } 
-
-  fprintf(stdout, "WHAAAT\n");
 
   if(!target_path && !source) {
     fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
