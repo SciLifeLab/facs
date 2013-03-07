@@ -36,8 +36,8 @@ int bq_main(int argc, char** argv)
   
 /*-------defaults for bloom filter building-------*/ 
   int opt;
-  float tole_rate = 0;
-  float sampling_rate = 1;
+  double tole_rate = 0;
+  double sampling_rate = 1;
 
   char* ref = NULL;
   char* list = NULL;
@@ -77,12 +77,12 @@ int bq_main(int argc, char** argv)
 
 int query(char* query, char* bloom_filter, double tole_rate, double sampling_rate, char* list, char* target_path)
 {
-  
   gzFile zip;
   int type = 0, normal = 0;
   BIGCAST offset = 0;
   char *detail = (char*) calloc((ONE*ONE*ONE),sizeof(char));
-  char *position =  (char*) calloc((ONEG+1),sizeof(char));
+  char *position; 
+  //=  (char*) calloc((ONEG+1),sizeof(char));
   
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -95,7 +95,7 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   if (tole_rate==0)
       tole_rate = mco_suggestion (bl_2->k_mer); 
  
-  if ((get_size (query)<2*ONEG) && !strstr(query,".gz") & !strstr(query, ".tar"))
+  if ((get_size (query)<2*ONEG) && !strstr(query,".gz") && !strstr(query, ".tar"))
       normal = 1; 
   else
       {
@@ -107,11 +107,13 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
       normal = 0;
       }
 
-  if (strstr(query, ".fastq") || strstr(query, ".fq"))
+  if (strstr(query, ".fastq")!=NULL || strstr(query, ".fq")!=NULL)
       type = 2;
   else
       type = 1;
- 
+  
+  if (normal == 0)
+      position = (char*) calloc((ONEG+1),sizeof(char));
   while (offset!=-1) {
     if (normal == 1)
         {
@@ -173,7 +175,8 @@ int query(char* query, char* bloom_filter, double tole_rate, double sampling_rat
   if (normal == 0)
   free (position);
   evaluate (detail, File_head->filename, File_head);
-  //if(zip != NULL) gzclose(zip);
+  if (normal == 0)
+  gzclose(zip);
   bloom_destroy (bl_2);
   statistic_save (detail, query, target_path);
   

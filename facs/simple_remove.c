@@ -65,24 +65,25 @@ int remove_main(int argc, char** argv)
 int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_rate)
 {
   /*-------------------------------------*/
-  int type = 1;
+  int type = 0;
   char *position;
-  //char *clean;
-  //char *contam;
   char *clean2;
   char *contam2;
   /*-------------------------------------*/
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
-  Queue *tail = NEW (Queue);
   head->location = NULL;
+  Queue *tail = NEW (Queue);
   head->next = tail;
   Queue *head2 = head;
+  //F_set *File_head = NEW (F_set);
+  position = mmaping (source);
+  type = get_parainfo (position, head);
   F_set *File_head = NEW (F_set);
   File_head = make_list (ref, list);
   /*-------------------------------------*/
-  position = mmaping (source);
-  type = get_parainfo (position, head);
+  //position = mmaping (source);
+  //type = get_parainfo (position, head);
   clean = (char *) malloc (strlen (position) * sizeof (char));
   contam = (char *) malloc (strlen (position) * sizeof (char));
   clean2 = clean;
@@ -96,6 +97,7 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
       
       if (tole_rate==0)
       	tole_rate = mco_suggestion (bl_2->k_mer);
+      //head = head->next;
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -111,10 +113,10 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
 		  else
 		    fastq_process_m (bl_2, head, tail, tole_rate, File_head);
                 }
-	    }
-          }
+             }
 	      head = head->next;
-	}			// End of single - no implied barrier (nowait)
+             }
+	 }			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
       save_result (source, File_head->filename, type, prefix, clean, clean2,
 		   contam, contam2);
@@ -208,7 +210,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 void
 fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set *File_head)
 {
-  printf ("fasta processing...\n");
+  //printf ("fasta processing...\n");
 
   int read_num = 0, read_contam = 0;
 
@@ -252,7 +254,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 	}
       p = temp;
     }
-  printf ("all->%d\ncontam->%d\n", read_num, read_contam);
+  //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
 }
 
 /*-------------------------------------*/

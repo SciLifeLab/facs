@@ -120,7 +120,6 @@ make_list (char *file_user, char *list_user)
 	  if (!strstr (dir_info->d_name, ".bloom"))
 	    continue;
 
-	  printf ("file_path->%s\n", file_path);
 	  F_set *fset = NEW (F_set);
 	  fset->filename = file_path;
 	  fset->number = &number;
