@@ -26,7 +26,7 @@ org_remap = {"phix": "phiX",
              "araTha_tair10": "Arabidopsis_thaliana_TAIR10",
              "WS210": "ce10",
              "WS220": "ce10",
-	     "ecoli": "microbes/eschColi_K12"}
+    	     "ecoli": "microbes/eschColi_K12"}
 
 # ## Galaxy location files
 
