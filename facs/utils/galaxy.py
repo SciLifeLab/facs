@@ -26,7 +26,9 @@ org_remap = {"phix": "phiX",
              "araTha_tair10": "Arabidopsis_thaliana_TAIR10",
              "WS210": "ce10",
              "WS220": "ce10",
-    	     "ecoli": "microbes/eschColi_K12"}
+    	     "ecoli": "eschColi_K12"}
+
+galaxy_subdirs = ["", "/microbes"]
 
 # ## Galaxy location files
 
@@ -121,11 +123,24 @@ def _get_galaxy_genomes(gid, genome_dir, genomes, genome_indexes):
 def _rsync_genome_index(gid, idx, org_dir):
     """Retrieve index for a genome from rsync server, returning path to files.
     """
-    org_rsync = "{server}/indexes/{gid}/{idx}/".format(
-        server=server, gid=gid, idx=idx)
     idx_dir = os.path.join(org_dir, idx)
+
     if not os.path.exists(idx_dir):
-        check_dir = subprocess.Popen(["rsync", "--list-only", "{server}".format(server=org_rsync)], stdout=subprocess.PIPE).communicate()[0]
+        org_rsync = None
+        for subdir in galaxy_subdirs:
+            test_rsync = "{server}/indexes{subdir}/{gid}/{idx}/".format(
+                server=server, subdir=subdir, gid=gid, idx=idx)
+            check_dir = subprocess.Popen(["rsync", "--list-only", "{server}".format(server=test_rsync)],
+                                         stdout=subprocess.PIPE).communicate()[0]
+            if check_dir:
+                org_rsync = test_rsync
+                break
+        if org_rsync is None:
+            raise ValueError("Could not find genome %s on Galaxy rsync" % gid)
+
+
+        check_dir = subprocess.Popen(["rsync", "--list-only", "{server}".format(server=org_rsync)],
+                                     stdout=subprocess.PIPE).communicate()[0]
         if check_dir:
             if not os.path.exists(idx_dir):
                 subprocess.check_call(['mkdir', '-p', idx_dir])
@@ -147,8 +162,8 @@ def cd(path):
         os.chdir(old_dir)
 
 # testing purposes
-#def main():
-#    rsync_genomes(os.path.abspath("."), ["phix"])
-#
-#if __name__ == "__main__":
-#    main()
+def main():
+    rsync_genomes(os.path.abspath("."), ["ecoli"], ["ucsc"], "/bubo/home/h5/roman/dev/facs/tests/data/bin/twobitToFa")
+
+if __name__ == "__main__":
+    main()

@@ -41,7 +41,6 @@ def generate_dummy_fastq(fname, num_reads):
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
 
-
 ### Software management
 
 def _download_to_dir(url, dirname):
