@@ -18,14 +18,14 @@ static int
 usage(void)
 {
     fprintf(stderr, "\n");
-    fprintf(stderr, "Program: facs - Sequence analysis using bloom filters\n");
+    fprintf(stderr, "Program: facs - Sequence analysis using Bloom filters\n");
     fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
     fprintf(stderr, "Contact: Enze Liu <enze.liu@scilifelab.se>\n\n");
     fprintf(stderr, "Usage:   facs <command> [options]\n\n");
-    fprintf(stderr, "Command: build         build a bloom filter from a FASTQ/FASTA reference file\n");
-    fprintf(stderr, "         query         query a bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
+    fprintf(stderr, "Command: build         build a Bloom filter from a FASTQ/FASTA reference file\n");
+    fprintf(stderr, "         query         query a Bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
     fprintf(stderr, "         remove        remove (contamination) sequences from FASTQ/FASTA file\n");
-    //fprintf(stderr, "         classify      classify reads to the most likely reference genomes\n");
+    fprintf(stderr, "         classify      classify reads to the most likely reference genomes\n");
     fprintf(stderr, "\n");
     return 1;
 }

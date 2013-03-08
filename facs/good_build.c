@@ -28,7 +28,7 @@ build_usage(void)
     fprintf(stderr, "\t-o output bloom filter file\n");
     fprintf(stderr, "\t-l text file containing all reference files, will build individual bloom filters for each\n");
     fprintf(stderr, "\t-k k-mer size, default is automatically estimated from the reference file\n");
-    fprintf(stderr, "\t-e allowed false positive frequency, default is 0.0005\n");
+    fprintf(stderr, "\t-e allowed false positive frequency, default is 0.005\n");
     fprintf(stderr, "\n");
     return 1;
 }
@@ -52,7 +52,7 @@ build_main (int argc, char **argv)
   char* source = NULL;
 
   //XXX make -l and -r mutually exclusive
-  while ((opt = getopt (argc, argv, "ek:o:r:lh")) != -1) {
+  while ((opt = getopt (argc, argv, "e:k:o:r:lh")) != -1) {
       switch (opt) {
           case 'e':
               (optarg) && ((error_rate = atof (optarg)), 1);
