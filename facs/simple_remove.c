@@ -42,7 +42,7 @@ remove_usage(void)
 
 int remove_main(int argc, char** argv)
 {
-  if (argc < 2) remove_usage();
+  if (argc < 2) return remove_usage();
 /*-------defaults for bloom filter building-------*/ 
   int opt;
   float tole_rate = 0;
