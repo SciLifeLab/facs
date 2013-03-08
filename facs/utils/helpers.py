@@ -5,9 +5,6 @@ import subprocess
 import errno
 from contextlib import contextmanager
 
-import timeit
-import cProfile
-
 import tempfile
 from tempfile import NamedTemporaryFile
 import functools
