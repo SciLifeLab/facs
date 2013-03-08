@@ -26,11 +26,11 @@ query_usage(void)
 {
     fprintf(stderr, "\nUsage: ./facs query [options]\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-b reference bloom filter to query against\n");
+    fprintf(stderr, "\t-b reference Bloom filter to query against\n");
     fprintf(stderr, "\t-q FASTA/FASTQ file containing the query\n");
-    fprintf(stderr, "\t-l input list containing all bloom filters, one per line\n");
-    fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
-    fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
+    fprintf(stderr, "\t-l input list containing all Bloom filters, one per line\n");
+    fprintf(stderr, "\t-r single input Bloom filters\n");
+    fprintf(stderr, "\t-t threshold value\n");
     fprintf(stderr, "\t-s sampling rate, default is 1 so it reads the whole query file\n");
     fprintf(stderr, "\n");
     return 1;
@@ -51,7 +51,7 @@ int bq_main(int argc, char** argv)
   char* source = NULL;
 
   // XXX: make r and l mutually exclusive
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
+    while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
       switch (opt) {
           case 't':
               (optarg) && ((tole_rate = atof(optarg)), 1);
@@ -59,29 +59,32 @@ int bq_main(int argc, char** argv)
           case 's':
               (optarg) && ((sampling_rate = atof(optarg)), 1);
               break;
-          case 'b':    
+          case 'o':
               (optarg) && ((target_path = optarg), 1);
               break;
-          case 'q':  
-              (optarg) && (source = optarg, 1);  
+          case 'q':
+              (optarg) && (source = optarg, 1);
+              break;
+          case 'r':
+              (optarg) && (ref = optarg, 1);
               break;
           case 'l':
-              (optarg) && (list = optarg, 1);  
+              (optarg) && (list = optarg, 1);
               break;
           case 'h':
               return query_usage();
-          default:
+          case '?':
               printf ("Unknown option: -%c\n", (char) optopt);
               return query_usage();
-      } 
-  } 
-
-  fprintf(stdout, "WHAAAT\n");
-
-  if(!target_path && !source) {
-    fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
-    exit(-1);
+      }
   }
+
+  //fprintf(stdout, "WHAAAT\n");
+
+  //if(!target_path && !source) {
+  //  fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+  //  exit(-1);
+  //}
 
   return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }

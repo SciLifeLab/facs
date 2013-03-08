@@ -31,18 +31,18 @@ remove_usage(void)
 {
     fprintf(stderr, "\nUsage: ./facs remove [options]\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-b reference bloom filter to query against\n");
+    fprintf(stderr, "\t-b reference Bloom filter to query against\n");
     fprintf(stderr, "\t-q FASTA/FASTQ file containing the query\n");
-    fprintf(stderr, "\t-l input list containing all bloom filters, one per line\n");
-    fprintf(stderr, "\t-r input list containing all reference files, one per line\n");
-    fprintf(stderr, "\t-t tolerance rate, default is 0.0005\n");
+    fprintf(stderr, "\t-l input list containing all Bloom filters, one per line\n");
+    fprintf(stderr, "\t-r single input Bloom filters\n");
+    fprintf(stderr, "\t-t threshold value\n");
     fprintf(stderr, "\n");
     return 1;
 }
 
 int remove_main(int argc, char** argv)
 {
-  if (argc < 2) remove_usage();
+  if (argc < 2) return remove_usage();
 /*-------defaults for bloom filter building-------*/ 
   int opt;
   float tole_rate = 0;
