@@ -5,6 +5,9 @@ import subprocess
 import errno
 from contextlib import contextmanager
 
+import timeit
+import cProfile
+
 import tempfile
 from tempfile import NamedTemporaryFile
 import functools
@@ -40,7 +43,6 @@ def generate_dummy_fastq(fname, num_reads):
                 f.write('GATTACAT' * stride + '\n')
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
-
 
 ### Software management
 
