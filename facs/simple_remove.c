@@ -104,8 +104,8 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
   /*-------------------------------------*/
   //position = mmaping (source);
   //type = get_parainfo (position, head);
-  clean = (char *) malloc (strlen (position) * sizeof (char));
-  contam = (char *) malloc (strlen (position) * sizeof (char));
+  clean = (char *) calloc (strlen (position), sizeof (char));
+  contam = (char *) calloc (strlen (position), sizeof (char));
   clean2 = clean;
   contam2 = contam;
   /*-------------------------------------*/
@@ -113,6 +113,8 @@ int remove_reads(char *source, char *ref, char *list, char *prefix, float tole_r
     {
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
+      clean = clean2;
+      contam = clean2;
       load_bloom (File_head->filename, bl_2);
       
       if (tole_rate==0)
@@ -165,8 +167,13 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
     next = info->next->location;
 
   else
-    next = strchr (p, '\0');
-
+    {
+       next = strchr (p, '\0');
+       if ((next[-1])=='\n' && next[-2]=='\n')
+            next-=1;
+       else if (next[-4]=='\r'&& next[-3]=='\n')
+            next-=2;
+    }
   while (p != next)
     {
 
@@ -245,8 +252,13 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
   else if (info->next != tail)
     next = info->next->location;
   else
-    next = strchr (p, '\0');
-
+    {
+       next = strchr (p, '\0');
+       if ((next[-1])=='\n' && next[-2]=='\n')
+            next-=1;
+       else if (next[-4]=='\r'&& next[-3]=='\n')
+            next-=2;
+    }
   while (p != next)
     {
       read_num++;
@@ -287,16 +299,11 @@ save_result (char *source, char *obj_file, int type, char *prefix,
   printf ("prefix->%s\n",prefix);
   char *so = NULL, *obj = NULL;
 
-  char *match = (char *) malloc (400 * sizeof (char)),
-    *mismatch = (char *) malloc (400 * sizeof (char)),
-    *so_name = (char *) malloc (200 * sizeof (char)),
-    *obj_name = (char *) malloc (200 * sizeof (char));
+  char *match = (char *) calloc (4*ONE, sizeof (char)),
+    *mismatch = (char *) calloc (4*ONE, sizeof (char)),
+    *so_name = (char *) calloc (4*ONE,  sizeof (char)),
+    *obj_name = (char *) calloc (4*ONE, sizeof (char));
 
-  memset (match, 0, 400);
-  memset (mismatch, 0, 400);
-  memset (so_name, 0, 200);
-  memset (obj_name, 0, 200);
-  
   so = strrchr (source, '/');
   obj = strrchr (obj_file,'/');
   if (so)
@@ -362,10 +369,6 @@ save_result (char *source, char *obj_file, int type, char *prefix,
   free (mismatch);
   free (so_name);
   free (obj_name);
-  memset (contam2, 0, strlen (contam2));
-  memset (clean2, 0, strlen (clean2));
-  clean = clean2;
-  contam = contam2;
 }
 
 /*-------------------------------------*/

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "bloom.h"
+#include "prob.h"
 /*------------------------------*/
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,6 +21,11 @@ double get_mu (BIGNUM num_hit, double prob)
 double get_sigma (BIGNUM num_hit, double prob)
 {
        return (double)num_hit*prob*(1-prob);
+}
+
+double get_evalue (BIGNUM number, double mu, double sigma)
+{
+       return cdf(number, mu, sigma); 
 }
 
 /*
