@@ -31,56 +31,62 @@ char *clean, *contam;
  *
  */
 static int
-remove_l_usage(void)
+remove_l_usage (void)
 {
-    fprintf(stderr, "\nUsage: ./facs remove [options]\n");
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-b reference Bloom filter to query against\n");
-    fprintf(stderr, "\t-q FASTA/FASTQ file containing the query\n");
-    fprintf(stderr, "\t-l input list containing all Bloom filters, one per line\n");
-    fprintf(stderr, "\t-r single Bloom filter file\n");
-    fprintf(stderr, "\t-t threshold value\n");
-    return 1;
+  fprintf (stderr, "\nUsage: ./facs remove [options]\n");
+  fprintf (stderr, "Options:\n");
+  fprintf (stderr, "\t-b reference Bloom filter to query against\n");
+  fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
+  fprintf (stderr,
+	   "\t-l input list containing all Bloom filters, one per line\n");
+  fprintf (stderr, "\t-r single Bloom filter file\n");
+  fprintf (stderr, "\t-t threshold value\n");
+  return 1;
 }
 
 
-int remove_l_main(int argc, char** argv)
+int
+remove_l_main (int argc, char **argv)
 {
-  if (argc < 2) return remove_l_usage();
-/*-------defaults for bloom filter building-------*/ 
+  if (argc < 2)
+    return remove_l_usage ();
+/*-------defaults for bloom filter building-------*/
   int opt;
   float tole_rate = 0;
-  char* ref = NULL;
-  char* list = NULL;
-  char* target_path = NULL;
-  char* source = NULL;
-  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1) {
-      switch (opt) {
-          case 't':
-              (optarg) && ((tole_rate = atof(optarg)), 1);
-              break;
-          case 'o':    
-              (optarg) && ((target_path = optarg), 1);
-              break;
-          case 'q':  
-              (optarg) && (source = optarg, 1);  
-              break;
-          case 'r':  
-              (optarg) && (ref = optarg, 1);  
-              break;
-          case 'l':
-              (optarg) && (list = optarg, 1);  
-              break;
-          case 'h':
-              return remove_l_usage();
-          default:
-              printf ("Unknown option: -%c\n", (char) optopt);
-              return remove_l_usage();
-      } 
-  } 
+  char *ref = NULL;
+  char *list = NULL;
+  char *target_path = NULL;
+  char *source = NULL;
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1)
+    {
+      switch (opt)
+	{
+	case 't':
+	  (optarg) && ((tole_rate = atof (optarg)), 1);
+	  break;
+	case 'o':
+	  (optarg) && ((target_path = optarg), 1);
+	  break;
+	case 'q':
+	  (optarg) && (source = optarg, 1);
+	  break;
+	case 'r':
+	  (optarg) && (ref = optarg, 1);
+	  break;
+	case 'l':
+	  (optarg) && (list = optarg, 1);
+	  break;
+	case 'h':
+	  return remove_l_usage ();
+	default:
+	  printf ("Unknown option: -%c\n", (char) optopt);
+	  return remove_l_usage ();
+	}
+    }
   //return remove_l(source, ref, list, target_path, tole_rate);
-    return remove_l(tole_rate, source, ref, list, target_path);
+  return remove_l (tole_rate, source, ref, list, target_path);
 }
+
 /*-------------------------------------*/
 int
 remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
@@ -122,9 +128,11 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 		  {
 		    //printf("location->%0.20s\n",head->location);
 		    if (type == 1)
-		      fasta_process_ml (File_head, bl_2, head,tail,clean,contam,tole_rate);
+		      fasta_process_ml (File_head, bl_2, head, tail, clean,
+					contam, tole_rate);
 		    else
-		      fastq_process_ml (File_head, bl_2, head,tail,clean,contam,tole_rate);
+		      fastq_process_ml (File_head, bl_2, head, tail, clean,
+					contam, tole_rate);
 		  }
 	      }
 	      head = head->next;
@@ -139,7 +147,8 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 
     }				// End outside while
 
-  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2, position, type, prefix);
+  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2,
+	    position, type, prefix);
   munmap (position, strlen (position));
 
 #ifdef DEBUG
@@ -151,7 +160,8 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 
 /*-------------------------------------*/
 void
-fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, char *clean, char *contam, float tole_rate)
+fastq_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
+		  char *clean, char *contam, float tole_rate)
 {
   int read_num = 0, result = 0, countup = 0;
   char *p = info->location;
@@ -166,7 +176,7 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
 
   if (info->score == NULL)
     {
-      read_num = count_read (p, next,2);
+      read_num = count_read (p, next, 2);
       info->score = (short *) malloc (read_num * sizeof (short));
       info->number = (short *) malloc (read_num * sizeof (short));
     }
@@ -185,7 +195,8 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
 	temp_end = strchr (p, '\0');
 
       result =
-	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate,File_head);
+	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate,
+			  File_head);
 
       if (result == 0)
 	{
@@ -220,7 +231,8 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info,  Queue * tail, ch
 
 /*-------------------------------------*/
 void
-fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail, char *clean, char *contam, float tole_rate)
+fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
+		  char *clean, char *contam, float tole_rate)
 {
   int read_num = 0, result = 0, countup = 0, sign = 0;
   char *p = info->location;
@@ -277,13 +289,13 @@ save_result_ml (char *source, char *obj_file, char *data, char *data2,
 		int flag, int type, char *prefix)
 {
   printf ("saving...\n");
-  char *match = (char *) malloc (4*HUN * sizeof (char)),
-    *so_name = (char *) malloc (2*HUN * sizeof (char)),
-    *obj_name = (char *) malloc (2*HUN * sizeof (char));
+  char *match = (char *) malloc (4 * HUN * sizeof (char)),
+    *so_name = (char *) malloc (2 * HUN * sizeof (char)),
+    *obj_name = (char *) malloc (2 * HUN * sizeof (char));
 
-  memset (match, 0, 4*HUN);
-  memset (so_name, 0, 2*HUN);
-  memset (obj_name, 0, 2*HUN);
+  memset (match, 0, 4 * HUN);
+  memset (so_name, 0, 2 * HUN);
+  memset (obj_name, 0, 2 * HUN);
 
   char *so;
   ((so = strrchr (source, '/'))) && (so += 1, 1) || (so = NULL);
@@ -373,19 +385,19 @@ count_read (char *data, char *next, int type)
 
 /*-------------------------------------*/
 void
-all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source, char *clean,
-	  char *clean2, char *contam, char *contam2, char *position, int type,
-	  char *prefix)
+all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
+	  char *clean, char *clean2, char *contam, char *contam2,
+	  char *position, int type, char *prefix)
 {
   char *pos, *next, *temp_next;
   int countup;
   Queue *head;
-  printf ("clean->%s\n",clean);
+  printf ("clean->%s\n", clean);
   save_result_ml (source, File_head2->filename, clean, clean2, 0, type, prefix);	// save the clean data
   free (clean2);
 
 //File_head2 = File_head2->next;
-printf("1_dollar_%s\n",File_head2->filename);
+  printf ("1_dollar_%s\n", File_head2->filename);
   while (File_head2)
     {
       head = head2;

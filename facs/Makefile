@@ -2,8 +2,8 @@ CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -Wall -fopenmp -g -DNODEB
 .PHONY: tests clean valgrind
 .SUFFIXES:.c .o
 PROG=facs
-LOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o simple_remove_l.o
-AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o simple_remove_l.o
+LOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o simple_remove_l.o prob.o
+AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o simple_remove_l.o prob.o
 
 all:$(PROG)
 
