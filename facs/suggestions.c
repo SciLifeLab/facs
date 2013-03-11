@@ -13,19 +13,22 @@
 #define MB 1048576
 
 
-double get_mu (BIGNUM num_hit, double prob)
+double
+get_mu (BIGNUM num_hit, double prob)
 {
-       return ((double)num_hit)*prob;
+  return ((double) num_hit) * prob;
 }
 
-double get_sigma (BIGNUM num_hit, double prob)
+double
+get_sigma (BIGNUM num_hit, double prob)
 {
-       return (double)num_hit*prob*(1-prob);
+  return (double) num_hit *prob * (1 - prob);
 }
 
-double get_evalue (BIGNUM number, double mu, double sigma)
+double
+get_evalue (BIGNUM number, double mu, double sigma)
 {
-       return cdf(number, mu, sigma); 
+  return cdf (number, mu, sigma);
 }
 
 /*
@@ -65,63 +68,65 @@ else
 */
 
 
-int kmer_suggestion (BIGCAST size)
+int
+kmer_suggestion (BIGCAST size)
 {
-  if (size<10*MB)
-     {
+  if (size < 10 * MB)
+    {
       //bl->k_mer = 15;
       //bl->mcf = 0.4;
       return 15;
-     }
-  else if (size<20*MB)
-     {
+    }
+  else if (size < 20 * MB)
+    {
       //bl->k_mer = 17;
       //bl->mcf = 0.4;
       return 16;
-     }
-  else if (size<50*MB)
-     {
+    }
+  else if (size < 50 * MB)
+    {
       //bl->k_mer = 17;
       //bl->mcf = 0.4;
       return 17;
-     }
-  else if (size<100*MB)
-     {
+    }
+  else if (size < 100 * MB)
+    {
       //bl->k_mer = 18;
       //bl->mcf = 0.3;
       return 18;
-     }
-  else if (size<500*MB)
-     {
+    }
+  else if (size < 500 * MB)
+    {
       return 19;
-     }
+    }
   else
-     {
+    {
       //bl->k_mer = 20;
       //bl->mcf = 0.3;
       return 20;
-     }
+    }
 }
 
-float mco_suggestion (int k_mer)
+float
+mco_suggestion (int k_mer)
 {
-switch (k_mer)
-  {
+  switch (k_mer)
+    {
     case 15:
-    	return 0.4;
+      return 0.4;
     case 16:
-        return 0.3;
+      return 0.3;
     case 17:
-        return 0.3;
+      return 0.3;
     case 18:
-        return 0.3; 
+      return 0.3;
     case 19:
-        return 0.4;
+      return 0.4;
     case 20:
-        return 0.3;
+      return 0.3;
     default:
-        return 0.4;
-  }
+      return 0.4;
+    }
 }
 
 int

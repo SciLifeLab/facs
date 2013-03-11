@@ -233,7 +233,7 @@ finder (BIGNUM index, deref * dr)
   //dr->spot = 0x80;
   //dr->spot = dr->spot >> (index & 0x07);
   //dr->spot = pow(2,(index & 0x07));
-  dr->spot = 1<<(index & 0x07);
+  dr->spot = 1 << (index & 0x07);
   return 0;
 }
 
@@ -244,37 +244,41 @@ report_capacity (bloom * bloom)
   return bloom->stat.capacity;
 }
 
-char* 
+char *
 prefix_make (char *filename, char *prefix, char *target)
 {
-    char *position1 = strrchr (filename, '/');
+  char *position1 = strrchr (filename, '/');
 
-    char *bloom_file = (char *) malloc (300 * sizeof (char));
-    memset (bloom_file, 0, 300);
-    if (is_dir(target)) {
-        strcat (bloom_file,target);
-        if (position1!=NULL)
-            strncat (bloom_file,position1,strrchr(position1,'.')-position1);
-    }  else if (target) {
-        strcat (bloom_file,target);
+  char *bloom_file = (char *) malloc (300 * sizeof (char));
+  memset (bloom_file, 0, 300);
+  if (is_dir (target))
+    {
+      strcat (bloom_file, target);
+      if (position1 != NULL)
+	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
     }
-       else if (target!=NULL && prefix!=NULL) {
-        if (position1!=NULL)
-            strncat (bloom_file,position1,strrchr(position1,'.')-position1);
-        else
-            strncat (bloom_file,filename,strrchr(filename,'.')-filename);
-        strcat (bloom_file, ".bloom");
-        bloom_file++;
+  else if (target)
+    {
+      strcat (bloom_file, target);
     }
-       else
-       {
-        if (position1!=NULL)
-            strncat (bloom_file,position1,strrchr(position1,'.')-position1);
-        else
-            strncat (bloom_file,filename,strrchr(filename,'.')-filename);
-       }
+  else if (target != NULL && prefix != NULL)
+    {
+      if (position1 != NULL)
+	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
+      else
+	strncat (bloom_file, filename, strrchr (filename, '.') - filename);
+      strcat (bloom_file, ".bloom");
+      bloom_file++;
+    }
+  else
+    {
+      if (position1 != NULL)
+	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
+      else
+	strncat (bloom_file, filename, strrchr (filename, '.') - filename);
+    }
 
-    return bloom_file;
+  return bloom_file;
 }
 
 int
@@ -283,22 +287,22 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   char *bloom_file = NULL;
   int fd;
 
-  bloom_file = prefix_make(filename, prefix, target);
+  bloom_file = prefix_make (filename, prefix, target);
 
 #ifdef DEBUG
-  printf("Bloom file to be written in: %s\n", bloom_file);
+  printf ("Bloom file to be written in: %s\n", bloom_file);
 #endif
 
 
   //if (bloom_file[0]=='/')
   //    bloom_file++;
-  if (prefix==NULL && target==NULL)
-      {
-      strcat (bloom_file,".bloom");
+  if (prefix == NULL && target == NULL)
+    {
+      strcat (bloom_file, ".bloom");
       bloom_file++;
-      }
-  else if (is_dir(target))
-      strcat (bloom_file,".bloom");
+    }
+  else if (is_dir (target))
+    strcat (bloom_file, ".bloom");
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
@@ -328,27 +332,30 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       return 0;
     }
 
-  if(write (fd, bl, sizeof (bloom)) < 0) {
+  if (write (fd, bl, sizeof (bloom)) < 0)
+    {
       perror (" error writing bloom file ");
       exit (EXIT_FAILURE);
-  }
+    }
 
   total_size = (long long) (bl->stat.elements / 8) + 1;
 
   BIGNUM off = 0;
   while (total_size > TWOG)
     {
-      if(write(fd, bl->vector + off, sizeof (char) * TWOG) < 0) {
-	      perror (" error writing bloom file ");
-	      exit (EXIT_FAILURE);
-      }
+      if (write (fd, bl->vector + off, sizeof (char) * TWOG) < 0)
+	{
+	  perror (" error writing bloom file ");
+	  exit (EXIT_FAILURE);
+	}
       total_size -= TWOG;
       off += TWOG;
     }
-  if (write (fd, bl->vector + off, sizeof (char) * total_size) < 0){
-	      perror (" error writing bloom file ");
-	      exit (EXIT_FAILURE);
-  };
+  if (write (fd, bl->vector + off, sizeof (char) * total_size) < 0)
+    {
+      perror (" error writing bloom file ");
+      exit (EXIT_FAILURE);
+    };
   close (fd);
 
   memset (bl->vector, 0,
@@ -377,33 +384,39 @@ load_bloom (char *filename, bloom * bl)
   fd = open64 (filename, O_RDONLY, PERMS);
 #endif
 
-  if (fd < 0) {
+  if (fd < 0)
+    {
       perror (filename);
-      exit(-1);
-  }
+      exit (-1);
+    }
 
-  if (read (fd, bl, sizeof (bloom)) < 0){
-     perror("Problem reading bloom filter");
-  };
+  if (read (fd, bl, sizeof (bloom)) < 0)
+    {
+      perror ("Problem reading bloom filter");
+    };
 
-  bl->vector = (char *) malloc (sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
+  bl->vector =
+    (char *) malloc (sizeof (char) *
+		     ((long long) (bl->stat.elements / 8) + 1));
 
   BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
 
-  while (total_size > TWOG) {
-      ret = read(fd, bl->vector + off, sizeof (char) * TWOG);
+  while (total_size > TWOG)
+    {
+      ret = read (fd, bl->vector + off, sizeof (char) * TWOG);
       if (ret < 0)
-          perror("Problem reading bloom filter");
+	perror ("Problem reading bloom filter");
       total_size -= TWOG;
       off += TWOG;
-  }
+    }
 
   ret = read (fd, bl->vector + off, sizeof (char) * total_size);
 
 #ifdef DEBUG
   if (ret > 0)
-      printf ("bloom filter read successfully\n");
-  else ret = errno;
+    printf ("bloom filter read successfully\n");
+  else
+    ret = errno;
 #endif
 
   close (fd);
@@ -416,10 +429,11 @@ write_result (char *filename, char *detail)
   int fd;
 
   fd = open (filename, O_CREAT | O_RDWR, S_IRWXU);
-  if (write (fd, detail, strlen (detail)) < 0) {
+  if (write (fd, detail, strlen (detail)) < 0)
+    {
       perror (" error writing result file ");
       exit (EXIT_FAILURE);
-  }
+    }
 
   close (fd);
 }
@@ -483,7 +497,7 @@ mmaping (char *source)
   int src;
   char *sm;
 
-  if ((src = open(source, O_RDONLY | O_LARGEFILE)) < 0)
+  if ((src = open (source, O_RDONLY | O_LARGEFILE)) < 0)
     {
       perror (" open source ");
       exit (EXIT_FAILURE);
@@ -526,24 +540,26 @@ large_load (char *fifoname)
 
   data[TWOG / 2] = '\0';
 
-  while ((ch = fgetc (fd)) != EOF) {
+  while ((ch = fgetc (fd)) != EOF)
+    {
       data[x] = ch;
       x++;
-  }
+    }
 
 #ifdef DEBUG
-  printf ("data length->%lld\n", (long long int) strlen(data));
+  printf ("data length->%lld\n", (long long int) strlen (data));
 #endif
 
   fclose (fd);
   return data;
 }
 
-BIGCAST get_size (char *filename){
-    struct stat buf;
-    if(stat(filename, &buf)!= -1)
-      return buf.st_size;
-    else
-      return 0;
+BIGCAST
+get_size (char *filename)
+{
+  struct stat buf;
+  if (stat (filename, &buf) != -1)
+    return buf.st_size;
+  else
+    return 0;
 }
-

@@ -89,7 +89,7 @@ is acceptable.  Do NOT use for cryptographic purposes.
 */
 
 ub8
-hash (register ub1 *k, register ub8 length, register ub8 level)
+hash (register ub1 * k, register ub8 length, register ub8 level)
 /*
      register ub1 *k;		// the key
      register ub8 length;	// the length of the key
@@ -190,7 +190,7 @@ hash (register ub1 *k, register ub8 length, register ub8 level)
 --------------------------------------------------------------------
 */
 ub8
-hash2 (register ub8 *k, register ub8 length, register ub8 level)
+hash2 (register ub8 * k, register ub8 length, register ub8 level)
 /*     
      register ub8 *k;		// the key
      register ub8 length;	// the length of the key
@@ -241,7 +241,7 @@ hash2 (register ub8 *k, register ub8 length, register ub8 level)
 */
 
 ub8
-hash3 (register ub1 *k, register ub8 length, register ub8 level)
+hash3 (register ub1 * k, register ub8 length, register ub8 level)
 /*
      register ub1 *k;		// the key
      register ub8 length;	// the length of the key
@@ -431,9 +431,10 @@ driver2 ()
 		    {
 		      printf ("Some bit didn't change: ");
 		      printf ("%.8lx %.8lx %.8lx %.8lx %.8lx %.8lx  ",
-			      (lui) e[0], (lui) f[0], (lui) g[0], (lui) h[0], (lui) x[0], (lui) y[0]);
-		      printf ("i %ld j %ld m %ld len %ld\n",
-			      (ub4) i, (ub4) j, (ub4) m, (ub4) hlen);
+			      (lui) e[0], (lui) f[0], (lui) g[0], (lui) h[0],
+			      (lui) x[0], (lui) y[0]);
+		      printf ("i %ld j %ld m %ld len %ld\n", (ub4) i, (ub4) j,
+			      (ub4) m, (ub4) hlen);
 		    }
 		  if (z == MAXPAIR)
 		    goto done;
@@ -507,11 +508,8 @@ driver3 ()
 	  y = hash (b, len, (ub8) 1);
 	  if ((ref != x) || (ref != y))
 	    {
-	      printf ("alignment error: %.8lx %.8lx %.8lx %ld %ld\n", (lui) ref,
-                                                                  (lui) x,
-		                                                          (lui) y, 
-                                                                  (lui) h, 
-                                                                  (lui) i);
+	      printf ("alignment error: %.8lx %.8lx %.8lx %ld %ld\n",
+		      (lui) ref, (lui) x, (lui) y, (lui) h, (lui) i);
 	    }
 	}
     }

@@ -27,32 +27,32 @@
 
 typedef struct
 {
-	BIGNUM index;
-        char spot;
+  BIGNUM index;
+  char spot;
 
 } deref;
 
-typedef BIGNUM (*hash_t)(char *str);
+typedef BIGNUM (*hash_t) (char *str);
 
-typedef struct 
+typedef struct
 {
-	int *num;
-	int cnt;
+  int *num;
+  int cnt;
 } randoms;
 
 typedef struct bloomstat
 {
-	BIGNUM elements; /* size of array */
-	int ideal_hashes; /* num hash functions */
-	BIGNUM capacity; /* number of elements */
-	double e; /* max error rate */
+  BIGNUM elements;		/* size of array */
+  int ideal_hashes;		/* num hash functions */
+  BIGNUM capacity;		/* number of elements */
+  double e;			/* max error rate */
 } bl_stat;
 
 typedef struct
 {
-	char *vector;
-	hash_t hash;
- 	BIGNUM inserts;
+  char *vector;
+  hash_t hash;
+  BIGNUM inserts;
   struct bloomstat stat;
   int k_mer;
   int dx;
@@ -61,21 +61,21 @@ typedef struct
 
 typedef struct info
 {
-     char *location;
-     short *score;
-     short *number;                 			
-     struct info *next;          
+  char *location;
+  short *score;
+  short *number;
+  struct info *next;
 } Queue;
 
 typedef struct file_list
 {
-	char *filename;
-        short number;
-        BIGCAST reads_num;
-        BIGCAST reads_contam;
-        BIGCAST hits;
-        BIGCAST all_k;
-	struct file_list *next;
+  char *filename;
+  short number;
+  BIGCAST reads_num;
+  BIGCAST reads_contam;
+  BIGCAST hits;
+  BIGCAST all_k;
+  struct file_list *next;
 } F_set;
 /* these are modes to test_all() */
 #define RO 0
@@ -90,41 +90,43 @@ typedef struct file_list
 #define ONEG 1000000000
 #define ONE 100
 
-BIGNUM mkprime(BIGNUM startval);
+BIGNUM mkprime (BIGNUM startval);
 extern double get_mu (BIGNUM num_hit, double prob);
 extern double get_sigma (BIGNUM num_hit, double prob);
 extern double get_evalue (BIGNUM number, double mu, double sigma);
 extern BIGCAST get_size (char *filename);
 
-extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity, double error_rate, int hashes, hash_t hash, int flags);
+extern int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity,
+		       double error_rate, int hashes, hash_t hash, int flags);
 
-extern int bloom_check(bloom *bloom,char *str);
-extern int bloom_add(bloom *bloom,char *str);
-extern int bloom_test(bloom *bloom,char *str,int MODE);
-extern void bloom_destroy(bloom *bloom);
+extern int bloom_check (bloom * bloom, char *str);
+extern int bloom_add (bloom * bloom, char *str);
+extern int bloom_test (bloom * bloom, char *str, int MODE);
+extern void bloom_destroy (bloom * bloom);
 
-extern int sketchy_randoms(randoms *rands,int cnt);
-extern int finder (BIGNUM index,deref *dr);
-extern int set(char *big,BIGNUM index);
+extern int sketchy_randoms (randoms * rands, int cnt);
+extern int finder (BIGNUM index, deref * dr);
+extern int set (char *big, BIGNUM index);
 extern int test (char *big, BIGNUM index);
-extern BIGNUM bloom_hash(bloom *bloom,char *str, int i, int length);
-extern int bloom_hash_old(bloom *bloom,char *str, int i);
+extern BIGNUM bloom_hash (bloom * bloom, char *str, int i, int length);
+extern int bloom_hash_old (bloom * bloom, char *str, int i);
 
-extern BIGNUM find_close_prime(BIGNUM m);
-extern int get_suggestion(struct bloomstat *stats, BIGNUM n,double e);
+extern BIGNUM find_close_prime (BIGNUM m);
+extern int get_suggestion (struct bloomstat *stats, BIGNUM n, double e);
 extern int kmer_suggestion (BIGCAST size);
 extern float mco_suggestion (int k_mer);
-extern int is_prime(BIGNUM m);
+extern int is_prime (BIGNUM m);
 extern void get_rec (struct bloomstat *stat);
-extern BIGNUM report_capacity(bloom *bloom);
+extern BIGNUM report_capacity (bloom * bloom);
 
 extern void write_result (char *filename, char *detail);
-extern void build_help(void);
-extern void check_help(void);
-extern void remove_help(void);
-extern void remove_l_help(void);
-extern int save_bloom (char *filename, bloom *bl, char *prefix, char *target);
-extern int load_bloom (char *filename, bloom *bl);
+extern void build_help (void);
+extern void check_help (void);
+extern void remove_help (void);
+extern void remove_l_help (void);
+extern int save_bloom (char *filename, bloom * bl, char *prefix,
+		       char *target);
+extern int load_bloom (char *filename, bloom * bl);
 extern void rev_trans (char *s);
 
 extern char *large_load (char *fifoname);
