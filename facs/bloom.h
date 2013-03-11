@@ -87,14 +87,16 @@ typedef struct file_list
 #define ERR_MALLOC 1
 #define ERR_OVERFLOW 2
 #define ERR_UNKNOWN 3
+#define ONEG 1000000000
+#define ONE 100
 
 BIGNUM mkprime(BIGNUM startval);
 extern double get_mu (BIGNUM num_hit, double prob);
 extern double get_sigma (BIGNUM num_hit, double prob);
+extern double get_evalue (BIGNUM number, double mu, double sigma);
 extern BIGCAST get_size (char *filename);
 
-extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity,
-                      double error_rate, int hashes, hash_t hash, int flags);
+extern int bloom_init(bloom *bloom, BIGNUM size, BIGNUM capacity, double error_rate, int hashes, hash_t hash, int flags);
 
 extern int bloom_check(bloom *bloom,char *str);
 extern int bloom_add(bloom *bloom,char *str);
@@ -124,10 +126,7 @@ extern void remove_l_help(void);
 extern int save_bloom (char *filename, bloom *bl, char *prefix, char *target);
 extern int load_bloom (char *filename, bloom *bl);
 extern void rev_trans (char *s);
-//extern void cat_print(char *merge, char *remove);
 
-//extern void kmer_suggestion (BIGCAST size);
-//extern float mcf_suggestion (int k_mer);
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
 extern char *prefix_make (char *filename, char *prefix, char *target);

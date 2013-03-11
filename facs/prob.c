@@ -39,19 +39,17 @@ double cdf(double x, double mu, double sigma)
 	return 0.5 * (1 + erf((x - mu) / (sigma * sqrt(2.))));
 }
 
-
+/*
 int main()
 {
 	
 	double x, mu, sigma;
-/*
 	cout << "x, mu, sigma: ";
 	cin >> x >> mu >> sigma;
 
 	cout << "PDF of x is: " << pdf(x,mu,sigma) << endl;
 	cout << "CDF of x is: " << cdf(x,mu,sigma) << endl;
 
-*/
         x = 1;
         mu = 10;
         sigma = 2.5;
@@ -59,3 +57,4 @@ int main()
 
 	return 0;
 }
+*/
