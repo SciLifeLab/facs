@@ -54,7 +54,7 @@ make_list (char *file_user, char *list_user)
 
   F_set *head = NEW (F_set);
   F_set *head1 = head;
-  
+
   char *mimi = NULL;
   char *pos = NULL;
   int number = 0;
@@ -69,16 +69,16 @@ make_list (char *file_user, char *list_user)
 	  memset (mimi, 0, 200);
 
 	  F_set *fset = NEW (F_set);
-          fset->filename = NULL;
-          fset->number = 0;
+	  fset->filename = NULL;
+	  fset->number = 0;
 
-	  if ((pos = strchr (list_user, '\n'))!=NULL)
+	  if ((pos = strchr (list_user, '\n')) != NULL)
 	    strncat (mimi, list_user, pos - list_user);
 	  else
 	    break;
-           
+
 	  fset->filename = mimi;
-          int num = number;
+	  int num = number;
 	  fset->number = num;
 	  fset->next = head->next;
 	  head->next = fset;
@@ -87,10 +87,10 @@ make_list (char *file_user, char *list_user)
 	  number++;
 	}
     }
- 
+
   else if (is_file (file_user))
     {
-   
+
       F_set *fset = NEW (F_set);
       fset->filename = file_user;
       fset->next = head->next;
@@ -130,10 +130,11 @@ make_list (char *file_user, char *list_user)
 	  number++;
 	}
     }
-  else {
-  perror (file_user);
-  exit(-1);
-  }
+  else
+    {
+      perror (file_user);
+      exit (-1);
+    }
   //free(file_path);
   //free(mimi);
   head1->next->reads_num = 0;

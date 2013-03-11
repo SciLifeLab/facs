@@ -25,27 +25,32 @@
 
 /*-------------------------------------*/
 void
-fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
+fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	       float sampling_rate, float tole_rate)
 {
 
   char *p = info->location;
   char *next = NULL, *temp = NULL, *temp_piece = NULL;
 
-  if (info->location[0] != '@') {
-    return;
-  } else if (info->next != tail && info->next->location!=NULL) {
-    next = info->next->location;
-  } else {
-    next = strchr (p, '\0');
-    //if (next[-2]=='\r')
-    //printf ("%d\n",next[-1]);
-    if ((next[-1])=='\n' && next[-2]=='\n')
-       next-=1;
-    else if (next[-4]=='\r'&& next[-3]=='\n')
-       next-=2;
-  }
-   
+  if (info->location[0] != '@')
+    {
+      return;
+    }
+  else if (info->next != tail && info->next->location != NULL)
+    {
+      next = info->next->location;
+    }
+  else
+    {
+      next = strchr (p, '\0');
+      //if (next[-2]=='\r')
+      //printf ("%d\n",next[-1]);
+      if ((next[-1]) == '\n' && next[-2] == '\n')
+	next -= 1;
+      else if (next[-4] == '\r' && next[-3] == '\n')
+	next -= 2;
+    }
+
   while (p != next)
     {
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
@@ -59,10 +64,12 @@ fastq_process (bloom * bl, Queue * info, Queue *tail, F_set * File_head,
       File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-      if (fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head)> 0) {
+      if (fastq_read_check
+	  (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head) > 0)
+	{
 #pragma omp atomic
-	File_head->reads_contam++;
-      }
+	  File_head->reads_contam++;
+	}
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
@@ -77,9 +84,9 @@ void
 fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	       float sampling_rate, float tole_rate)
 {
-  #ifdef DEBUG
+#ifdef DEBUG
   printf ("fasta processing...\n");
-  #endif
+#endif
   char *temp_next, *next, *temp;
 
   if (info->location == NULL)
@@ -89,8 +96,12 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
   else
     {
       next = strchr (info->location, '\0');
-      if ((next-1)=='\n')
-      next -= 1;
+      //if ((next-1)=='\n')
+      //next -= 1;
+      if ((next[-1]) == '\n' && next[-2] == '\n')
+	next -= 1;
+      else if (next[-4] == '\r' && next[-3] == '\n')
+	next -= 2;
     }
 
   char *p = info->location;
@@ -131,13 +142,13 @@ evaluate (char *detail, char *filename, F_set * File_head)
     (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
 // JSON output format by default
-  printf("{\n");
+  printf ("{\n");
   printf ("\t\"total_read_count\": %lld,\n", File_head->reads_num);
   printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
   printf ("\t\"total_hits\": %lld,\n", File_head->hits);
   printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
   printf ("\t\"bloom_file\":\"%s\"\n", filename);
-  printf("}\n");
+  printf ("}\n");
 
 #ifdef DEBUG
   strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
@@ -155,9 +166,9 @@ statistic_save (char *detail, char *filename, char *prefix)
 {
   char *save_file = NULL;
   save_file = prefix_make (filename, NULL, prefix);
-  if (save_file[0]=='/')
-      save_file++;
-  strcat (save_file,".info");
+  if (save_file[0] == '/')
+    save_file++;
+  strcat (save_file, ".info");
 
 #ifdef DEBUG
   printf ("Basename->%s\n", filename);

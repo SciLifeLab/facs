@@ -10,7 +10,7 @@ import collections
 import facs
 from facs.utils import helpers, galaxy
 
-class DrassBasicTest(unittest.TestCase):
+class FacsBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """
     def setUp(self):
@@ -30,10 +30,10 @@ class DrassBasicTest(unittest.TestCase):
         helpers._mkdir_p(self.custom_dir)
         helpers._mkdir_p(self.synthetic_fastq)
 
-	# Check if 2bit decompressor is available
-	twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
-	if not os.path.exists(twobit_fa_path):
-		galaxy.download_twoBitToFa_bin(twobit_fa_path)
+        # Check if 2bit decompressor is available
+        twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
+        if not os.path.exists(twobit_fa_path):
+            galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
         # Downloads reference genome(s)
         galaxy.rsync_genomes(self.reference, ["phix", "dm3", "ecoli"], ["ucsc"], twobit_fa_path)
