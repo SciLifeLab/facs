@@ -79,12 +79,10 @@ int bq_main(int argc, char** argv)
       }
   }
 
-  //fprintf(stdout, "WHAAAT\n");
-
-  //if(!target_path && !source) {
-  //  fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
-  //  exit(-1);
-  //}
+  if(!target_path && !source) {
+    fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+    exit(-1);
+  }
 
   return query(source, ref, tole_rate, sampling_rate, list, target_path);
 }

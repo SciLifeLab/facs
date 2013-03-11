@@ -10,7 +10,7 @@ import collections
 import facs
 from facs.utils import helpers, galaxy
 
-class DrassBasicTest(unittest.TestCase):
+class FacsBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """
     def setUp(self):
@@ -30,22 +30,21 @@ class DrassBasicTest(unittest.TestCase):
         helpers._mkdir_p(self.custom_dir)
         helpers._mkdir_p(self.synthetic_fastq)
 
-	# Check if 2bit decompressor is available
-	twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
-	if not os.path.exists(twobit_fa_path):
-		galaxy.download_twoBitToFa_bin(twobit_fa_path)
+        # Check if 2bit decompressor is available
+        twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
+        if not os.path.exists(twobit_fa_path):
+            galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
         # Downloads reference genome(s)
-        galaxy.rsync_genomes(self.reference, ["phix", "dm3"], ["ucsc"], twobit_fa_path)
+        galaxy.rsync_genomes(self.reference, ["phix", "dm3", "ecoli"], ["ucsc"], twobit_fa_path)
 
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
         for ref in os.listdir(self.reference):
-	    org = os.path.join(self.reference, ref, "seq", ref+".fa")
-	    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
-	    print(org, bf)
-
+            org = os.path.join(self.reference, ref, "seq", ref+".fa")
+            bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+            print(org, bf)
             facs.build(org, bf)
 
     def test_2_query(self):
@@ -56,12 +55,10 @@ class DrassBasicTest(unittest.TestCase):
             helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
 
         for ref in os.listdir(self.reference):
-	    qry = os.path.join(self.synthetic_fastq, test_fname)
-	    bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
-	    print(qry, bf)
-
-	    facs.query(qry, bf)
-
+            qry = os.path.join(self.synthetic_fastq, test_fname)
+            bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
+            print(qry, bf)
+    	    facs.query(qry, bf)
 
     def test_3_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.

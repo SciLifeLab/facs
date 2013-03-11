@@ -41,7 +41,6 @@ def generate_dummy_fastq(fname, num_reads):
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
 
-
 ### Software management
 
 def _download_to_dir(url, dirname):
@@ -91,7 +90,7 @@ def _fetch_and_unpack(url, need_dir=True):
     if url.startswith(("git", "svn", "hg", "cvs")):
         base = os.path.splitext(os.path.basename(url.split()[-1]))[0]
         if os.path.exists(base):
-            env.safe_sudo("rm -rf {0}".format(base))
+            subprocess.check_call(["rm -rf {0}".format(base)])
         subprocess.check_call(url)
         return base
     else:
@@ -99,7 +98,7 @@ def _fetch_and_unpack(url, need_dir=True):
         print tar_file, dir_name, tar_cmd
         if not os.path.exists(tar_file):
             subprocess.check_call(["wget", "--no-check-certificate", "-O", tar_file, url])
-        subprocess.check_call(["tar_cmd", "tar_file"])
+        subprocess.check_call([tar_cmd, tar_file])
         return _safe_dir_name(dir_name, need_dir)
 
 def _get_expected_file(url):
