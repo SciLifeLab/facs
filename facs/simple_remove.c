@@ -5,26 +5,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*-------------------------------------*/
-//for file mapping in Linux and timing
+
 #include<fcntl.h>
 #include<unistd.h>
 #include<sys/stat.h>
 #include<sys/time.h>
 #include<sys/mman.h>
 #include<sys/types.h>
-/*-------------------------------------*/
+
 #include "tool.h"
 #include "bloom.h"
 #include "remove.h"
 #include "file_dir.h"
-/*-------------------------------------*/
-//openMP library
+
 #include<omp.h>
 //#include<mpi.h>
-/*-------------------------------------*/
+
 char *clean, *contam;
-/*-------------------------------------*/
 
 static int
 remove_usage (void)

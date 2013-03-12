@@ -45,7 +45,8 @@ class FacsBasicTest(unittest.TestCase):
             org = os.path.join(self.reference, ref, "seq", ref+".fa")
             bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
             print(org, bf)
-            facs.build(org, bf)
+            if not os.path.exists(bf):
+                facs.build(org, bf)
 
     def test_2_query(self):
         """ Generate dummy fastq files and query them against reference bloom filters.
