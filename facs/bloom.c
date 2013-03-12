@@ -293,16 +293,11 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   printf ("Bloom file to be written in: %s\n", bloom_file);
 #endif
 
-
-  //if (bloom_file[0]=='/')
-  //    bloom_file++;
-  if (prefix == NULL && target == NULL)
-    {
-      strcat (bloom_file, ".bloom");
+  if (prefix==NULL && target==NULL) {
+      strcat (bloom_file,".bloom");
       bloom_file++;
-    }
-  else if (is_dir (target))
-    strcat (bloom_file, ".bloom");
+  } else if (is_dir(target))
+      strcat (bloom_file,".bloom");
 
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
@@ -358,8 +353,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
     };
   close (fd);
 
-  memset (bl->vector, 0,
-	  sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
+  memset (bl->vector, 0, sizeof(char) * ((long long) (bl->stat.elements / 8)+1));
 
 #ifdef DEBUG
   printf ("big file process OK\n");
@@ -491,33 +485,31 @@ rev_trans (char *s)
 char *
 mmaping (char *source)
 {
-
   struct stat statbuf;
 
-  int src;
-  char *sm;
+  int fd = 0;
+  char *sm = NULL;
 
-  if ((src = open (source, O_RDONLY | O_LARGEFILE)) < 0)
-    {
-      perror (" open source ");
-      exit (EXIT_FAILURE);
-    }
+  if ((fd = open(source, O_RDONLY | O_LARGEFILE)) < 0) {
+      fprintf(stderr, "%s: %s\n", source, strerror(errno));
+      exit(EXIT_FAILURE);
+  }
 
-  if (fstat (src, &statbuf) < 0)
-    {
-      perror (" fstat source ");
-      exit (EXIT_FAILURE);
-    }
+  if (fstat(fd, &statbuf) < 0) {
+      fprintf(stderr, "%s: %s\n", source, strerror(errno));
+      exit(EXIT_FAILURE);
+  } else if (statbuf.st_size == 0) {
+      fprintf(stderr, "%s: %s\n", source, "File is empty");
+      exit(-1);
+  }
 
-  sm =
-    mmap (0, (BIGCAST) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE,
-	  src, 0);
+  sm = mmap (0, (BIGCAST) statbuf.st_size, PROT_READ,
+             MAP_SHARED | MAP_NORESERVE, fd, 0);
 
-  if (MAP_FAILED == sm)
-    {
-      perror (" mmap source ");
-      exit (EXIT_FAILURE);
-    }
+  if (MAP_FAILED == sm) {
+      fprintf(stderr, "%s: %s\n", source, strerror(errno));
+      exit(EXIT_FAILURE);
+  }
 
   return sm;
 }
