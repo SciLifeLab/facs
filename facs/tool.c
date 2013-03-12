@@ -439,7 +439,7 @@ char
          else {
              current_length = strchr(target+1,'\n')-target+1;
              read_length = fq_read_length (target-1);
-             if (read_length=current_length)
+             if (read_length!=current_length)
                  target = strchr (target+1,'\n')+1; 
              if (target!=NULL)
                  target = strchr (target+1,'\n')+1;
