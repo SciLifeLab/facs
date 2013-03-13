@@ -234,7 +234,7 @@ void
 fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
 		  char *clean, char *contam, float tole_rate)
 {
-  int read_num = 0, result = 0, countup = 0, sign = 0;
+  int read_num = 0, result = 0, countup = 0;
   char *p = info->location;
   char *next;
   char *temp = p;
@@ -297,11 +297,15 @@ save_result_ml (char *source, char *obj_file, char *data, char *data2,
   memset (so_name, 0, 2 * HUN);
   memset (obj_name, 0, 2 * HUN);
 
-  char *so;
-  ((so = strrchr (source, '/'))) && (so += 1, 1) || (so = NULL);
+  char *so = strrchr(source,'/');
+  if (so)
+      so+=1;
+  //((so = strrchr (source, '/'))) && (so += 1, 1) || (so = NULL);
 
-  char *obj;
-  ((obj = strrchr (obj_file, '/'))) && (obj += 1, 1) || (obj = NULL);
+  char *obj = strrchr(obj_file,'/');
+  if (obj)
+     obj+=1;
+  //((obj = strrchr (obj_file, '/'))) && (obj += 1, 1) || (obj = NULL);
 
   if (so)
     strncat (so_name, so, strrchr (source, '.') - so);

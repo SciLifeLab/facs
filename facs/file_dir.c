@@ -101,9 +101,8 @@ make_list (char *file_user, char *list_user)
 
   else if (is_dir (file_user))
     {
-
-
-      if ((dir = opendir (file_user)) == NULL)
+      dir = opendir(file_user);
+      if (dir == NULL)
 	{
 	  perror ("Empty dir\n");
 	  exit (-1);
