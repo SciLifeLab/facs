@@ -14,12 +14,13 @@
 /*-------------------------------------*/
 
 int
-fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_rate, F_set *File_head)
+fastq_read_check (char *begin, int length, char model, bloom * bl,
+		  float tole_rate, F_set * File_head)
 {
   char *p = begin;
   int distance = length;
   int signal = 0, result = 0;
-  char  *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
+  char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
   while (distance > bl->k_mer)
     {
@@ -31,7 +32,7 @@ fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_ra
 	  memcpy (key, p, sizeof (char) * bl->k_mer);	//need to be tested
 	  key[bl->k_mer] = '\0';
 	  p += bl->k_mer;
-          previous = p;
+	  previous = p;
 	  distance -= bl->k_mer;
 	}
 
@@ -47,7 +48,8 @@ fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_ra
 
       if (bloom_check (bl, key))
 	{
-	  result = fastq_full_check (bl, begin, length, model, tole_rate, File_head);
+	  result =
+	    fastq_full_check (bl, begin, length, model, tole_rate, File_head);
 	  if (result > 0)
 	    return result;
 	  else if (model == 'n')
@@ -64,7 +66,7 @@ fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_ra
 /*-------------------------------------*/
 int
 fastq_full_check (bloom * bl, char *p, int distance, char model,
-		  float tole_rate, F_set *File_head)
+		  float tole_rate, F_set * File_head)
 {
 
   //printf ("fastq full check...\n");
@@ -77,7 +79,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 
   char *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
 
-  short prev = 0, conse = 0; 
+  short prev = 0, conse = 0;
 
   while (distance >= bl->k_mer)
     {
@@ -93,18 +95,18 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 	  mark = 1;
 	  count = 0;
 	}
- if (strlen (key) == bl->k_mer)
+      if (strlen (key) == bl->k_mer)
 	{
 	  if (bloom_check (bl, key))
 	    {
 	      match_time++;
 	      if (prev == 1)
-                  conse++;
-              else
-                  {
-                  conse+=bl->k_mer;
-                  prev = 1;
-                  }
+		conse++;
+	      else
+		{
+		  conse += bl->k_mer;
+		  prev = 1;
+		}
 	      if (mark == 1)
 		{
 		  match_s += (bl->k_mer - 1);
@@ -121,15 +123,18 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 	    }
 	  count++;
 	}			//outside if
-	distance--;
+      distance--;
     }				// end while
   free (key);
-  result = (float)(match_time*bl->k_mer+conse)/(float)(length*bl->k_mer-2*bl->dx+length-bl->k_mer+1);
+  result =
+    (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer -
+							2 * bl->dx + length -
+							bl->k_mer + 1);
   //result = (float) match_s / (float) length;
-  #pragma omp atomic
-  File_head->hits+=match_time;
-  #pragma omp atomic 
-  File_head->all_k+=(length-bl->k_mer);
+#pragma omp atomic
+  File_head->hits += match_time;
+#pragma omp atomic
+  File_head->all_k += (length - bl->k_mer);
   if (result >= tole_rate)
     return match_s;
   else
@@ -139,7 +144,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 /*-------------------------------------*/
 int
 fasta_read_check (char *begin, char *next, char model, bloom * bl,
-		  float tole_rate, F_set *File_head)
+		  float tole_rate, F_set * File_head)
 {
 
   char *p = strchr (begin + 1, '\n') + 1;
@@ -201,7 +206,8 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
 
       if (bloom_check (bl, key))
 	{
-	  result = fasta_full_check (bl, begin, next, model, tole_rate, File_head);
+	  result =
+	    fasta_full_check (bl, begin, next, model, tole_rate, File_head);
 	  if (result > 0)
 	    return result;
 	  //else if (model == 'n')     //use recursion to check the sequence forward and backward
@@ -221,14 +227,14 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
 /*-------------------------------------*/
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char model,
-		  float tole_rate, F_set *File_head)
+		  float tole_rate, F_set * File_head)
 {
   int match_s = 0, count = 0, mark = 1;
 
   int n = 0, m = 0, count_enter = 0, match_time = 0;
 
-  short previous = 0, conse = 0; 
-  
+  short previous = 0, conse = 0;
+
   float result;
 
   char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
@@ -277,12 +283,12 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
 	    {
 	      match_time++;
 	      if (previous == 1)
-                  conse++;
-              else
-                  {
-                  conse+=bl->k_mer;
-                  previous = 1;
-                  }
+		conse++;
+	      else
+		{
+		  conse += bl->k_mer;
+		  previous = 1;
+		}
 	      if (mark == 1)
 		{
 		  match_s += (bl->k_mer - 1);
@@ -314,16 +320,20 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
   //result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter-bl->k_mer+2)*bl->k_mer+conse+2*dx_add(bl->k_mer));
   //printf ("result1->%f\n",result);
   //result = (float)(match_time*bl->k_mer)/(float)((next-begin-count_enter)*bl->k_mer-2*dx_add(bl->k_mer-1));
-  result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter)*bl->k_mer-2*bl->dx+(next-begin-count_enter)-bl->k_mer+1);
-  
-  #pragma omp atomic
-  File_head->hits+=match_time;
-  #pragma omp atomic
-  File_head->all_k+=(next-begin-count_enter-bl->k_mer);
+  result =
+    (float) (match_time * bl->k_mer +
+	     conse) / (float) ((next - begin - count_enter) * bl->k_mer -
+			       2 * bl->dx + (next - begin - count_enter) -
+			       bl->k_mer + 1);
+
+#pragma omp atomic
+  File_head->hits += match_time;
+#pragma omp atomic
+  File_head->all_k += (next - begin - count_enter - bl->k_mer);
 
   if (result >= tole_rate)	//match >tole_rate considered as contaminated
     return match_s;
-  else 
+  else
     return 0;
 }
 
@@ -331,70 +341,77 @@ int
 get_parainfo (char *full, Queue * head)
 {
 #ifdef DEBUG
-	  printf ("distributing...\n");
+  printf ("distributing...\n");
 #endif
-	  int type = 0;
-          char *previous = NULL;
-	  char *temp = full;
-	  int cores = omp_get_num_procs ();
-	  short add = 0;
-          int offset = 0;
-	  Queue *pos = head;
-       //   Queue *x = NEW (Queue);
-          int length = 0;
+  int type = 0;
+  char *previous = NULL;
+  char *temp = full;
+  int cores = omp_get_num_procs ();
+  short add = 0;
+  int offset = 0;
+  Queue *pos = head;
+  //   Queue *x = NEW (Queue);
+  int length = 0;
 
-      if (full != NULL) {
-          offset = strlen(full) / cores;
-          if (*full == '>')
-            type = 1;
-          else if (*full == '@')
-            type = 2;
-          else
-            {
-            perror ("wrong format\n");
-            exit (-1);
-            }
-          }
-      
-      if (type == 1) {
-              for (add = 0; add < cores; add++) {
-                  Queue *x = NEW (Queue);
-                  if (add == 0 && *full != '>')
-                    temp = strchr (full, '>');	//drop the possible fragment
+  if (full != NULL)
+    {
+      offset = strlen (full) / cores;
+      if (*full == '>')
+	type = 1;
+      else if (*full == '@')
+	type = 2;
+      else
+	{
+	  perror ("wrong format\n");
+	  exit (-1);
+	}
+    }
 
-                  if (add != 0)
-                    temp = strchr (full + offset * add, '>');
-                  x->location = temp;
-                  x->number = &add;
-                  x->next = pos->next;
-                  pos->next = x;
-                  pos = pos->next;
-              }
+  if (type == 1)
+    {
+      for (add = 0; add < cores; add++)
+	{
+	  Queue *x = NEW (Queue);
+	  if (add == 0 && *full != '>')
+	    temp = strchr (full, '>');	//drop the possible fragment
 
-	  } else {
-              //char *tx = strchr(full,'\n');
-              //length = strchr(tx+1,'\n')-(tx+1);
-     
-	      for (add = 0; add < cores; add++) {
-              char *tx = strchr(full,'\n');
-              length = strchr(tx+1,'\n')-(tx+1);
-              
-	      Queue *x = NEW (Queue);
-              x->location = NULL;
-              //char *tx = strchr(full,'\n');
-              //length = strchr(tx+1,'\n')-(tx+1);
-              if (add != 0)
-                  temp = fastq_relocate(full, offset*add, length);
-                       
-              if (previous!=temp) {
-                  previous = temp;
-                  x->location = temp;
-                  x->number = &add;
-                  x->next = pos->next;
-                  pos->next = x;
-                  pos = pos->next;
-              }
-	      }
+	  if (add != 0)
+	    temp = strchr (full + offset * add, '>');
+	  x->location = temp;
+	  x->number = &add;
+	  x->next = pos->next;
+	  pos->next = x;
+	  pos = pos->next;
+	}
+
+    }
+  else
+    {
+      //char *tx = strchr(full,'\n');
+      //length = strchr(tx+1,'\n')-(tx+1);
+
+      for (add = 0; add < cores; add++)
+	{
+	  char *tx = strchr (full, '\n');
+	  length = strchr (tx + 1, '\n') - (tx + 1);
+
+	  Queue *x = NEW (Queue);
+	  x->location = NULL;
+	  //char *tx = strchr(full,'\n');
+	  //length = strchr(tx+1,'\n')-(tx+1);
+	  if (add != 0)
+	    temp = fastq_relocate (full, offset * add, length);
+
+	  if (previous != temp)
+	    {
+	      previous = temp;
+	      x->location = temp;
+	      x->number = &add;
+	      x->next = pos->next;
+	      pos->next = x;
+	      pos = pos->next;
+	    }
+	}
     }
 
   return type;
@@ -415,54 +432,55 @@ jump (char *target, int type, float sampling_rate)
       if (type == 1)
 	point = strchr (target + 1, '>');	//point to >
       else
-        {
-	point = strstr (target + 1, "\n+") + 1;	//point to +
-        point = strchr (point,'\n')+1;          //point to quality line
-        point = strchr (point,'\n')+1;          //point to next read starting
-        }
+	{
+	  point = strstr (target + 1, "\n+") + 1;	//point to +
+	  point = strchr (point, '\n') + 1;	//point to quality line
+	  point = strchr (point, '\n') + 1;	//point to next read starting
+	}
       if (point)
 	target = point;
     }
   return target;
 }
 
-char
-*fastq_relocate (char *data, int offset, int length)
+char *
+fastq_relocate (char *data, int offset, int length)
 {
-     char *target=NULL;
-     int current_length = 0, read_length = 0;
-     if(data != NULL && offset != 0)
-        {
-         target = strstr (data + offset, "\n+");
-         if (!target)
-              return NULL;
-         else {
-             current_length = strchr(target+1,'\n')-target+1;
-             read_length = fq_read_length (target-1);
-             if (read_length!=current_length)
-                 target = strchr (target+1,'\n')+1; 
-             if (target!=NULL)
-                 target = strchr (target+1,'\n')+1;
-              }
-        }
-     return target;
+  char *target = NULL;
+  int current_length = 0, read_length = 0;
+  if (data != NULL && offset != 0)
+    {
+      target = strstr (data + offset, "\n+");
+      if (!target)
+	return NULL;
+      else
+	{
+	  current_length = strchr (target + 1, '\n') - target + 1;
+	  read_length = fq_read_length (target - 1);
+	  if (read_length != current_length)
+	    target = strchr (target + 1, '\n') + 1;
+	  if (target != NULL)
+	    target = strchr (target + 1, '\n') + 1;
+	}
+    }
+  return target;
 }
 
-int 
+int
 dx_add (int k_mer)
 {
-   int x;
-   int y = 0;
-   for (x=1;x<k_mer;x++)
-        y+=x;
-   return y;
+  int x;
+  int y = 0;
+  for (x = 1; x < k_mer; x++)
+    y += x;
+  return y;
 }
 
-int 
+int
 fq_read_length (char *data)
 {
-char *origin = data;
-while (*data!='\n')
-      data--;
-return origin-data;
+  char *origin = data;
+  while (*data != '\n')
+    data--;
+  return origin - data;
 }

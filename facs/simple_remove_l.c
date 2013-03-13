@@ -297,14 +297,14 @@ save_result_ml (char *source, char *obj_file, char *data, char *data2,
   memset (so_name, 0, 2 * HUN);
   memset (obj_name, 0, 2 * HUN);
 
-  char *so = strrchr(source,'/');
+  char *so = strrchr (source, '/');
   if (so)
-      so+=1;
+    so += 1;
   //((so = strrchr (source, '/'))) && (so += 1, 1) || (so = NULL);
 
-  char *obj = strrchr(obj_file,'/');
+  char *obj = strrchr (obj_file, '/');
   if (obj)
-     obj+=1;
+    obj += 1;
   //((obj = strrchr (obj_file, '/'))) && (obj += 1, 1) || (obj = NULL);
 
   if (so)
