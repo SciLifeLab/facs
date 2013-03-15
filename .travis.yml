@@ -6,7 +6,7 @@ before_install:
     - gcc -v
     - lsb_release -a
 python:
-    - 2.7
+    - "2.7"
 script:
 	- cd tests && nosetests -v -s -P --with-timer -a standard
 notifications:
