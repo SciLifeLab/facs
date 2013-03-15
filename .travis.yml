@@ -8,6 +8,7 @@ before_install:
 python:
     - "2.7"
 script:
+    - make python
     - cd tests && nosetests -v -s -P --with-timer -a standard
 notifications:
     email: false
