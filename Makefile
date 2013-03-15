@@ -5,7 +5,6 @@ all:$(PROG)
 	cd facs; make
 
 tests: python
-	#XXX add standard suite, do not run long running jobs on Travis-CI
 	cd tests && nosetests -v -s -P --with-timer
 
 valgrind: python

@@ -9,6 +9,7 @@ import collections
 
 import facs
 from facs.utils import helpers, galaxy
+from nose.plugins.attrib import attr
 
 @attr('standard')
 class FacsBasicTest(unittest.TestCase):
