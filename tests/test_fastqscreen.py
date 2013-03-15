@@ -22,7 +22,7 @@ class FastqScreenTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
         
-        self.bowtie_path="bowtie"
+        self.fscreen_url = 'http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/fastq_screen_v0.4.tar.gz'
         
         helpers._mkdir_p(self.tmp)
 
@@ -33,11 +33,22 @@ class FastqScreenTest(unittest.TestCase):
         
         self.databases = []
 
+    def tearDown(self):
+        # cleanup .tar.gz, decompressed folder and tmp
+        fname, dirname, _ = helpers._get_expected_file(self.fscreen_url)
+        try:
+            shutil.rmtree(dirname)
+            os.remove(fname)
+            shutil.rmtree(self.tmp)
+        except:
+            pass
+
     def test_1_fetch_fastqscreen(self):
-        """Downloads and installs fastq_screen locally
+        """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
-        url = 'http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/fastq_screen_v0.4.tar.gz'
-        dirname, fname = helpers._fetch_and_unpack(url)
+        #self.assertTrue(self._is_bowtie_present())
+
+        dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
         
         fscreen_src = os.path.join(dirname, "fastq_screen")
@@ -45,15 +56,18 @@ class FastqScreenTest(unittest.TestCase):
         
         if not os.path.exists(fscreen_dst):
             shutil.move(fscreen_path, self.progs)
-        
-        # cleanup .tar.gz & decompressed folder
-        #shutil.rmtree(dirname)
-        #os.remove(fname)
 
+        # truncates config file if present, depending on present reference genomes
         cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'w')
         cfg.write(self._genconf())
-        cfg.flush()
+        cfg.close()
 
+    def test_2_run_fastq_screen(self):
+        """Runs fastq_screen tests against synthetically generated fastq files folder
+        """
+        cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'rU')
+        fscreen_dst = os.path.join(self.progs, "fastq_screen")
+        
         for fastq in os.listdir(self.synthetic_fastq):
             fastq = os.path.join(self.synthetic_fastq, fastq)
             fastq_screen_resfile = os.path.join(self.tmp, os.path.splitext(fastq)[0]+"_screen.txt")
@@ -61,9 +75,14 @@ class FastqScreenTest(unittest.TestCase):
             subprocess.call(cl)
             if os.path.exists(fastq_screen_resfile):
                 print self._fastq_screen_metrics_to_json(open(fastq_screen_resfile, 'rU'))
-
  
     ## Aux methods for the test
+    def _is_bowtie_present(self):
+        bowtie = subprocess.Popen(['which','bowtie'], shell=True, env=env,
+                                  stdout=subprocess.PIPE).communicate()[0]
+        # XXX: Figure out why this does behave in shell but not here
+        return os.path.basename(bowtie) == "bowtie"
+
     def _fastq_screen_metrics_to_json(self, in_handle):
         reader = csv.reader(in_handle, delimiter="\t")
         version = reader.next()

@@ -10,6 +10,7 @@ import collections
 import facs
 from facs.utils import helpers, galaxy
 
+@attr('standard')
 class FacsBasicTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """

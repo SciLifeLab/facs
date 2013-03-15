@@ -8,7 +8,7 @@ import subprocess
 import contextlib
 import collections
 
-
+@attr('standard')
 class ThousandGenomesTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """
