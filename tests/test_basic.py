@@ -69,7 +69,7 @@ class FacsBasicTest(unittest.TestCase):
             in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
-        	print "\nQuerying against uncompressed sample %s" % sample
+            print "\nQuerying against uncompressed sample %s" % sample
             for ref in os.listdir(self.reference):
                 facs.query(os.path.join(self.synthetic_fastq, test_fname),
-                       os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+                           os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
