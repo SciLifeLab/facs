@@ -87,11 +87,13 @@ Finally, if one wants to remove those reads from the sample, one should run the 
 command:
 
 ```
-$ ./facs remove -b ecoli.bloom -r contaminated_sample.fastq.gz -o discarded_reads.fastq
+$ ./facs remove -b ecoli.bloom -r contaminated_sample.fastq
 ```
 
-Where "discarded_reads.fastq" is the reads that have been filtered out from the original
-fastq file.
+Two output files will be generated:
+
+`contaminated_sample_ecoli_contam.fastq`
+`contaminated_sample_ecoli_clean.fastq`
 
 
 Python interface
@@ -108,5 +110,5 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import facs
 >>> facs.build("ecoli.fasta", "ecoli.bloom")
 >>> facs.query("contaminated_sample.fastq.gz", "ecoli.bloom")
->>> facs.remove("contaminated_sample.fastq.gz", "ecoli.bloom")
+>>> facs.remove("contaminated_sample.fastq", "ecoli.bloom")
 ```

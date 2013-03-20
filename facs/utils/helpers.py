@@ -17,9 +17,9 @@ import galaxy
 header='@HWI-ST188:2:1101:2751:1987#0/1'
 ecoli_read = \
 """
-AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTGGTTACCTGCCGTGAGTAAATTAAA
-+ 
-@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aWZ^Y]bba^[_b]GTXX]aOPJPSB
+AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAA
++
+@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegef
 """
 
 def generate_dummy_fastq(fname, num_reads):
@@ -34,9 +34,10 @@ def generate_dummy_fastq(fname, num_reads):
             f.write(ecoli_read)
 
             for r in xrange(num_reads):
-                # Identify reads uniquely for later debugging (task distribution, for instance)
+                # Identify reads uniquely for later debugging such as
+                # OpenMP parallel task distribution.
                 f.write(header + 'TASK ID: ' + str(r) + '\n')
-                 
+
                 f.write('GATTACAT' * stride + '\n')
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')

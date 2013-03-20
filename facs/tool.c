@@ -351,7 +351,7 @@ get_parainfo (char *full, Queue * head)
             type = 2;
           else
             {
-            perror ("wrong format\n");
+            perror ("boo, wrong format\n");
             exit (-1);
             }
           }
