@@ -87,7 +87,7 @@ Finally, if one wants to remove those reads from the sample, one should run the 
 command:
 
 ```
-$ ./facs remove -b ecoli.bloom -r contaminated_sample.fastq
+$ ./facs remove -r ecoli.bloom -q contaminated_sample.fastq
 ```
 
 Two output files will be generated:

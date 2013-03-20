@@ -334,14 +334,14 @@ get_parainfo (char *full, Queue * head)
 	  printf ("distributing...\n");
 #endif
 	  int type = 0;
-          char *previous = NULL;
+      char *previous = NULL;
 	  char *temp = full;
 	  int cores = omp_get_num_procs ();
 	  short add = 0;
-          int offset = 0;
+      int offset = 0;
 	  Queue *pos = head;
        //   Queue *x = NEW (Queue);
-          int length = 0;
+      int length = 0;
 
       if (full != NULL) {
           offset = strlen(full) / cores;
@@ -349,12 +349,11 @@ get_parainfo (char *full, Queue * head)
             type = 1;
           else if (*full == '@')
             type = 2;
-          else
-            {
-            perror ("boo, wrong format\n");
-            exit (-1);
-            }
+          else {
+                fprintf(stderr, "File format not supported\n");
+                exit(EXIT_FAILURE);
           }
+      }
       
       if (type == 1) {
               for (add = 0; add < cores; add++) {
