@@ -55,7 +55,8 @@ class FacsBasicTest(unittest.TestCase):
         """
         for nreads in self.fastq_nreads:
             test_fname = "test%s.fastq" % nreads
-            helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq, test_fname), nreads)
+            helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq,
+                                                      test_fname), nreads)
 
         for ref in os.listdir(self.reference):
             qry = os.path.join(self.synthetic_fastq, test_fname)
@@ -64,10 +65,11 @@ class FacsBasicTest(unittest.TestCase):
     	    facs.query(qry, bf)
 
     def test_3_query_custom(self):
-        """ Query against the uncompressed FastQ files files manually deposited in data/custom folder.
+        """ Query against the uncompressed FastQ files files manually deposited
+            in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
         	print "\nQuerying against uncompressed sample %s" % sample
-		for ref in self.reference:
-			facs.query(os.path.join(self.synthetic_fastq, test_fname),
-				   os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+            for ref in os.listdir(self.reference):
+                facs.query(os.path.join(self.synthetic_fastq, test_fname),
+                       os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
