@@ -119,7 +119,7 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
       clean = clean2;
-      contam = clean2;
+      contam = contam2;
       load_bloom (File_head->filename, bl_2);
 
       if (tole_rate == 0)

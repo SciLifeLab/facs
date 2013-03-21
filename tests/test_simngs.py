@@ -50,7 +50,13 @@ class SimNGSTest(unittest.TestCase):
         ecoli = os.path.join(self.reference, "eschColi_K12", "seq", "eschColi_K12.fa")
         dst = os.path.join(self.synthetic_fastq, "simngs_{reads}.fastq".format(reads=reads))
 
-        cl = [simlib, "-n", reads, ecoli, "|", simngs, "-o", "fastq",
-              "-p", "paired", runfile, ">", dst]
+        #http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
+        cl1 = [simlib, "-n", reads, ecoli]
+        cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
+        p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
 
-        subprocess.check_call(cl)
+        with open(dst, 'w') as fh:
+            fh.write(p2.communicate()[0])
+            fh.close()
