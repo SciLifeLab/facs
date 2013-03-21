@@ -121,7 +121,7 @@ remove_reads (char *source, char *ref, char *list, char *prefix,
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
       clean = clean2;
-      contam = clean2;
+      contam = contam2;
       load_bloom (File_head->filename, bl_2);
 
       if (tole_rate == 0)
@@ -374,7 +374,7 @@ save_result (char *source, char *obj_file, int type, char *prefix,
     }
   printf ("match->%s\n", match);
   printf ("mis->%s\n", mismatch);
-
+  printf ("contam2->%s\n",contam2);
   write_result (match, contam2);
   write_result (mismatch, clean2);
   free (match);
