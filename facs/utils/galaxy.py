@@ -1,6 +1,12 @@
 """Retrieve indexed genomes using Galaxy's rsync server resources.
 
 http://wiki.galaxyproject.org/Admin/Data%20Integration
+
+Code borrowed from Brad Chapman's CloudBioLinux implementation:
+    https://github.com/chapmanb/cloudbiolinux/blob/master/cloudbio/biodata/galaxy.py
+
+Removed Fabric dependency, can only be run locally.
+
 """
 from xml.etree import ElementTree
 import glob
@@ -74,6 +80,8 @@ def download_twoBitToFa_bin(dst):
 def _finalize_index_seq(fname, binpath):
     """Convert UCSC 2bit file into fasta file.
     """
+    if not binpath:
+        raise ValueError("Cannot find binpath to twobittoFa")
     out_fasta = fname + ".fa"
     if not os.path.exists(out_fasta):
         subprocess.check_call([binpath, "{fname}.2bit".format(fname=fname), out_fasta])
@@ -91,7 +99,7 @@ def _finalize_index(idx, fname, binpath):
 
 # ## Retrieve data from Galaxy
 
-def rsync_genomes(genome_dir, genomes, genome_indexes, binpath):
+def rsync_genomes(genome_dir, genomes, genome_indexes, binpath=None):
     """Top level entry point to retrieve rsync'ed indexes from Galaxy.
     """
     for gid in genomes:
@@ -160,10 +168,3 @@ def cd(path):
         yield
     finally:
         os.chdir(old_dir)
-
-# testing purposes
-def main():
-    rsync_genomes(os.path.abspath("."), ["ecoli"], ["ucsc"], "/bubo/home/h5/roman/dev/facs/tests/data/bin/twobitToFa")
-
-if __name__ == "__main__":
-    main()

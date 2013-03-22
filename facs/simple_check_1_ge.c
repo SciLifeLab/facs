@@ -5,25 +5,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*-------------------------------------*/
-//for file mapping in Linux
-#include<fcntl.h>
-#include<unistd.h>
-#include<sys/stat.h>
-#include<sys/time.h>
-#include<sys/mman.h>
-#include<sys/types.h>
-/*-------------------------------------*/
+
+#include <libgen.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+
 #include "tool.h"
 #include "check.h"
 #include "bloom.h"
 #include "file_dir.h"
-/*-------------------------------------*/
-//openMP library
-#include<omp.h>
-/*-------------------------------------*/
 
-/*-------------------------------------*/
+#include <omp.h>
+
 void
 fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	       float sampling_rate, float tole_rate)
@@ -108,7 +105,8 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
   while (p != next)
     {
-      temp = jump (p, 1, sampling_rate);	//generate random number and judge if need to scan this read
+      temp = jump (p, 1, sampling_rate);	// generate random number and judge
+                                            // if need to scan this read
 
       if (p != temp)
 	{
@@ -133,15 +131,18 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
     }
 }
 
-/*-------------------------------------*/
 void
-evaluate (char *detail, char *filename, F_set * File_head)
+evaluate (char *detail, char *filename, F_set * File_head, char* query)
 {
   char buffer[200] = { 0 };
-  float contamination_rate =
-    (float) (File_head->reads_contam) / (float) (File_head->reads_num);
+  float contamination_rate = (float) (File_head->reads_contam) /
+                             (float) (File_head->reads_num);
 
 // JSON output format by default
+  printf ("{\n");
+  printf ("\"%s\": ", basename(query)); //sample (query)
+  printf ("{\n");
+  printf ("\"%s\": ", basename(filename)); //reference
   printf ("{\n");
   printf ("\t\"total_read_count\": %lld,\n", File_head->reads_num);
   printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
@@ -149,18 +150,19 @@ evaluate (char *detail, char *filename, F_set * File_head)
   printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
   printf ("\t\"bloom_file\":\"%s\"\n", filename);
   printf ("}\n");
+  printf ("}\n");
+  printf ("}\n");
 
 #ifdef DEBUG
   strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
   strcat (detail, filename);
 #endif
 
-  sprintf (buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
-	   File_head->reads_contam, contamination_rate);
+  sprintf(buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
+          File_head->reads_contam, contamination_rate);
   strcat (detail, buffer);
 }
 
-/*-------------------------------------*/
 void
 statistic_save (char *detail, char *filename, char *prefix)
 {

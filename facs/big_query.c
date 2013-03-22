@@ -159,34 +159,25 @@ query (char *query, char *bloom_filter, double tole_rate,
 	      {
 		if (head->location != NULL)
 		  {
-		    if (type == 1)
-		      {
-			fasta_process (bl_2, head, tail, File_head,
-				       sampling_rate, tole_rate);
-		      }
-		    else
-		      {
-			fastq_process (bl_2, head, tail, File_head,
-				       sampling_rate, tole_rate);
-		      }
+		    if (type == 1) {
+			    fasta_process (bl_2, head, tail, File_head,
+				               sampling_rate, tole_rate);
+		    } else {
+			    fastq_process (bl_2, head, tail, File_head, 
+                               sampling_rate, tole_rate);
+		    }
 		  }
 	      }
 	      head = head->next;
 	    }			// End of firstprivate
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
-      //evaluate (detail, File_head->filename, File_head);
 
-      if (position != NULL && normal == 0)
-	{
-	  memset (position, 0, strlen (position));
-	}
-      else if (normal == 1)
-	{
+    if (position != NULL && normal == 0) {
+      memset (position, 0, strlen (position));
+	} else if (normal == 1)	{
 	  munmap (position, strlen (position));
-	}
-      else
-	{
+	} else {
 	  perror ("Cannot memset, wrong position on fastq file\n");
 	  exit (-1);
 	}
@@ -197,10 +188,11 @@ query (char *query, char *bloom_filter, double tole_rate,
   if (normal == 0)
     free (position);
 
-  evaluate (detail, File_head->filename, File_head);
+  evaluate(detail, File_head->filename, File_head, query);
 
   if (normal == 0)
     gzclose (zip);
+
   bloom_destroy (bl_2);
   statistic_save (detail, query, target_path);
 
