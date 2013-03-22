@@ -196,7 +196,10 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate,
 
       p = strchr (p, '\n') + 1;
 
-      temp_end = strstr (p, "\n@");
+      temp_end = strchr(p,'\n')+1;
+      temp_end = strchr(temp_end,'\n')+1;
+      temp_end = strchr(temp_end,'\n');
+      //temp_end = strstr (p, "\n@");
 
       if (!temp_end)
 	temp_end = strchr (p, '\0');
@@ -374,7 +377,6 @@ save_result (char *source, char *obj_file, int type, char *prefix,
     }
   printf ("match->%s\n", match);
   printf ("mis->%s\n", mismatch);
-  printf ("contam2->%s\n",contam2);
   write_result (match, contam2);
   write_result (mismatch, clean2);
   free (match);

@@ -187,8 +187,8 @@ statistic_save (char *detail, char *filename, char *prefix)
           prefix[strlen(prefix)-1]='\0'; 
   save_file = prefix_make (filename, NULL, prefix);
   strcat (save_file, ".info");
-  if (prefix==NULL)
-      save_file++;
+  //if (prefix==NULL)
+  //    save_file++;
 //#ifdef DEBUG
   printf ("Basename->%s\n", filename);
   printf ("Info name->%s\n", save_file);
