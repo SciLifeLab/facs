@@ -1,6 +1,12 @@
 """Retrieve indexed genomes using Galaxy's rsync server resources.
 
 http://wiki.galaxyproject.org/Admin/Data%20Integration
+
+Code borrowed from Brad Chapman's CloudBioLinux implementation:
+    https://github.com/chapmanb/cloudbiolinux/blob/master/cloudbio/biodata/galaxy.py
+
+Removed Fabric dependency, can only be run locally.
+
 """
 from xml.etree import ElementTree
 import glob
@@ -162,10 +168,3 @@ def cd(path):
         yield
     finally:
         os.chdir(old_dir)
-
-# testing purposes
-def main():
-    rsync_genomes(os.path.abspath("."), ["ecoli"], ["ucsc"], "/bubo/home/h5/roman/dev/facs/tests/data/bin/twobitToFa")
-
-if __name__ == "__main__":
-    main()
