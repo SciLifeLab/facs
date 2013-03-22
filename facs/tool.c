@@ -343,75 +343,67 @@ get_parainfo (char *full, Queue * head)
 #ifdef DEBUG
   printf ("distributing...\n");
 #endif
-  int type = 0;
-  char *previous = NULL;
-  char *temp = full;
-  int cores = omp_get_num_procs ();
-  short add = 0;
-  int offset = 0;
-  Queue *pos = head;
-  //   Queue *x = NEW (Queue);
-  int length = 0;
+	  int type = 0;
+      char *previous = NULL;
+	  char *temp = full;
+	  int cores = omp_get_num_procs ();
+	  short add = 0;
+      int offset = 0;
+	  Queue *pos = head;
+       //   Queue *x = NEW (Queue);
+      int length = 0;
 
-  if (full != NULL)
-    {
-      offset = strlen (full) / cores;
-      if (*full == '>')
-	type = 1;
-      else if (*full == '@')
-	type = 2;
-      else
-	{
-	  perror ("wrong format\n");
-	  exit (-1);
-	}
-    }
+      if (full != NULL) {
+          offset = strlen(full) / cores;
+          if (*full == '>')
+            type = 1;
+          else if (*full == '@')
+            type = 2;
+          else {
+                fprintf(stderr, "File format not supported\n");
+                exit(EXIT_FAILURE);
+          }
+      }
+      
+      if (type == 1) {
+              for (add = 0; add < cores; add++) {
+                  Queue *x = NEW (Queue);
+                  if (add == 0 && *full != '>')
+                    temp = strchr (full, '>');	//drop the possible fragment
 
-  if (type == 1)
-    {
-      for (add = 0; add < cores; add++)
-	{
-	  Queue *x = NEW (Queue);
-	  if (add == 0 && *full != '>')
-	    temp = strchr (full, '>');	//drop the possible fragment
+                  if (add != 0)
+                    temp = strchr (full + offset * add, '>');
+                  x->location = temp;
+                  x->number = &add;
+                  x->next = pos->next;
+                  pos->next = x;
+                  pos = pos->next;
+              }
 
-	  if (add != 0)
-	    temp = strchr (full + offset * add, '>');
-	  x->location = temp;
-	  x->number = &add;
-	  x->next = pos->next;
-	  pos->next = x;
-	  pos = pos->next;
-	}
-
-    }
-  else
-    {
-      //char *tx = strchr(full,'\n');
-      //length = strchr(tx+1,'\n')-(tx+1);
-
-      for (add = 0; add < cores; add++)
-	{
-	  char *tx = strchr (full, '\n');
-	  length = strchr (tx + 1, '\n') - (tx + 1);
-
-	  Queue *x = NEW (Queue);
-	  x->location = NULL;
-	  //char *tx = strchr(full,'\n');
-	  //length = strchr(tx+1,'\n')-(tx+1);
-	  if (add != 0)
-	    temp = fastq_relocate (full, offset * add, length);
-
-	  if (previous != temp)
-	    {
-	      previous = temp;
-	      x->location = temp;
-	      x->number = &add;
-	      x->next = pos->next;
-	      pos->next = x;
-	      pos = pos->next;
-	    }
-	}
+	  } else {
+              //char *tx = strchr(full,'\n');
+              //length = strchr(tx+1,'\n')-(tx+1);
+     
+	      for (add = 0; add < cores; add++) {
+              char *tx = strchr(full,'\n');
+              length = strchr(tx+1,'\n')-(tx+1);
+              
+	      Queue *x = NEW (Queue);
+              x->location = NULL;
+              //char *tx = strchr(full,'\n');
+              //length = strchr(tx+1,'\n')-(tx+1);
+              if (add != 0)
+                  temp = fastq_relocate(full, offset*add, length);
+                       
+              if (previous!=temp) {
+                  previous = temp;
+                  x->location = temp;
+                  x->number = &add;
+                  x->next = pos->next;
+                  pos->next = x;
+                  pos = pos->next;
+              }
+	      }
     }
 
   return type;

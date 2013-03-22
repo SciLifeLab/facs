@@ -7,45 +7,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*-------------------------------------*/
-//for file mapping in Linux
+
 #include<fcntl.h>
 #include<unistd.h>
 #include<sys/stat.h>
 #include<sys/time.h>
 #include<sys/mman.h>
 #include<sys/types.h>
-/*-------------------------------------*/
+
 #include "bloom.h"
 #include "hashes.h"
-/*-------------------------------------*/
-//openMP library
+
 #include<omp.h>
-//MPICH/OPENMPI
 #include<mpi.h>
-/*-------------------------------------*/
-//#define PERMS 0600
-//#define NEW(type) (type *) malloc(sizeof(type))
-/*-------------------------------------*/
+
 int ntask = 0, mytask = 0;
-/*-------------------------------------*/
 long long total_piece, PAGE, buffer, share, offset, reads_num =
   0, reads_contam = 0, checky = 0, CHUNK, total_size = 0;
-/*-------------------------------------*/
 float error_rate, sampling_rate, contamination_rate, tole_rate;
-/*-------------------------------------*/
+
 int k_mer = 21, mode, mytask, ntask, type = 2, excel1, excel2, last_piece =
   0, extra_piece = 0;
 int last = 0;
-/*-------------------------------------*/
+
 char *source, *all_ref, *position, *prefix;
-/*-------------------------------------*/
+
 Queue *head, *head2, *tail;
-/*-------------------------------------*/
+
 bloom *bl_2;
-/*-------------------------------------*/
+
 struct stat statbuf;
-/*-------------------------------------*/
+
 void list_init ();
 void struc_init ();
 void get_parainfo (char *full);
