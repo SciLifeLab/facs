@@ -88,15 +88,13 @@ remove_main (int argc, char **argv)
 }
 
 int
-remove_reads (char *source, char *ref, char *list, char *prefix,
-	      float tole_rate)
+remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate)
 {
-  /*-------------------------------------*/
   int type = 0;
   char *position;
   char *clean2;
   char *contam2;
-  /*-------------------------------------*/
+  
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue);
   head->location = NULL;
@@ -108,25 +106,25 @@ remove_reads (char *source, char *ref, char *list, char *prefix,
   type = get_parainfo (position, head);
   F_set *File_head = NEW (F_set);
   File_head = make_list (ref, list);
-  /*-------------------------------------*/
+  
   //position = mmaping (source);
   //type = get_parainfo (position, head);
   clean = (char *) calloc (strlen (position), sizeof (char));
   contam = (char *) calloc (strlen (position), sizeof (char));
   clean2 = clean;
   contam2 = contam;
-  /*-------------------------------------*/
+  
   while (File_head)
     {
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
       clean = clean2;
-      contam = clean2;
+      contam = contam2;
       load_bloom (File_head->filename, bl_2);
 
       if (tole_rate == 0)
-	tole_rate = mco_suggestion (bl_2->k_mer);
-      //head = head->next;
+        tole_rate = mco_suggestion (bl_2->k_mer);
+
 #pragma omp parallel
       {
 #pragma omp single nowait

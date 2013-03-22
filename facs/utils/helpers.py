@@ -17,9 +17,9 @@ import galaxy
 header='@HWI-ST188:2:1101:2751:1987#0/1'
 ecoli_read = \
 """
-AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTGGTTACCTGCCGTGAGTAAATTAAA
-+ 
-@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegefafhhihcegbgafdbdgggceeecdd]^aWZ^Y]bba^[_b]GTXX]aOPJPSB
+AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAA
++
+@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegef
 """
 
 def generate_dummy_fastq(fname, num_reads):
@@ -34,9 +34,10 @@ def generate_dummy_fastq(fname, num_reads):
             f.write(ecoli_read)
 
             for r in xrange(num_reads):
-                # Identify reads uniquely for later debugging (task distribution, for instance)
+                # Identify reads uniquely for later debugging such as
+                # OpenMP parallel task distribution.
                 f.write(header + 'TASK ID: ' + str(r) + '\n')
-                 
+
                 f.write('GATTACAT' * stride + '\n')
                 f.write('+' + '\n')
                 f.write('arvestad' * stride + '\n')
@@ -95,19 +96,17 @@ def _fetch_and_unpack(url, need_dir=True):
         return base
     else:
         tar_file, dir_name, tar_cmd = _get_expected_file(url)
-        print tar_file, dir_name, tar_cmd
         if not os.path.exists(tar_file):
             subprocess.check_call(["wget", "--no-check-certificate", "-O", tar_file, url])
-        subprocess.check_call([tar_cmd, tar_file])
-        return _safe_dir_name(dir_name, need_dir)
+        subprocess.check_call(['tar', 'xvfz', tar_file])
+        return dir_name, tar_file
 
 def _get_expected_file(url):
     tar_file = os.path.split(url.split("?")[0])[-1]
-    safe_tar = "--pax-option='delete=SCHILY.*,delete=LIBARCHIVE.*'"
-    exts = {(".tar.gz", ".tgz") : "tar %s -xzpf" % safe_tar,
-            (".tar",) : "tar %s -xpf" % safe_tar,
-            (".tar.bz2",): "tar %s -xjpf" % safe_tar,
-            (".zip",) : "unzip"}
+    exts = {(".tar.gz", ".tgz"): "tar xvfz",
+            (".tar",): "tar -xpf",
+            (".tar.bz2",): "tar -xjpf",
+            (".zip",): "unzip"}
     for ext_choices, tar_cmd in exts.iteritems():
         for ext in ext_choices:
             if tar_file.endswith(ext):

@@ -37,6 +37,7 @@ setup(name='facs',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+            "nose",
             "nose-timer"
       ],
       entry_points="""

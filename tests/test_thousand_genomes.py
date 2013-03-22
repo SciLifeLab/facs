@@ -8,7 +8,9 @@ import subprocess
 import contextlib
 import collections
 
+from nose.plugins.attrib import attr
 
+@attr('standard')
 class ThousandGenomesTest(unittest.TestCase):
     """Build and query some simple bloom filters.
     """
