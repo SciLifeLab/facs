@@ -14,8 +14,7 @@
 /*-------------------------------------*/
 
 int
-fastq_read_check (char *begin, int length, char model, bloom * bl,
-		  float tole_rate, F_set * File_head)
+fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_rate, F_set * File_head)
 {
   char *p = begin;
   int distance = length;
@@ -65,8 +64,7 @@ fastq_read_check (char *begin, int length, char model, bloom * bl,
 
 /*-------------------------------------*/
 int
-fastq_full_check (bloom * bl, char *p, int distance, char model,
-		  float tole_rate, F_set * File_head)
+fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate, F_set * File_head)
 {
 
   //printf ("fastq full check...\n");
@@ -126,10 +124,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
       distance--;
     }				// end while
   free (key);
-  result =
-    (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer -
-							2 * bl->dx + length -
-							bl->k_mer + 1);
+  result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
   //result = (float) match_s / (float) length;
 #pragma omp atomic
   File_head->hits += match_time;
@@ -143,8 +138,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model,
 
 /*-------------------------------------*/
 int
-fasta_read_check (char *begin, char *next, char model, bloom * bl,
-		  float tole_rate, F_set * File_head)
+fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_rate, F_set * File_head)
 {
 
   char *p = strchr (begin + 1, '\n') + 1;
@@ -187,8 +181,7 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
 
 	  memcpy (temp_key, pre_key + strlen (key), bl->k_mer - strlen (key));
 
-	  memcpy (temp_key + bl->k_mer - strlen (key), key,
-		  sizeof (char) * (strlen (key) + 1));
+	  memcpy (temp_key + bl->k_mer - strlen (key), key, sizeof (char) * (strlen (key) + 1));
 
 	  free (key);
 
@@ -206,8 +199,7 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
 
       if (bloom_check (bl, key))
 	{
-	  result =
-	    fasta_full_check (bl, begin, next, model, tole_rate, File_head);
+	  result = fasta_full_check (bl, begin, next, model, tole_rate, File_head);
 	  if (result > 0)
 	    return result;
 	  //else if (model == 'n')     //use recursion to check the sequence forward and backward
@@ -226,8 +218,7 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl,
 
 /*-------------------------------------*/
 int
-fasta_full_check (bloom * bl, char *begin, char *next, char model,
-		  float tole_rate, F_set * File_head)
+fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_rate, F_set * File_head)
 {
   int match_s = 0, count = 0, mark = 1;
 
@@ -320,11 +311,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model,
   //result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter-bl->k_mer+2)*bl->k_mer+conse+2*dx_add(bl->k_mer));
   //printf ("result1->%f\n",result);
   //result = (float)(match_time*bl->k_mer)/(float)((next-begin-count_enter)*bl->k_mer-2*dx_add(bl->k_mer-1));
-  result =
-    (float) (match_time * bl->k_mer +
-	     conse) / (float) ((next - begin - count_enter) * bl->k_mer -
-			       2 * bl->dx + (next - begin - count_enter) -
-			       bl->k_mer + 1);
+  result = (float) (match_time * bl->k_mer + conse) / (float) ((next - begin - count_enter) * bl->k_mer - 2 * bl->dx + (next - begin - count_enter) - bl->k_mer + 1);
 
 #pragma omp atomic
   File_head->hits += match_time;
