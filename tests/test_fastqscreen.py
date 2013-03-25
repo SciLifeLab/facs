@@ -21,16 +21,16 @@ class FastqScreenTest(unittest.TestCase):
         self.custom_dir = os.path.join(os.path.dirname(__file__), "data", "custom")
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
-        
+
         self.fscreen_url = 'http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/fastq_screen_v0.4.tar.gz'
-        
+
         helpers._mkdir_p(self.tmp)
 
         # Check if 2bit decompressor is available
         twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
         if not os.path.exists(twobit_fa_path):
             galaxy.download_twoBitToFa_bin(twobit_fa_path)
-        
+
         self.databases = []
 
     def tearDown(self):
@@ -50,10 +50,10 @@ class FastqScreenTest(unittest.TestCase):
 
         dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
-        
+
         fscreen_src = os.path.join(dirname, "fastq_screen")
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
-        
+
         if not os.path.exists(fscreen_dst):
             shutil.move(fscreen_path, self.progs)
 
@@ -67,15 +67,17 @@ class FastqScreenTest(unittest.TestCase):
         """
         cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'rU')
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
-        
+
         for fastq in os.listdir(self.synthetic_fastq):
-            fastq = os.path.join(self.synthetic_fastq, fastq)
-            fastq_screen_resfile = os.path.join(self.tmp, os.path.splitext(fastq)[0]+"_screen.txt")
-            cl = [fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq]
+            fastq_path = os.path.join(self.synthetic_fastq, fastq)
+            cl = [fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
+            # Process fastq_screen results format and report it in JSON
+            fastq_screen_resfile = os.path.join(self.tmp, os.path.splitext(fastq)[0]+"_screen.txt")
             if os.path.exists(fastq_screen_resfile):
-                print self._fastq_screen_metrics_to_json(open(fastq_screen_resfile, 'rU'))
- 
+                with open(fastq_screen_resfile, 'rU') as fh:
+                    print self._fastq_screen_metrics_to_json(fh)
+
     ## Aux methods for the test
     def _is_bowtie_present(self):
         bowtie = subprocess.Popen(['which','bowtie'], shell=True, env=env,
@@ -86,7 +88,7 @@ class FastqScreenTest(unittest.TestCase):
     def _fastq_screen_metrics_to_json(self, in_handle):
         reader = csv.reader(in_handle, delimiter="\t")
         version = reader.next()
-        # ['Library', '%Unmapped', '%One_hit_one_library', '%Multiple_hits_one_library', 
+        # ['Library', '%Unmapped', '%One_hit_one_library', '%Multiple_hits_one_library',
         #  '%One_hit_multiple_libraries', '%Multiple_hits_multiple_libraries']
         header = reader.next()
         data = defaultdict(lambda: defaultdict(dict))
@@ -96,7 +98,7 @@ class FastqScreenTest(unittest.TestCase):
                 break
             for i in range(1,5):
                 data[row[0]][header[i]] = float(row[i])
-        return json.dumps(data) 
+        return json.dumps(data)
 
     def _fetch_bowtie_indices(self):
         genomes = []
@@ -109,7 +111,7 @@ class FastqScreenTest(unittest.TestCase):
         for ref in os.listdir(self.reference):
             bwt_index = os.path.abspath(os.path.join(self.reference, ref, "bowtie_index", ref))
             self.databases.append(("DATABASE", ref, bwt_index))
-      
+
         self.config = """
 BOWTIE\t\t{bowtie}
 THREADS\t\t8\n
