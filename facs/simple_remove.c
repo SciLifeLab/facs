@@ -28,11 +28,10 @@ remove_usage (void)
 {
   fprintf (stderr, "\nUsage: ./facs remove [options]\n");
   fprintf (stderr, "Options:\n");
-  fprintf (stderr, "\t-b reference Bloom filter to query against\n");
+  fprintf (stderr, "\t-r reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
   fprintf (stderr,
 	   "\t-l input list containing all Bloom filters, one per line\n");
-  fprintf (stderr, "\t-r single input Bloom filters\n");
   fprintf (stderr, "\t-t threshold value\n");
   fprintf (stderr, "\n");
   return 1;
@@ -79,8 +78,7 @@ remove_main (int argc, char **argv)
 
   if (!target_path && !source)
     {
-      fprintf (stderr,
-	       "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+      fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
       exit (-1);
     }
 
@@ -147,8 +145,7 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
 	    }
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
-      save_result (source, File_head->filename, type, prefix, clean, clean2,
-		   contam, contam2);
+      save_result (source, File_head->filename, type, prefix, clean, clean2, contam, contam2);
       File_head = File_head->next;
       head = head2;
       bloom_destroy (bl_2);
@@ -160,8 +157,7 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
 
 /*-------------------------------------*/
 void
-fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate,
-		 F_set * File_head)
+fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head)
 {
 
   int read_num = 0, read_contam = 0;
@@ -202,8 +198,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate,
       if (!temp_end)
 	temp_end = strchr (p, '\0');
       int result =
-	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate,
-			  File_head);
+	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head);
 
       if (result == 0)
 	{
@@ -247,8 +242,7 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate,
 
 /*-------------------------------------*/
 void
-fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate,
-		 F_set * File_head)
+fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head)
 {
   //printf ("fasta processing...\n");
 
@@ -304,8 +298,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate,
 
 /*-------------------------------------*/
 void
-save_result (char *source, char *obj_file, int type, char *prefix,
-	     char *clean, char *clean2, char *contam, char *contam2)
+save_result (char *source, char *obj_file, int type, char *prefix,char *clean, char *clean2, char *contam, char *contam2)
 {
   printf ("source->%s\n", source);
   printf ("obj_file->%s\n", obj_file);
