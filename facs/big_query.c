@@ -22,11 +22,10 @@ query_usage (void)
 {
   fprintf (stderr, "\nUsage: ./facs query [options]\n");
   fprintf (stderr, "Options:\n");
-  fprintf (stderr, "\t-b reference Bloom filter to query against\n");
+  fprintf (stderr, "\t-r reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
   fprintf (stderr,
 	   "\t-l input list containing all Bloom filters, one per line\n");
-  fprintf (stderr, "\t-r single input Bloom filters\n");
   fprintf (stderr, "\t-t threshold value\n");
   fprintf (stderr,
 	   "\t-s sampling rate, default is 1 so it reads the whole query file\n");
@@ -37,7 +36,7 @@ query_usage (void)
 int
 bq_main (int argc, char **argv)
 {
-  if (argc < 2)
+  if (argc < 3)
     return query_usage ();
 
 /*-------defaults for bloom filter building-------*/
@@ -51,10 +50,8 @@ bq_main (int argc, char **argv)
   char *source = NULL;
 
   // XXX: make r and l mutually exclusive
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1)
-    {
-      switch (opt)
-	{
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:h")) != -1) {
+      switch (opt) {
 	case 't':
 	  (optarg) && ((tole_rate = atof (optarg)), 1);
 	  break;
@@ -79,19 +76,22 @@ bq_main (int argc, char **argv)
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  return query_usage ();
 	}
-    }
+  }
 
-  if(!target_path && !source) {
-    fprintf(stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
-    exit(-1);
+  if (!target_path && !source) {
+      fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
+      exit (-1);
+  }
+
+  if (target_path == NULL) {
+      target_path = argv[0];
   }
 
   return query (source, ref, tole_rate, sampling_rate, list, target_path);
 }
 
 int
-query (char *query, char *bloom_filter, double tole_rate,
-       double sampling_rate, char *list, char *target_path)
+query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path)
 {
   gzFile zip = NULL;
   int type = 0, normal = 0;
