@@ -64,7 +64,7 @@ $ ./facs build -r ecoli.fasta -o ecoli.bloom
 That would generate a ecoli bloom filter that could be used to query a FASTQ file:
 
 ```
-$ ./facs query -b ecoli.bloom -q contaminated_sample.fastq.gz
+$ ./facs query -r ecoli.bloom -q contaminated_sample.fastq.gz
 ```
 
 Note that both plaintext fastq files and gzip-compressed files are supported transparently

@@ -169,34 +169,32 @@ statistic_save (char *detail, char *filename, char *prefix)
   char *save_file = NULL;
   int length = 0;
   //printf ("prefix->%s\n",prefix);
-  if (prefix!=NULL && prefix[0]=='.')
-  {
+  if (prefix!=NULL && prefix[0]=='.') {
       prefix+=2;
       length = strrchr(prefix,'/')-prefix+1;
-      if (length != 0 && strrchr(prefix,'/')!=NULL)
-         {
+      if (length != 0 && strrchr(prefix,'/')!=NULL) {
            save_file =(char *) calloc (length, sizeof (char));
            memcpy(save_file,prefix,length);
            prefix = save_file;
            save_file = NULL;
-	 }
-      else
-         {
+	  } else {
            prefix = NULL;
-	 }
+	  }
   }
   if (prefix!=NULL)
       if (prefix[strlen(prefix)-1]=='/')
           prefix[strlen(prefix)-1]='\0'; 
+
   save_file = prefix_make (filename, NULL, prefix);
-  //printf ("prefix->%s\n",prefix);
+  
   if (is_dir(prefix) || prefix==NULL)
       strcat (save_file, ".info");
   if (strrchr(save_file,'/')==save_file)
       save_file++;
-//#ifdef DEBUG
+
+#ifdef DEBUG
   printf ("Basename->%s\n", filename);
   printf ("Info name->%s\n", save_file);
-//#endif
+#endif
   write_result (save_file, detail);
 }
