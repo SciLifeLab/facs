@@ -7,14 +7,52 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
+#include <time.h>
+#include <sys/time.h>
+
 #include <omp.h>
+
 #include "tool.h"
 #include "bloom.h"
 #include "file_dir.h"
-/*-------------------------------------*/
+
+
+char* isodate() {
+    /* Borrowed from: https://raw.github.com/jordansissel/experiments/bd58235b99f608472212a5933b52fca9cf1cac8d/c/time/iso8601.c */
+    struct timeval tv;
+    struct tm tm;
+    char timestamp[] = "YYYY-MM-ddTHH:mm:ss.SSS+0000";
+
+    /* Get the current time at high precision; could also use clock_gettime() for
+     * even higher precision times if we want it. */
+
+    gettimeofday(&tv, NULL);
+
+    /* convert to time to 'struct tm' for use with strftime */
+
+    localtime_r(&tv.tv_sec, &tm);
+
+    /* format the time */
+
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000%z", &tm);
+
+    /* but, since strftime() can't subsecond precision, we have to hack it
+     * in manually. '20' is the string offset of the subsecond value in our
+     * timestamp string. Also, because sprintf always writes a null, we have to
+     * write the subsecond value as well as the rest of the string already there.
+     */
+
+    sprintf(timestamp + 20, "%03ld%s", tv.tv_usec / 1000, timestamp + 23);
+
+    char* buf = calloc((strlen(timestamp)+1),sizeof(char));
+    sprintf(buf, "%s", timestamp);
+
+    return buf;
+}
 
 int
-fastq_read_check (char *begin, int length, char model, bloom * bl, float tole_rate, F_set * File_head)
+fastq_read_check (char *begin, int length, char model, bloom * bl, 
+                  float tole_rate, F_set * File_head)
 {
   char *p = begin;
   int distance = length;

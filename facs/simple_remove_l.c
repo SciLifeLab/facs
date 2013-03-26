@@ -5,25 +5,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*-------------------------------------*/
-//for file mapping in Linux
+
 #include<fcntl.h>
 #include<unistd.h>
 #include<sys/stat.h>
 #include<sys/time.h>
 #include<sys/mman.h>
 #include<sys/types.h>
-/*-------------------------------------*/
+
 #include "tool.h"
 #include "bloom.h"
 #include "remove_l.h"
 #include "file_dir.h"
-/*-------------------------------------*/
-//openMP library
+
 #include<omp.h>
-/*-------------------------------------*/
+
 char *clean, *contam;
-/*-------------------------------------*/
 
 /*
  *
