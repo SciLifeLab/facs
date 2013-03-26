@@ -17,7 +17,7 @@
 #include "file_dir.h"
 
 
-char* isodate() {
+void isodate(char* buf) {
     /* Borrowed from: https://raw.github.com/jordansissel/experiments/bd58235b99f608472212a5933b52fca9cf1cac8d/c/time/iso8601.c */
     struct timeval tv;
     struct tm tm;
@@ -43,11 +43,7 @@ char* isodate() {
      */
 
     sprintf(timestamp + 20, "%03ld%s", tv.tv_usec / 1000, timestamp + 23);
-
-    char* buf = calloc((strlen(timestamp)+1),sizeof(char));
     sprintf(buf, "%s", timestamp);
-
-    return buf;
 }
 
 int

@@ -126,11 +126,14 @@ evaluate(char *detail, char *filename, F_set * File_head, char* query, char* fmt
   float contamination_rate = (float) (File_head->reads_contam) /
                              (float) (File_head->reads_num);
 
+
   if(!fmt){
       return;
   } else if(!strcmp(fmt, "json")) {
+      isodate(buffer);
+
       printf("{\n");
-      printf("\t\"timestamp\": \"%s\"\n", isodate());
+      printf("\t\"timestamp\": \"%s\"\n", buffer);
       printf("\t\"organism\": \"%s\"\n", basename(query)); //sample (query)
       printf("\t\"bloom_filter\": \"%s\"\n", basename(filename)); //reference
       printf("\t\"total_read_count\": %lld,\n", File_head->reads_num);
@@ -146,7 +149,7 @@ evaluate(char *detail, char *filename, F_set * File_head, char* query, char* fmt
 
       sprintf(buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
               File_head->reads_contam, contamination_rate);
-      strcat (detail, buffer);
+      strcat(detail, buffer);
   }
 }
 
