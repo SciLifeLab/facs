@@ -90,8 +90,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
     return;
   else if (info->next != tail)
     next = info->next->location;
-  else
-    {
+  else {
       next = strchr (info->location, '\0');
       //if ((next-1)=='\n')
       //next -= 1;
@@ -99,40 +98,36 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	next -= 1;
       else if (next[-4] == '\r' && next[-3] == '\n')
 	next -= 2;
-    }
+  }
 
   char *p = info->location;
 
-  while (p != next)
-    {
+  while (p != next) {
       temp = jump (p, 1, sampling_rate);	// generate random number and judge
                                             // if need to scan this read
-
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
+      if (p != temp) {
+	    p = temp;
+	    continue;
+      }
 
 #pragma omp atomic
       File_head->reads_num++;
-
       temp_next = strchr (p + 1, '>');
-      if (!temp_next)
-	temp_next = next;
 
-      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0)
-	{
+      if (!temp_next)
+        temp_next = next;
+
+      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0) {
 #pragma omp atomic
-	  File_head->reads_contam++;
-	}
+	    File_head->reads_contam++;
+	  }
 
       p = temp_next;
     }
 }
 
 void
-evaluate (char *detail, char *filename, F_set * File_head, char* query)
+evaluate(char *detail, char *filename, F_set * File_head, char* query)
 {
   char buffer[200] = { 0 };
   float contamination_rate = (float) (File_head->reads_contam) /
@@ -140,17 +135,12 @@ evaluate (char *detail, char *filename, F_set * File_head, char* query)
 
 // JSON output format by default
   printf ("{\n");
-  printf ("\"%s\": ", basename(query)); //sample (query)
-  printf ("{\n");
-  printf ("\"%s\": ", basename(filename)); //reference
-  printf ("{\n");
+  printf ("\t\"organism\": \"%s\"\n", basename(query)); //sample (query)
+  printf ("\t\"bloom_filter\": \"%s\"\n", basename(filename)); //reference
   printf ("\t\"total_read_count\": %lld,\n", File_head->reads_num);
   printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
   printf ("\t\"total_hits\": %lld,\n", File_head->hits);
   printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
-  printf ("\t\"bloom_file\":\"%s\"\n", filename);
-  printf ("}\n");
-  printf ("}\n");
   printf ("}\n");
 
 #ifdef DEBUG
@@ -168,7 +158,7 @@ statistic_save (char *detail, char *filename, char *prefix)
 {
   char *save_file = NULL;
   int length = 0;
-  //printf ("prefix->%s\n",prefix);
+  
   if (prefix!=NULL && prefix[0]=='.') {
       prefix+=2;
       length = strrchr(prefix,'/')-prefix+1;
@@ -188,7 +178,7 @@ statistic_save (char *detail, char *filename, char *prefix)
   save_file = prefix_make (filename, NULL, prefix);
   
   if (is_dir(prefix) || prefix==NULL)
-      strcat (save_file, ".info");
+      strcat (save_file, ".tsv");
   if (strrchr(save_file,'/')==save_file)
       save_file++;
 
