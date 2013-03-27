@@ -84,7 +84,7 @@ class FastqScreenTest(unittest.TestCase):
 
             if os.path.exists(fastq_screen_resfile):
                 with open(fastq_screen_resfile, 'rU') as fh:
-                    print self._fastq_screen_metrics_to_json(fh)
+                    print self._fastq_screen_metrics_to_json(fh, fastq_name)
 
     ## Aux methods for the test
     def _is_bowtie_present(self):
@@ -93,21 +93,30 @@ class FastqScreenTest(unittest.TestCase):
         # XXX: Figure out why this does behave in shell but not here
         return os.path.basename(bowtie) == "bowtie"
 
-    def _fastq_screen_metrics_to_json(self, in_handle):
+    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name):
         reader = csv.reader(in_handle, delimiter="\t")
+        data = defaultdict(lambda: defaultdict(list))
+
+        #Fastq_screen version: 0.4
         version = reader.next()
         # ['Library', '%Unmapped', '%One_hit_one_library', '%Multiple_hits_one_library',
         #  '%One_hit_multiple_libraries', '%Multiple_hits_multiple_libraries']
         header = reader.next()
-        data = defaultdict()
+
+        data['sample'] = fastq_name
+        data['timestamp'] = str(datetime.datetime.utcnow())+'Z'
+        data['organisms'] = []
 
         for row in reader:
             if not row:
                 break
+
+            organism = {}
+            organism[header[0]] = row[0]
             for i in range(1,5):
-                data[header[i]] = float(row[i])
-                data['sample'] = row[0]
-        data['timestamp'] = str(datetime.datetime.utcnow())+'Z'
+                organism[header[i]] = float(row[i])
+
+            data['organisms'].append(organism)
 
         return json.dumps(data)
 
