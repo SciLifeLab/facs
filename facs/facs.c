@@ -46,12 +46,13 @@ facs_bloom_query(PyObject * self, PyObject * args)
   double sampling_rate = 1;
   double tole_rate = 0;
   char *qry, *bloom;
+  char* report_fmt = "json";
   int ret;
 
-  if (!PyArg_ParseTuple(args, "ss|dd", &qry, &bloom, 
-                        &tole_rate, &sampling_rate))
+  if (!PyArg_ParseTuple(args, "ss|dds", &qry, &bloom, 
+                        &tole_rate, &sampling_rate, report_fmt))
     return NULL;
-  ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL);
+  ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL, report_fmt);
 
   return Py_BuildValue("i", ret);
 }

@@ -1,4 +1,5 @@
-CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -Wall -fopenmp -g -DNODEBUG -lm -lz
+CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -Wall -fopenmp -g -DNODEBUG
+LIBS=-lm -lz
 .PHONY: tests clean valgrind
 .SUFFIXES:.c .o
 PROG=facs
