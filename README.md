@@ -64,24 +64,37 @@ $ ./facs build -r ecoli.fasta -o ecoli.bloom
 That would generate a ecoli bloom filter that could be used to query a FASTQ file:
 
 ```
-$ ./facs query -r ecoli.bloom -q contaminated_sample.fastq.gz
+$ ./facs query -r ecoli.bloom -q contaminated_sample.fastq.gz -f "json"
 ```
 
 Note that both plaintext fastq files and gzip-compressed files are supported transparently
 to the user.
 
-Which would return some metrics indicating how many reads might be contaminated with
-ecoli in that particular sample:
+Which would return some metrics, in json format, indicating how many reads might
+be contaminated with ecoli in that particular sample:
 
 ```
 {
-        "total_read_count": 201,
-        "contaminated_reads": 1,
-        "total_hits": 90,
-        "contamination_rate": 0.004975,
-        "bloom_file":"tests/data/bloom/U00096.2.bloom"
+    "timestamp": "2013-03-27T11:16:21.809+0100"
+    "organism": "test200.fastq"
+    "bloom_filter": "eschColi_K12.bloom"
+    "total_read_count": 201,
+    "contaminated_reads": 1,
+    "total_hits": 36,
+    "contamination_rate": 0.004975,
 }
 ```
+
+If one wishes to get `tsv` format to easily import in 
+<a href="http://www.libreoffice.org/">LibreOffice.org</a> or Excel, indicate
+`-f "tsv"` in the commandline, and a tsv file will be written in the local directory:
+
+```
+$ cat test200.fastq.tsv
+organism    bloom_filter    total_read_count    contaminated_reads  contamination_rate
+test200.fastq   eschColi_K12.bloom  201 1   0.004975
+```
+
 
 Finally, if one wants to remove those reads from the sample, one should run the following
 command:

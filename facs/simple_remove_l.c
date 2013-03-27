@@ -5,25 +5,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*-------------------------------------*/
-//for file mapping in Linux
+
 #include<fcntl.h>
 #include<unistd.h>
 #include<sys/stat.h>
 #include<sys/time.h>
 #include<sys/mman.h>
 #include<sys/types.h>
-/*-------------------------------------*/
+
 #include "tool.h"
 #include "bloom.h"
 #include "remove_l.h"
 #include "file_dir.h"
-/*-------------------------------------*/
-//openMP library
+
 #include<omp.h>
-/*-------------------------------------*/
+
 char *clean, *contam;
-/*-------------------------------------*/
 
 /*
  *
@@ -440,7 +437,7 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
 	}
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
-      save_result (source, File_head2->filename, contam, contam2, 1, type,
+      save_result_ml (source, File_head2->filename, contam, contam2, 1, type,
 		   prefix);
       File_head2 = File_head2->next;
     }
