@@ -120,7 +120,8 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 }
 
 void
-evaluate(char *detail, char *filename, F_set * File_head, char* query, char* fmt)
+report(char *detail, char *filename, F_set * File_head, char* query,
+       char* fmt, char* prefix)
 {
   char buffer[200] = { 0 };
   float contamination_rate = (float) (File_head->reads_contam) /
@@ -129,6 +130,7 @@ evaluate(char *detail, char *filename, F_set * File_head, char* query, char* fmt
 
   if(!fmt){
       return;
+  // JSON output format (via stdout)
   } else if(!strcmp(fmt, "json")) {
       isodate(buffer);
 
@@ -142,49 +144,16 @@ evaluate(char *detail, char *filename, F_set * File_head, char* query, char* fmt
       printf("\t\"contamination_rate\": %f,\n", contamination_rate);
       printf("}\n");
 
-  // TSV output format
+  // TSV output format (via file in CWD)
   } else if (!strcmp(fmt, "tsv")) {
-      strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
-      strcat (detail, filename);
+      strcat (detail, "organism\tbloom_filter\ttotal_read_count\t\
+contaminated_reads\tcontamination_rate\n");
 
-      sprintf(buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
+      sprintf(buffer, "%s\t%s\t%lld\t%lld\t%f\n", basename(query),
+              basename(filename), File_head->reads_num,
               File_head->reads_contam, contamination_rate);
       strcat(detail, buffer);
+
+      write_result(strcat(basename(query), ".tsv"), detail);
   }
-}
-
-void
-statistic_save (char *detail, char *filename, char *prefix)
-{
-  char *save_file = NULL;
-  int length = 0;
-  
-  if (prefix!=NULL && prefix[0]=='.') {
-      prefix+=2;
-      length = strrchr(prefix,'/')-prefix+1;
-      if (length != 0 && strrchr(prefix,'/')!=NULL) {
-           save_file =(char *) calloc (length, sizeof (char));
-           memcpy(save_file, prefix, length);
-           prefix = save_file;
-           save_file = NULL;
-	  } else {
-           prefix = NULL;
-	  }
-  }
-  if (prefix!=NULL)
-      if (prefix[strlen(prefix)-1]=='/')
-          prefix[strlen(prefix)-1]='\0'; 
-
-  save_file = prefix_make (filename, NULL, prefix);
-  
-  if (is_dir(prefix) || prefix==NULL)
-      strcat (save_file, ".tsv");
-  if (strrchr(save_file,'/')==save_file)
-      save_file++;
-
-#ifdef DEBUG
-  printf ("Basename->%s\n", filename);
-  printf ("Info name->%s\n", save_file);
-#endif
-  write_result (save_file, detail);
 }

@@ -193,13 +193,12 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate,
   if (normal == 0)
     free (position);
 
-  evaluate(detail, File_head->filename, File_head, query, report_fmt);
+  report(detail, File_head->filename, File_head, query, report_fmt, target_path);
 
   if (normal == 0)
     gzclose (zip);
 
   bloom_destroy (bl_2);
-  statistic_save (detail, query, target_path);
 
   return 0;
 }

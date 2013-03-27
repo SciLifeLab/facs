@@ -437,7 +437,7 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
 	}
       memset (clean2, 0, strlen (position));
       memset (contam2, 0, strlen (position));
-      save_result (source, File_head2->filename, contam, contam2, 1, type,
+      save_result_ml (source, File_head2->filename, contam, contam2, 1, type,
 		   prefix);
       File_head2 = File_head2->next;
     }
