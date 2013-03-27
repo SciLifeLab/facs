@@ -136,7 +136,7 @@ report(char *detail, char *filename, F_set * File_head, char* query,
 
       printf("{\n");
       printf("\t\"timestamp\": \"%s\"\n", buffer);
-      printf("\t\"organism\": \"%s\"\n", basename(query)); //sample (query)
+      printf("\t\"sample\": \"%s\"\n", basename(query)); //sample (query)
       printf("\t\"bloom_filter\": \"%s\"\n", basename(filename)); //reference
       printf("\t\"total_read_count\": %lld,\n", File_head->reads_num);
       printf("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
@@ -146,7 +146,7 @@ report(char *detail, char *filename, F_set * File_head, char* query,
 
   // TSV output format (via file in CWD)
   } else if (!strcmp(fmt, "tsv")) {
-      strcat (detail, "organism\tbloom_filter\ttotal_read_count\t\
+      strcat (detail, "sample\tbloom_filter\ttotal_read_count\t\
 contaminated_reads\tcontamination_rate\n");
 
       sprintf(buffer, "%s\t%s\t%lld\t%lld\t%f\n", basename(query),

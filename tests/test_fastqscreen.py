@@ -1,10 +1,12 @@
 import os
 import csv
 import json
+import glob
 import shutil
 import sys
 import subprocess
 import unittest
+import datetime
 from collections import defaultdict
 
 import facs
@@ -47,6 +49,8 @@ class FastqScreenTest(unittest.TestCase):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
         #self.assertTrue(self._is_bowtie_present())
+        # Does not work @UPPMAX, maybe some env var tweaked by the module system?
+        # ... works elsewhere.
 
         dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
@@ -68,12 +72,16 @@ class FastqScreenTest(unittest.TestCase):
         cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'rU')
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
 
-        for fastq in os.listdir(self.synthetic_fastq):
+        for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
             cl = [fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
+
             # Process fastq_screen results format and report it in JSON
-            fastq_screen_resfile = os.path.join(self.tmp, os.path.splitext(fastq)[0]+"_screen.txt")
+            fastq_name = os.path.basename(fastq)
+            fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
+            fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
+
             if os.path.exists(fastq_screen_resfile):
                 with open(fastq_screen_resfile, 'rU') as fh:
                     print self._fastq_screen_metrics_to_json(fh)
@@ -91,13 +99,16 @@ class FastqScreenTest(unittest.TestCase):
         # ['Library', '%Unmapped', '%One_hit_one_library', '%Multiple_hits_one_library',
         #  '%One_hit_multiple_libraries', '%Multiple_hits_multiple_libraries']
         header = reader.next()
-        data = defaultdict(lambda: defaultdict(dict))
+        data = defaultdict()
 
         for row in reader:
             if not row:
                 break
             for i in range(1,5):
-                data[row[0]][header[i]] = float(row[i])
+                data[header[i]] = float(row[i])
+                data['sample'] = row[0]
+        data['timestamp'] = str(datetime.datetime.utcnow())+'Z'
+
         return json.dumps(data)
 
     def _fetch_bowtie_indices(self):
