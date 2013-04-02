@@ -1,5 +1,5 @@
-#ifndef _REMOVE_CONTAM_L
-#define _REMOVE_CONTAM_L
+#ifndef _REMOVE_CONTAM
+#define _REMOVE_CONTAM
 
 #include "bloom.h"
 extern void fasta_process_m (bloom * bl, Queue * info, Queue * tail,

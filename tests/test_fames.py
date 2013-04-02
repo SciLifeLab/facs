@@ -25,12 +25,12 @@ class FamesTest(unittest.TestCase):
     def test_1_download_low_complexity(self):
         dst = os.path.join(self.synthetic, self.lowc)
 
-        subprocess.check_call(["wget", "{url}".format(url=self.fames_urlbase+lowc),
+        subprocess.check_call(["wget", "{url}".format(url=self.fames_urlbase+self.lowc),
                                "-O", dst])
 
         with helpers.cd(self.synthetic):
-            subprocess.check_call(['tar', 'xfz', lowc])
-            os.remove(lowc)
+            subprocess.check_call(['tar', 'xfz', self.lowc])
+            os.remove(self.lowc)
 
     def test_2_run_low_complexity(self):
         #XXX collate the JSON output in a better way

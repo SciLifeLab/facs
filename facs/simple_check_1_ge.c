@@ -42,15 +42,13 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	next -= 2;
   }
 
-  while (p != next)
-    {
+  while (p != next) {
       temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
 
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
+      if (p != temp) {
+          p = temp;
+          continue;
+	  }
 #pragma omp atomic
       File_head->reads_num++;
 
@@ -63,9 +61,9 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
     }				// outside while
-  if (temp_piece)
-    free (temp_piece);
 
+  if (temp_piece)
+    free(temp_piece);
 }
 
 /*-------------------------------------*/
@@ -94,59 +92,35 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
   char *p = info->location;
 
-  while (p != next)
-    {
+  while (p != next) {
       temp = jump (p, 1, sampling_rate);	// generate random number and judge
                                             // if need to scan this read
       if (p != temp)
 	{
 	  p = temp;
 	  continue;
-	}
-
 #pragma omp atomic
       File_head->reads_num++;
-
       temp_next = strchr (p + 1, '>');
-      if (!temp_next)
-	temp_next = next;
 
-      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0)
-	{
+      if (!temp_next)
+        temp_next = next;
+
+      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0) {
 #pragma omp atomic
-	  File_head->reads_contam++;
-	}
+	    File_head->reads_contam++;
+	  }
 
       p = temp_next;
     }
 }
 
 void
-evaluate (char *detail, char *filename, F_set * File_head, char* query)
+report(char *detail, char *filename, F_set * File_head, char* query,
+       char* fmt, char* prefix)
 {
   char buffer[200] = { 0 };
   float contamination_rate = (float) (File_head->reads_contam)/(float) (File_head->reads_num);
-
-// JSON output format by default
-  printf ("{\n");
-  printf ("\"%s\": ", basename(query)); //sample (query)
-  printf ("{\n");
-  printf ("\"%s\": ", basename(filename)); //reference
-  printf ("{\n");
-  printf ("\t\"total_read_count\": %lld,\n", File_head->reads_num);
-  printf ("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
-  printf ("\t\"total_hits\": %lld,\n", File_head->hits);
-  printf ("\t\"contamination_rate\": %f,\n", contamination_rate);
-  printf ("\t\"bloom_file\":\"%s\"\n", filename);
-  printf ("}\n");
-  printf ("}\n");
-  printf ("}\n");
-
-#ifdef DEBUG
-  strcat (detail, "Bloomfile\tAll\tContam\tcontam_rate\n");
-  strcat (detail, filename);
-#endif
-
   sprintf(buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
           File_head->reads_contam, contamination_rate);
   strcat (detail, buffer);
@@ -185,4 +159,32 @@ statistic_save (char *detail, char *filename, char *prefix)
   printf ("Info name->%s\n", save_file);
 #endif
   write_result (save_file, detail);
+  if(!fmt){
+      return;
+  // JSON output format (via stdout)
+  } else if(!strcmp(fmt, "json")) {
+      isodate(buffer);
+
+      printf("{\n");
+      printf("\t\"timestamp\": \"%s\"\n", buffer);
+      printf("\t\"sample\": \"%s\"\n", basename(query)); //sample (query)
+      printf("\t\"bloom_filter\": \"%s\"\n", basename(filename)); //reference
+      printf("\t\"total_read_count\": %lld,\n", File_head->reads_num);
+      printf("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
+      printf("\t\"total_hits\": %lld,\n", File_head->hits);
+      printf("\t\"contamination_rate\": %f,\n", contamination_rate);
+      printf("}\n");
+
+  // TSV output format (via file in CWD)
+  } else if (!strcmp(fmt, "tsv")) {
+      strcat (detail, "sample\tbloom_filter\ttotal_read_count\t\
+contaminated_reads\tcontamination_rate\n");
+
+      sprintf(buffer, "%s\t%s\t%lld\t%lld\t%f\n", basename(query),
+              basename(filename), File_head->reads_num,
+              File_head->reads_contam, contamination_rate);
+      strcat(detail, buffer);
+
+      write_result(strcat(basename(query), ".tsv"), detail);
+  }
 }
