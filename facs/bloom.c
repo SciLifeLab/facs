@@ -493,14 +493,14 @@ mmaping (char *source)
   int fd = 0;
   char *sm = NULL;
 
-  if ((fd = open (source, O_RDONLY | O_LARGEFILE)) < 0){
+  if ((fd = open (source, O_RDONLY | O_LARGEFILE)) < 0) {
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
       exit (EXIT_FAILURE);
   }
-  if(fstat (fd, &statbuf) < 0){
+  if (fstat (fd, &statbuf) < 0) {
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
       exit (EXIT_FAILURE);
-  }else if(statbuf.st_size == 0){
+  } else if (statbuf.st_size == 0) {
       fprintf (stderr, "%s: %s\n", source, "File is empty");
       exit (-1);
   }

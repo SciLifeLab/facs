@@ -158,8 +158,7 @@ statistic_save (char *detail, char *filename, char *prefix)
   char *save_file = NULL;
   int length = 0;
   //printf ("prefix->%s\n",prefix);
-  if (prefix!=NULL && prefix[0]=='.')
-  {
+  if (prefix!=NULL && prefix[0]=='.') {
       prefix+=2;
       length = strrchr(prefix,'/')-prefix+1;
       if (length != 0 && strrchr(prefix,'/')!=NULL){
@@ -175,6 +174,7 @@ statistic_save (char *detail, char *filename, char *prefix)
   if (prefix!=NULL)
       if (prefix[strlen(prefix)-1]=='/')
           prefix[strlen(prefix)-1]='\0'; 
+
   save_file = prefix_make (filename, NULL, prefix);
   if (is_dir(prefix) || prefix==NULL)
       strcat (save_file, ".info");
