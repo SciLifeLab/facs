@@ -29,24 +29,18 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
   char *p = info->location;
   char *next = NULL, *temp = NULL, *temp_piece = NULL;
 
-  if (info->location[0] != '@')
-    {
+  if(info->location[0] != '@'){
       return;
-    }
-  else if (info->next != tail && info->next->location != NULL)
-    {
+  }else if(info->next != tail && info->next->location != NULL){
       next = info->next->location;
-    }
-  else
-    {
+  }
+  else{
       next = strchr (p, '\0');
-      //if (next[-2]=='\r')
-      //printf ("%d\n",next[-1]);
       if ((next[-1]) == '\n' && next[-2] == '\n')
 	next -= 1;
       else if (next[-4] == '\r' && next[-3] == '\n')
 	next -= 2;
-    }
+  }
 
   while (p != next)
     {
@@ -61,12 +55,10 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
       File_head->reads_num++;
 
       p = strchr (p, '\n') + 1;
-      if (fastq_read_check
-	  (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head) > 0)
-	{
-#pragma omp atomic
+      if (fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head) > 0){
+	  #pragma omp atomic
 	  File_head->reads_contam++;
-	}
+      }
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
       p = strchr (p, '\n') + 1;
@@ -90,8 +82,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
     return;
   else if (info->next != tail)
     next = info->next->location;
-  else
-    {
+  else{
       next = strchr (info->location, '\0');
       //if ((next-1)=='\n')
       //next -= 1;
@@ -99,7 +90,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	next -= 1;
       else if (next[-4] == '\r' && next[-3] == '\n')
 	next -= 2;
-    }
+  }
 
   char *p = info->location;
 
@@ -107,7 +98,6 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
     {
       temp = jump (p, 1, sampling_rate);	// generate random number and judge
                                             // if need to scan this read
-
       if (p != temp)
 	{
 	  p = temp;
@@ -135,8 +125,7 @@ void
 evaluate (char *detail, char *filename, F_set * File_head, char* query)
 {
   char buffer[200] = { 0 };
-  float contamination_rate = (float) (File_head->reads_contam) /
-                             (float) (File_head->reads_num);
+  float contamination_rate = (float) (File_head->reads_contam)/(float) (File_head->reads_num);
 
 // JSON output format by default
   printf ("{\n");
@@ -173,30 +162,27 @@ statistic_save (char *detail, char *filename, char *prefix)
   {
       prefix+=2;
       length = strrchr(prefix,'/')-prefix+1;
-      if (length != 0 && strrchr(prefix,'/')!=NULL)
-         {
+      if (length != 0 && strrchr(prefix,'/')!=NULL){
            save_file =(char *) calloc (length, sizeof (char));
            memcpy(save_file,prefix,length);
            prefix = save_file;
            save_file = NULL;
-	 }
-      else
-         {
+      }
+      else{
            prefix = NULL;
-	 }
+      }
   }
   if (prefix!=NULL)
       if (prefix[strlen(prefix)-1]=='/')
           prefix[strlen(prefix)-1]='\0'; 
   save_file = prefix_make (filename, NULL, prefix);
-  //printf ("prefix->%s\n",prefix);
   if (is_dir(prefix) || prefix==NULL)
       strcat (save_file, ".info");
   if (strrchr(save_file,'/')==save_file)
       save_file++;
-//#ifdef DEBUG
+#ifdef DEBUG
   printf ("Basename->%s\n", filename);
   printf ("Info name->%s\n", save_file);
-//#endif
+#endif
   write_result (save_file, detail);
 }
