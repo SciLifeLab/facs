@@ -13,9 +13,11 @@
 #include "check.h"
 #include "file_dir.h"
 #include "big_query.h"
-/*-------------------------------------*/
-#include <omp.h>
-/*-------------------------------------*/
+
+#ifndef __clang__
+  // openMP not yet ported to clang: http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU
+  #include <omp.h>
+#endif
 
 static int
 query_usage (void)

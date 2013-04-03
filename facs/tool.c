@@ -10,7 +10,9 @@
 #include <time.h>
 #include <sys/time.h>
 
+#ifndef __clang__
 #include <omp.h>
+#endif
 
 #include "tool.h"
 #include "bloom.h"
@@ -42,7 +44,7 @@ void isodate(char* buf) {
      * write the subsecond value as well as the rest of the string already there.
      */
 
-    sprintf(timestamp + 20, "%03ld%s", tv.tv_usec / 1000, timestamp + 23);
+    sprintf(timestamp + 20, "%03d%s", tv.tv_usec / 1000, timestamp + 23);
     sprintf(buf, "%s", timestamp);
 }
 
@@ -367,7 +369,11 @@ get_parainfo (char *full, Queue * head)
 	  int type = 0;
       char *previous = NULL;
 	  char *temp = full;
+#ifndef __clang__
 	  int cores = omp_get_num_procs ();
+#else
+	  int cores = 1;
+#endif
 	  short add = 0;
       int offset = 0;
 	  Queue *pos = head;

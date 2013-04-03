@@ -18,9 +18,11 @@
 #include "remove_l.h"
 #include "file_dir.h"
 
+#ifndef __clang__
 #include<omp.h>
+#endif
 
-char *clean, *contam;
+char *clean_l, *contam_l;
 
 /*
  *
@@ -91,8 +93,8 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 /*-------------------------------------*/
   char *position;
   int type = 1;
-  char *clean2 = clean;
-  char *contam2 = contam;
+  char *clean_l2 = clean_l;
+  char *contam_l2 = contam_l;
 /*-------------------------------------*/
 /*-------------------------------------*/
   bloom *bl_2 = NEW (bloom);
@@ -106,8 +108,8 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 
   position = mmaping (source);
   type = get_parainfo (position, head);
-  clean = (char *) malloc (strlen (position) * sizeof (char));
-  contam = (char *) malloc (strlen (position) * sizeof (char));
+  clean_l = (char *) malloc (strlen (position) * sizeof (char));
+  contam_l = (char *) malloc (strlen (position) * sizeof (char));
   while (File_head)
     {
       load_bloom (File_head->filename, bl_2);
@@ -125,11 +127,11 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 		  {
 		    //printf("location->%0.20s\n",head->location);
 		    if (type == 1)
-		      fasta_process_ml (File_head, bl_2, head, tail, clean,
-					contam, tole_rate);
+		      fasta_process_ml (File_head, bl_2, head, tail, clean_l,
+					contam_l, tole_rate);
 		    else
-		      fastq_process_ml (File_head, bl_2, head, tail, clean,
-					contam, tole_rate);
+		      fastq_process_ml (File_head, bl_2, head, tail, clean_l,
+					contam_l, tole_rate);
 		  }
 	      }
 	      head = head->next;
@@ -144,7 +146,7 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 
     }				// End outside while
 
-  all_save (File_head2, head2, tail, source, clean, clean2, contam, contam2,
+  all_save (File_head2, head2, tail, source, clean_l, clean_l2, contam_l, contam_l2,
 	    position, type, prefix);
   munmap (position, strlen (position));
 
@@ -158,7 +160,7 @@ remove_l (float tole_rate, char *source, char *ref, char *list, char *prefix)
 /*-------------------------------------*/
 void
 fastq_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
-		  char *clean, char *contam, float tole_rate)
+		  char *clean_l, char *contam_l, float tole_rate)
 {
   int read_num = 0, result = 0, countup = 0;
   char *p = info->location;
@@ -199,12 +201,12 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
 	{
 #pragma omp critical
 	  {
-	    memcpy (clean, temp_start, temp_end - temp_start);
-	    clean += (temp_end - temp_start);
+	    memcpy (clean_l, temp_start, temp_end - temp_start);
+	    clean_l += (temp_end - temp_start);
 	    if (*temp_end != '\0')
 	      {
-		clean[0] = '\n';
-		clean++;
+		clean_l[0] = '\n';
+		clean_l++;
 	      }
 	  }
 	}
@@ -229,7 +231,7 @@ fastq_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
 /*-------------------------------------*/
 void
 fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
-		  char *clean, char *contam, float tole_rate)
+		  char *clean_l, char *contam_l, float tole_rate)
 {
   int read_num = 0, result = 0, countup = 0;
   char *p = info->location;
@@ -261,8 +263,8 @@ fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
 	{
 #pragma omp critical
 	  {
-	    memcpy (clean, p, temp - p);
-	    clean += (temp - p);
+	    memcpy (clean_l, p, temp - p);
+	    clean_l += (temp - p);
 	  }
 	}
       else if (result == -1)
@@ -277,7 +279,7 @@ fasta_process_ml (F_set * File_head, bloom * bl, Queue * info, Queue * tail,
 
       p = temp;
     }				// end while
-  //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
+  //printf ("all->%d\ncontam_l->%d\n", read_num, read_contam_l);
 }
 
 /*-------------------------------------*/
@@ -334,9 +336,9 @@ save_result_ml (char *source, char *obj_file, char *data, char *data2,
   //printf ("match->%s\n", match);
   //printf ("mismatch->%s\n", mismatch);
   if (flag == 0)
-    strcat (match, "_clean");
+    strcat (match, "_clean_l");
   else
-    strcat (match, "_contam");
+    strcat (match, "_contam_l");
   if (type == 1)
     {
       strcat (match, ".fasta");
@@ -387,15 +389,15 @@ count_read (char *data, char *next, int type)
 /*-------------------------------------*/
 void
 all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
-	  char *clean, char *clean2, char *contam, char *contam2,
+	  char *clean_l, char *clean_l2, char *contam_l, char *contam_l2,
 	  char *position, int type, char *prefix)
 {
   char *pos, *next, *temp_next;
   int countup;
   Queue *head;
-  printf ("clean->%s\n", clean);
-  save_result_ml (source, File_head2->filename, clean, clean2, 0, type, prefix);	// save the clean data
-  free (clean2);
+  printf ("clean_l->%s\n", clean_l);
+  save_result_ml (source, File_head2->filename, clean_l, clean_l2, 0, type, prefix);	// save the clean_l data
+  free (clean_l2);
 
 //File_head2 = File_head2->next;
   printf ("1_dollar_%s\n", File_head2->filename);
@@ -426,18 +428,18 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
 	      if (head->score[countup] > 0
 		  && (head->number[countup] == File_head2->number))
 		{
-		  memcpy (contam, pos, temp_next - pos);
-		  contam += temp_next - pos;
+		  memcpy (contam_l, pos, temp_next - pos);
+		  contam_l += temp_next - pos;
 		}
 	      countup++;
 	      pos = temp_next;
 	    }
 	  head = head->next;
-	  //save_result (source,File_head2->filename,contam,contam2,1);
+	  //save_result (source,File_head2->filename,contam_l,contam_l2,1);
 	}
-      memset (clean2, 0, strlen (position));
-      memset (contam2, 0, strlen (position));
-      save_result_ml (source, File_head2->filename, contam, contam2, 1, type,
+      memset (clean_l2, 0, strlen (position));
+      memset (contam_l2, 0, strlen (position));
+      save_result_ml (source, File_head2->filename, contam_l, contam_l2, 1, type,
 		   prefix);
       File_head2 = File_head2->next;
     }
