@@ -505,7 +505,6 @@ mmaping (char *source)
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
       exit (EXIT_FAILURE);
   }
-
   if (fstat (fd, &statbuf) < 0) {
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
       exit (EXIT_FAILURE);
@@ -517,7 +516,7 @@ mmaping (char *source)
   sm = mmap (0, (BIGCAST) statbuf.st_size, PROT_READ,
 	     MAP_SHARED | MAP_NORESERVE, fd, 0);
 
-  if (MAP_FAILED == sm) {
+  if (MAP_FAILED == sm){
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
       exit (EXIT_FAILURE);
   }
@@ -561,8 +560,9 @@ BIGCAST
 get_size (char *filename)
 {
   struct stat buf;
-  if (stat (filename, &buf) != -1)
+  if (stat (filename, &buf) != -1){
     return buf.st_size;
-  else
+  }else{
     return 0;
+  }
 }
