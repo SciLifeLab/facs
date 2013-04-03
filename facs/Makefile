@@ -6,7 +6,7 @@ ifneq ($(UNAME), Darwin)
 LIBS=-lm -lz -fopenmp 
 else
 CFLAGS=-Wno-unknown-pragmas -Wno-unused-value
-LIBS=-lm -lz
+LIBS=-lz
 endif
 
 .PHONY: tests clean valgrind
