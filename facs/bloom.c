@@ -304,7 +304,9 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
-  fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, PERMS);
+  #ifndef __clang__
+    fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, PERMS);
+  #endif
 #endif
 
   if (fd < 0)
@@ -321,7 +323,9 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 #ifdef __APPLE__
   if (ftruncate (fd, total_size) < 0)
 #else
+  #ifndef __clang__
   if (ftruncate64 (fd, total_size) < 0)
+  #endif
 #endif
     {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
@@ -493,7 +497,11 @@ mmaping (char *source)
   int fd = 0;
   char *sm = NULL;
 
+#ifndef __clang__
   if ((fd = open (source, O_RDONLY | O_LARGEFILE)) < 0) {
+#else
+  if ((fd = open (source, O_RDONLY)) < 0) {
+#endif
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
       exit (EXIT_FAILURE);
   }

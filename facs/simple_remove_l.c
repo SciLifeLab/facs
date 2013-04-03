@@ -18,7 +18,9 @@
 #include "remove_l.h"
 #include "file_dir.h"
 
+#ifndef __clang__
 #include<omp.h>
+#endif
 
 char *clean, *contam;
 
