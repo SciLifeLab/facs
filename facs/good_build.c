@@ -56,7 +56,7 @@ build_main (int argc, char **argv)
   char *source = NULL;
 
   //XXX make -l and -r mutually exclusive
-  while ((opt = getopt (argc, argv, "e:k:o:r:lh")) != -1)
+  while ((opt = getopt (argc, argv, "e:k:o:r:l:h")) != -1)
     {
       switch (opt)
 	{
@@ -83,7 +83,7 @@ build_main (int argc, char **argv)
 	}
     }
 
-  if (!target_path && !source)
+  if (!list && !source)
     {
       fprintf (stderr,
 	       "\nPlease, at least specify a reference file (-r) and an output bloom filter (-o)\n");
@@ -148,12 +148,13 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer,
 
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
 	      bl->stat.ideal_hashes, NULL, flags);
-  printf ("k_mer->%d\n", k_mer);
+  //printf ("k_mer->%d\n", k_mer);
   if (k_mer != 0)
     bl->k_mer = k_mer;
   else
     bl->k_mer = kmer_suggestion (get_size (filename));
   bl->dx = dx_add (bl->k_mer);
+  printf ("k_mer->%d\n", bl->k_mer);
 }
 
 int

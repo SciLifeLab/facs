@@ -10,5 +10,5 @@ extern void fasta_process (bloom * bl, Queue * info, Queue * tail,
 extern void fastq_process (bloom * bl, Queue * info, Queue * tail,
 			    F_set * File_head, float sampling_rate,
 			    float tole_rate);
-
+extern char *statistic_save (char *filename, char *prefix);
 #endif
