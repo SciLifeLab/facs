@@ -114,51 +114,15 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
       p = temp_next;
     }
 }
-
-void
-report(char *detail, char *filename, F_set * File_head, char* query,
-       char* fmt, char* prefix)
-{
-  char buffer[200] = { 0 };
-  float contamination_rate = (float) (File_head->reads_contam)/(float) (File_head->reads_num);
-  sprintf(buffer, "  %lld\t%lld\t%f\n", File_head->reads_num,
-          File_head->reads_contam, contamination_rate);
-  strcat (detail, buffer);
 }
 
 void
-statistic_save (char *detail, char *filename, char *prefix)
+report(char *detail, char *filename, F_set * File_head, char* query, char* fmt, char* prefix)
 {
+  char buffer[200] = { 0 };
+  float contamination_rate = (float) (File_head->reads_contam)/(float) (File_head->reads_num);
   char *save_file = NULL;
-  int length = 0;
-  //printf ("prefix->%s\n",prefix);
-  if (prefix!=NULL && prefix[0]=='.') {
-      prefix+=2;
-      length = strrchr(prefix,'/')-prefix+1;
-      if (length != 0 && strrchr(prefix,'/')!=NULL){
-           save_file =(char *) calloc (length, sizeof (char));
-           memcpy(save_file,prefix,length);
-           prefix = save_file;
-           save_file = NULL;
-      }
-      else{
-           prefix = NULL;
-      }
-  }
-  if (prefix!=NULL)
-      if (prefix[strlen(prefix)-1]=='/')
-          prefix[strlen(prefix)-1]='\0'; 
-
-  save_file = prefix_make (filename, NULL, prefix);
-  if (is_dir(prefix) || prefix==NULL)
-      strcat (save_file, ".info");
-  if (strrchr(save_file,'/')==save_file)
-      save_file++;
-#ifdef DEBUG
-  printf ("Basename->%s\n", filename);
-  printf ("Info name->%s\n", save_file);
-#endif
-  write_result (save_file, detail);
+  save_file = statistic_save (query, prefix);
   if(!fmt){
       return;
   // JSON output format (via stdout)
@@ -184,7 +148,41 @@ contaminated_reads\tcontamination_rate\n");
               basename(filename), File_head->reads_num,
               File_head->reads_contam, contamination_rate);
       strcat(detail, buffer);
-
-      write_result(strcat(basename(query), ".tsv"), detail);
+      //printf ("name->%s\n",basename(query));
+      //write_result(strcat(basename(query), ".tsv"), detail);
+      write_result(strcat(save_file, ".tsv"), detail);
   }
+}
+
+char *statistic_save (char *filename, char *prefix)
+{
+  char *save_file = NULL;
+  int length = 0;
+  //printf ("prefix->%s\n",prefix);
+  if (prefix!=NULL && prefix[0]=='.'){
+      prefix+=2;
+      length = strrchr(prefix,'/')-prefix+1;
+      if(length != 0 && strrchr(prefix,'/')!=NULL){
+         save_file =(char *) calloc (length, sizeof (char));
+         memcpy(save_file,prefix,length);
+         prefix = save_file;
+         save_file = NULL;
+      }
+      else{              
+         prefix = NULL;
+      } 
+  }
+  if (prefix!=NULL)
+      if (prefix[strlen(prefix)-1]=='/')
+          prefix[strlen(prefix)-1]='\0'; 
+  save_file = prefix_make (filename, NULL, prefix);
+  if (is_dir(prefix) || prefix==NULL)
+      strcat (save_file, ".info");
+  if (strrchr(save_file,'/')==save_file)
+      save_file++;
+#ifdef DEBUG
+  printf ("Basename->%s\n", filename);
+  printf ("Info name->%s\n", save_file);
+#endif
+  return save_file;
 }
