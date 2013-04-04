@@ -3,6 +3,7 @@ import collections
 import contextlib
 import subprocess
 import errno
+import shutil
 from contextlib import contextmanager
 
 import tempfile
@@ -64,6 +65,10 @@ def _mkdir_p(path):
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else: raise
+
+def _move_p(src, dest):
+    if not os.path.exists(os.path.join(dest, os.path.split(src)[-1])):
+        shutil.move(src, dest)
 
 @contextmanager
 def _make_tmp_dir():
