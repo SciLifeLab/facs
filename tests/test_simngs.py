@@ -21,6 +21,14 @@ class SimNGSTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
 
+        helpers._mkdir_p(self.data_dir)
+        helpers._mkdir_p(self.progs)
+        helpers._mkdir_p(self.reference)
+        helpers._mkdir_p(self.bloom_dir)
+        helpers._mkdir_p(self.custom_dir)
+        helpers._mkdir_p(self.synthetic_fastq)
+        helpers._mkdir_p(self.tmp)
+
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
 
     def test_1_fetch_simNGS(self):
@@ -36,10 +44,9 @@ class SimNGSTest(unittest.TestCase):
             os.chdir("src")
             subprocess.check_call(["make"])
 
-        if not os.path.exists(dirname):
-            shutil.move(simngs, self.progs)
-            shutil.move(simlib, self.progs)
-            shutil.move(runfile, self.progs)
+        helpers._move_p(simngs, self.progs)
+        helpers._move_p(simlib, self.progs)
+        helpers._move_p(runfile, self.progs)
 
     def test_2_run_simNGS(self):
         """ Generates a synthetic library and runs with built-in simNGS runfile
