@@ -19,7 +19,9 @@
 #include "bloom.h"
 #include "file_dir.h"
 
+#ifndef __clang__ 
 #include <omp.h>
+#endif
 
 void
 fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,

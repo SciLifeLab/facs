@@ -5,11 +5,18 @@ import os
 import glob
 
 version = '2.0'
+platform = os.uname()[0]
 
-c_ext = Extension("facs/_facs", define_macros = [('NODEBUG', '1'), ('FIFO', '1'), ('FILE_OFFSET_BITS', '64'), ('LARGE_FILE', '1')],
-                           sources = [f for f in glob.glob('facs/*.c') if 'mpi' not in f],
-                           extra_compile_args = ['-fopenmp'],
-                           extra_link_args=['-lgomp', '-lz'])
+if not platform == 'Darwin':
+	c_ext = Extension("facs/_facs", define_macros = [('NODEBUG', '1'), ('FIFO', '1'), ('FILE_OFFSET_BITS', '64'), ('LARGE_FILE', '1')],
+				   sources = [f for f in glob.glob('facs/*.c') if 'mpi' not in f],
+				   extra_compile_args = ['-fopenmp'],
+				   extra_link_args=['-lgomp', '-lz'])
+else:
+	c_ext = Extension("facs/_facs", define_macros = [('NODEBUG', '1')],
+				   sources = [f for f in glob.glob('facs/*.c') if 'mpi' not in f],
+				   extra_compile_args = ['-Wno-unknown-pragmas', '-Wno-unused-value'],
+				   extra_link_args=['-lz'])
 
 setup(name='facs',
       version=version,
