@@ -302,8 +302,8 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_ra
 	  mark = 1;
 	  count = 0;
 	}
-      if (strlen (key) == bl->k_mer)
-	{
+      //if (strlen (key) == bl->k_mer)
+	//{
 	  if (bloom_check (bl, key))
 	    {
 	      match_time++;
@@ -330,7 +330,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_ra
 	    }
 
 	  count++;
-	}			//outside if
+	//}			//outside if
       //printf("score->%d\n",match_s);
       p++;
       if (p[0] == '\n')
