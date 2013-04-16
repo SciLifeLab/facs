@@ -34,6 +34,18 @@ $ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8
 Please note that python's <a href="https://github.com/brainsik/virtualenv-burrito">virtualenv</a>
 is needed to run the tests.
 
+If you are compiling on MacOSX or with <a href='http://clang.llvm.org/'>LLVM's clang</a>, please note that FACS it'll run
+in single core mode since <a href="http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU">OpenMP is still not ported to clang</a>.
+
+Also, `wget` is required to run the testsuite, so please run:
+
+```
+brew install wget
+```
+
+Or use <a href="http://fink.sf.net/">whatever</a> <a href="http://www.macports.org/">packaging</a>
+<a href='http://mxcl.github.com/homebrew/'>means</a> you have in MacOSX.
+
 Usage
 ------
 

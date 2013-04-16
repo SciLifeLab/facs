@@ -1,5 +1,16 @@
-CFLAGS=-O3 -DFIFO -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -Wall -fopenmp -g -DNODEBUG
+# Common compiler flags for all OS
+CFLAGS=-O3 -Wall -g -DNODEBUG
+
+# Detect OS
+UNAME := $(shell uname)
+ifneq ($(UNAME), Darwin)
+CFLAGS+=-fopenmp -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE
 LIBS=-lm -lz
+else
+CFLAGS+=-Wno-unknown-pragmas -Wno-unused-value -arch x86_64
+LIBS=-lz
+endif
+
 .PHONY: tests clean valgrind
 .SUFFIXES:.c .o
 PROG=facs

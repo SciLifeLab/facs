@@ -71,7 +71,12 @@ def _get_tool_conf(tool_name):
 # ## Finalize downloads
 
 def download_twoBitToFa_bin(dst):
-    twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
+    platform = os.uname()[0]
+    if platform == 'Darwin':
+    	twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/macOSX.i386/twoBitToFa'
+    else:
+    	twobit_url = 'http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa'
+
     subprocess.check_call(["wget", "--no-check-certificate", "{url}".format(url=twobit_url),
                            "-O", dst])
     st = os.stat(dst)
