@@ -16,32 +16,36 @@ import galaxy
 # Aux methods
 
 header='@HWI-ST188:2:1101:2751:1987#0/1'
-ecoli_read = \
-"""
-AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAA
-+
-@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegef
-"""
+ecoli_read = "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAA"
+ecoli_qual = "@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegef"
 
-def generate_dummy_fastq(fname, num_reads):
+def generate_dummy_fastq(fname, num_reads, case=''):
     """ Generates simplest reads with dummy qualities
     """
     stride=13
 
     if not os.path.exists(fname):
         with open(fname, "w") as f:
-            f.write(header)
             # Spike one ecoli read
-            f.write(ecoli_read)
+            f.write(header + os.linesep)
+            if case == '':
+                f.write(ecoli_read + os.linesep)
+            elif case == '_lowercase':
+                f.write(ecoli_read.lower() + os.linesep)
+            elif case == '_mixedcase':
+                f.write(''.join(random.choice([str.upper, str.lower])(c) for c in ecoli_read) + os.linesep)
+           
+            f.write('+' + os.linesep) # FastQ separator
+            f.write(ecoli_qual + os.linesep)
 
             for r in xrange(num_reads):
                 # Identify reads uniquely for later debugging such as
                 # OpenMP parallel task distribution.
-                f.write(header + 'TASK ID: ' + str(r) + '\n')
+                f.write(header + 'TASK ID: ' + str(r) + os.linesep)
 
-                f.write('GATTACAT' * stride + '\n')
-                f.write('+' + '\n')
-                f.write('arvestad' * stride + '\n')
+                f.write('GATTACAT' * stride + os.linesep)
+                f.write('+' + os.linesep)
+                f.write('arvestad' * stride + os.linesep)
 
 ### Software management
 
