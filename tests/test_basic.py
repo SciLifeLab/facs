@@ -54,9 +54,10 @@ class FacsBasicTest(unittest.TestCase):
         """ Generate dummy fastq files and query them against reference bloom filters.
         """
         for nreads in self.fastq_nreads:
-            test_fname = "test%s.fastq" % nreads
-            helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq,
-                                                      test_fname), nreads)
+            for case in ['','_lowercase']:
+                test_fname = "test%s%s.fastq" % (nreads, case)
+                helpers.generate_dummy_fastq(os.path.join(self.synthetic_fastq,
+                                                          test_fname), nreads, case)
 
         for ref in os.listdir(self.reference):
             qry = os.path.join(self.synthetic_fastq, test_fname)
@@ -69,7 +70,7 @@ class FacsBasicTest(unittest.TestCase):
             in data/custom folder.
         """
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
-            print "\nQuerying against uncompressed sample %s" % sample
+            print "\nQuerying custom sample %s" % sample
             for ref in os.listdir(self.reference):
-                facs.query(os.path.join(self.synthetic_fastq, test_fname),
+                facs.query(os.path.join(self.synthetic_fastq, sample),
                            os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
