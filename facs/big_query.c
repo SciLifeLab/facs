@@ -52,7 +52,7 @@ bq_main (int argc, char **argv)
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  char *report_fmt = NULL;
+  char *report_fmt = "json";
 
   // XXX: make r and l mutually exclusive
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1) {

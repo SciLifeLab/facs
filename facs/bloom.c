@@ -1,6 +1,7 @@
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -132,20 +133,36 @@ bloom_destroy (bloom * bloom)
 int
 bloom_check (bloom * bloom, char *str)
 {
-//printf("In bloom_check\n");
+  //printf("In bloom_check\n");
+  char* pstr = str;
+
+  //normalize sequence to lowercase
+  do
+	  *pstr = (char)tolower(*pstr);
+  while (*pstr++);
+
   return bloom_test (bloom, str, RO);
 }
 
 int
 bloom_add (bloom * bloom, char *str)
 {
+  //printf("key--> %s\n", str);
+
   int ret;
-  //printf("key--> %s\n",str);
+  char* pstr = str;
+
+  //normalize sequence to lowercase
+  do
+      *pstr = (char)tolower(*pstr);
+  while (*pstr++);
+
   ret = bloom_test (bloom, str, SET);
-  if (ret == 0)
-    {
+
+  if (ret == 0) {
       bloom->inserts++;
-    }
+  }
+
   return ret;
 }
 

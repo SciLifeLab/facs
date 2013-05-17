@@ -182,7 +182,7 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_ra
   if (!p || *p == '>')
     return 1;
 
-  int n, m, result, count_enter;
+  int n, m, result, count_enter=0;
   char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
   char *pre_key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
 
