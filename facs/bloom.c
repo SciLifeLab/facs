@@ -133,27 +133,36 @@ bloom_destroy (bloom * bloom)
 int
 bloom_check (bloom * bloom, char *str)
 {
-//printf("In bloom_check\n");
+  //printf("In bloom_check\n");
+  char* pstr = str;
 
   //normalize sequence to lowercase
-  for ( ; *str; ++str) *str = tolower(*str);
+  do
+	  *pstr = (char)tolower(*pstr);
+  while (*pstr++);
+
   return bloom_test (bloom, str, RO);
 }
 
 int
 bloom_add (bloom * bloom, char *str)
 {
+  //printf("key--> %s\n", str);
+
   int ret;
-  //printf("key--> %s\n",str);
+  char* pstr = str;
 
   //normalize sequence to lowercase
-  for ( ; *str; ++str) *str = tolower(*str);
+  do
+      *pstr = (char)tolower(*pstr);
+  while (*pstr++);
 
   ret = bloom_test (bloom, str, SET);
-  if (ret == 0)
-    {
+
+  if (ret == 0) {
       bloom->inserts++;
-    }
+  }
+
   return ret;
 }
 
