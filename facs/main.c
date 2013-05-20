@@ -26,9 +26,9 @@ usage (void)
   fprintf (stderr,
 	   "         query         query a Bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
   fprintf (stderr,
-	   "         remove        mode 0: remove (contamination) sequences from FASTQ/FASTA file\n");
+	   "         remove        mode 0 (-m 0): remove (contamination) sequences from FASTQ/FASTA file\n");
   fprintf (stderr,
-	   "         remove      mode 1: classify reads to the most likely reference genomes\n");
+	   "         remove        mode 1 (-m 1): classify reads to the most likely reference genomes\n");
   fprintf (stderr, "\n");
   return 1;
 }

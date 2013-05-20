@@ -16,6 +16,7 @@
 #include "tool.h"
 #include "bloom.h"
 #include "remove.h"
+#include "remove_l.h"
 #include "file_dir.h"
 
 #ifndef __clang__
