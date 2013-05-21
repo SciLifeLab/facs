@@ -61,10 +61,8 @@ class SimNGSTest(unittest.TestCase):
         #http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
         cl1 = [simlib, "-n", reads, ecoli]
         cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
-        p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
-        p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=subprocess.PIPE)
-        p1.stdout.close()
 
         with open(dst, 'w') as fh:
-            fh.write(p2.communicate()[0])
-            fh.close()
+            p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
+            p1.stdout.close()

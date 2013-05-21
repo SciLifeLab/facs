@@ -16,6 +16,7 @@
 #include "tool.h"
 #include "bloom.h"
 #include "remove.h"
+#include "remove_l.h"
 #include "file_dir.h"
 
 #ifndef __clang__
@@ -30,6 +31,7 @@ remove_usage (void)
 {
   fprintf (stderr, "\nUsage: ./facs remove [options]\n");
   fprintf (stderr, "Options:\n");
+  fprintf (stderr, "\t-m mode to choose. 0 or 1\n");
   fprintf (stderr, "\t-r reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
   fprintf (stderr,
@@ -46,12 +48,13 @@ remove_main (int argc, char **argv)
     return remove_usage ();
 /*-------defaults for bloom filter building-------*/
   int opt;
+  int mode = 0;
   float tole_rate = 0;
   char *ref = NULL;
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  while ((opt = getopt (argc, argv, "t:r:o:q:l:h")) != -1)
+  while ((opt = getopt (argc, argv, "t:r:o:q:l::m::h")) != -1)
     {
       switch (opt)
 	{
@@ -70,6 +73,9 @@ remove_main (int argc, char **argv)
 	case 'l':
 	  (optarg) && (list = optarg, 1);
 	  break;
+	case 'm':
+	  (optarg) && ((mode = atoi(optarg)), 1);
+	  break;
 	case 'h':
 	  return remove_usage ();
 	default:
@@ -83,8 +89,10 @@ remove_main (int argc, char **argv)
       fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
       exit (-1);
     }
-
-  return remove_reads (source, ref, list, target_path, tole_rate);
+  if (mode == 0)
+      return remove_reads (source, ref, list, target_path, tole_rate);
+  else
+      return remove_l (source, ref, list, target_path );
 }
 
 int
@@ -101,8 +109,8 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
   Queue *tail = NEW (Queue);
   head->next = tail;
   Queue *head2 = head;
-  //F_set *File_head = NEW (F_set);
   position = mmaping (source);
+
   type = get_parainfo (position, head);
   F_set *File_head = NEW (F_set);
   File_head = make_list (ref, list);
@@ -137,10 +145,10 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
 		  {
 		    if (type == 1)
 		      fasta_process_m (bl_2, head, tail, tole_rate,
-				       File_head);
+				       File_head,0);
 		    else
 		      fastq_process_m (bl_2, head, tail, tole_rate,
-				       File_head);
+				       File_head,0);
 		  }
 	      }
 	      head = head->next;
@@ -159,19 +167,17 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
 
 /*-------------------------------------*/
 void
-fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head)
+fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head, int type)
 {
 
-  int read_num = 0, read_contam = 0;
+  int read_num = 0, read_contam = 0, countup = 0;
   char *p = info->location;
   char *next, *temp_start, *temp_end, *temp_piece = NULL;
 
   if (info->next == NULL)
     return;
-
   else if (info->next != tail)
     next = info->next->location;
-
   else
     {
       next = strchr (p, '\0');
@@ -180,6 +186,15 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
       else if (next[-4] == '\r' && next[-3] == '\n')
 	next -= 2;
     }
+
+  if (type == 1)
+	if (info->score == NULL)
+    	{
+         read_num = count_read (p, next, 2);
+         info->score = (short *) malloc (read_num * sizeof (short));
+         info->number = (short *) malloc (read_num * sizeof (short));
+    	}
+
   while (p != next)
     {
 
@@ -229,13 +244,18 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 	      }
 	  }
 	}
-
+	if (type == 1)
+      		if (info->score[countup] < result)
+	  	   {
+	    	    info->score[countup] = result;	//record score 
+	    	    info->number[countup] = File_head->number;	//record bloom number
+	           }
 
       if (*temp_end == '\0')
 	break;
 
       p = temp_end + 1;
-
+      countup++;
     }				// outside while
 //free(key);
   if (temp_piece)
@@ -244,11 +264,11 @@ fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 
 /*-------------------------------------*/
 void
-fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head)
+fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head, int type)
 {
   //printf ("fasta processing...\n");
 
-  int read_num = 0, read_contam = 0;
+  int read_num = 0, read_contam = 0, countup = 0;
 
   char *p = info->location;
 
@@ -268,6 +288,15 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
       else if (next[-4] == '\r' && next[-3] == '\n')
 	next -= 2;
     }
+
+  if (type == 1)
+	if (info->score == NULL)
+    	{
+         read_num = count_read (p, next, 2);
+         info->score = (short *) malloc (read_num * sizeof (short));
+         info->number = (short *) malloc (read_num * sizeof (short));
+    	}
+
   while (p != next)
     {
       read_num++;
@@ -293,6 +322,13 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 	    contam += (temp - p);
 	  }
 	}
+	if (type == 1)
+      		if (info->score[countup] < result)
+	  	   {
+	    	    info->score[countup] = result;	//record score 
+	    	    info->number[countup] = File_head->number;	//record bloom number
+	           }
+	countup++;
       p = temp;
     }
   //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
