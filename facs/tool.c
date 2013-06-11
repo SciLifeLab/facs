@@ -47,7 +47,7 @@ void isodate(char* buf) {
     sprintf(timestamp + 20, "%03d%s", tv.tv_usec / 1000, timestamp + 23);
     sprintf(buf, "%s", timestamp);
 }
-
+/*quick pass for fastq reads using k-mer and 0 overlap*/
 int
 fastq_read_check (char *begin, int length, char model, bloom * bl, 
                   float tole_rate, F_set * File_head)
@@ -98,7 +98,7 @@ fastq_read_check (char *begin, int length, char model, bloom * bl,
     return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
 }
 
-/*-------------------------------------*/
+/*full check for fastq sequence with k-mer and k-1 overlap*/
 int
 fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate, F_set * File_head)
 {
@@ -129,8 +129,8 @@ fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate
 	  mark = 1;
 	  count = 0;
 	}
-      if (strlen (key) == bl->k_mer)
-	{
+      //if (strlen (key) == bl->k_mer)
+      //{
 	  if (bloom_check (bl, key))
 	    {
 	      match_time++;
@@ -156,7 +156,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate
 	      //printf("unhit--->\n");
 	    }
 	  count++;
-	}			//outside if
+//	}			//outside if
       distance--;
     }				// end while
   free (key);
@@ -172,7 +172,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate
     return 0;
 }
 
-/*-------------------------------------*/
+/*fasta read quick check using k-mer and 0 overlap*/
 int
 fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_rate, F_set * File_head)
 {
@@ -252,7 +252,7 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_ra
     return fasta_read_check (begin, next, 'r', bl, tole_rate, File_head);
 }
 
-/*-------------------------------------*/
+/*fasta full check using k-mer and k-1 overlap*/
 int
 fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_rate, F_set * File_head)
 {
@@ -360,6 +360,7 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_ra
     return 0;
 }
 
+/*Parallel job distribution*/
 int
 get_parainfo (char *full, Queue * head)
 {
@@ -436,7 +437,7 @@ get_parainfo (char *full, Queue * head)
   return type;
 }
 
-/*-------------------------------------*/
+/*reads skipping process for proportional check*/
 char *
 jump (char *target, int type, float sampling_rate)
 {
@@ -462,6 +463,8 @@ jump (char *target, int type, float sampling_rate)
   return target;
 }
 
+
+/*relocate the starting points (correct @ positions) for fastq files*/
 char *
 fastq_relocate (char *data, int offset, int length)
 {
@@ -485,6 +488,8 @@ fastq_relocate (char *data, int offset, int length)
   return target;
 }
 
+
+/*scoring system scheme*/
 int
 dx_add (int k_mer)
 {
@@ -494,7 +499,7 @@ dx_add (int k_mer)
     y += x;
   return y;
 }
-
+/*get read length for fastq file*/
 int
 fq_read_length (char *data)
 {
