@@ -133,7 +133,6 @@ bloom_destroy (bloom * bloom)
 int
 bloom_check (bloom * bloom, char *str)
 {
-  //printf("In bloom_check\n");
   char* pstr = str;
 
   //normalize sequence to lowercase
@@ -457,21 +456,17 @@ write_result (char *filename, char *detail)
 }
 
 void
-rev_trans (char *s)
+rev_trans (char *s, int length)
 {
-
   int i;
   int j;
-
   for (i = 0, j = strlen (s) - 1; i < j; ++i, --j)
     {
       char c = s[i];
       s[i] = s[j];
       s[j] = c;
     }
-
   i = 0;
-
   while (i < strlen (s))
     {
       switch (s[i])
@@ -503,7 +498,6 @@ rev_trans (char *s)
 	}
       s++;
     }
-
 }
 
 char *

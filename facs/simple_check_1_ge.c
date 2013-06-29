@@ -27,47 +27,50 @@ void
 fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 	       float sampling_rate, float tole_rate)
 {
-
-  char *p = info->location;
-  char *next = NULL, *temp = NULL, *temp_piece = NULL;
-
-  if(info->location[0] != '@'){
-      return;
-  }else if(info->next != tail && info->next->location != NULL){
-      next = info->next->location;
-  }
-  else{
-      next = strchr (p, '\0');
-      if ((next[-1]) == '\n' && next[-2] == '\n')
-	next -= 1;
-      else if (next[-4] == '\r' && next[-3] == '\n')
-	next -= 2;
-  }
-
-  while (p != next) {
-      temp = jump (p, 2, sampling_rate);	//generate random number and judge if need to scan this read
-
-      if (p != temp) {
-          p = temp;
-          continue;
-	  }
-#pragma omp atomic
-      File_head->reads_num++;
-
-      p = strchr (p, '\n') + 1;
-      if (fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head) > 0){
-	  #pragma omp atomic
-	  File_head->reads_contam++;
-      }
-      p = strchr (p, '\n') + 1;
-      p = strchr (p, '\n') + 1;
-      p = strchr (p, '\n') + 1;
-    }				// outside while
-
-  if (temp_piece)
-    free(temp_piece);
+	char *start_point = info->location;
+	char *next_job = NULL, *temp = NULL, *temp_piece = NULL;
+	// initialize pointers
+	if(info->location[0] != '@'){
+		return;
+	// check if job is empty
+	}else if(info->next != tail && info->next->location != NULL){
+		next_job = info->next->location;
+	}
+	else{
+		next = strchr (start_point, '\0');
+	if (next_job[-1] == '\n' && next_job[-2] == '\n')
+		next_job -= 1;
+	else if (next_job[-4] == '\r' && next_job[-3] == '\n')
+		next_job -= 2;
+  	}
+	// make sure it can handle DOS and Unix format ('\r\n' and '\n')
+	while (start_point != next_job) {
+		temp = jump (start_point, 2, sampling_rate);	
+		// function for fast/proportional scan
+		if (start_point != temp) {
+			start_point = temp;
+			continue;
+		}
+		// skip to the next read if needed
+		#pragma omp atomic
+		File_head->reads_num++;
+		// atomic process for summing reads number
+		start_point = strchr (start_point, '\n') + 1;
+		// skip the ID line of fastq reads
+		if (fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head) > 0){
+			#pragma omp atomic
+			File_head->reads_contam++;
+			// atomic process for summing captured reads number
+			}
+		// check the real read line
+		start_point = strchr (start_point, '\n') + 1;
+		start_point = strchr (start_point, '\n') + 1;
+		start_point = strchr (start_point, '\n') + 1;
+		// finish scanning this read, skip to the next
+	}	// outside while
+	if (temp_piece)
+		free(temp_piece);
 }
-
 /*-------------------------------------*/
 void
 fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,

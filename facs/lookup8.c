@@ -549,7 +549,7 @@ hash5 (const char *key, const int seed, int length)
 {
   //char s[100]={0};
   BIGNUM ret;
-  ret = hash ((unsigned char *) key, length, seed);
+  ret = hash3 ((unsigned char *) key, length, seed);
   //printf("ret->%llx\n",ret);
   ret = ret & 0xFFFFFFFFF;
   //printf("mask->%llx\n",0x7FFFFFFF);

@@ -127,7 +127,7 @@ extern void remove_l_help (void);
 extern int save_bloom (char *filename, bloom * bl, char *prefix,
 		       char *target);
 extern int load_bloom (char *filename, bloom * bl);
-extern void rev_trans (char *s);
+extern void rev_trans (char *s, int length);
 
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);

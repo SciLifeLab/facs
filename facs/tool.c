@@ -48,130 +48,95 @@ void isodate(char* buf) {
     sprintf(buf, "%s", timestamp);
 }
 /*quick pass for fastq reads using k-mer and 0 overlap*/
-int
-fastq_read_check (char *begin, int length, char model, bloom * bl, 
-                  float tole_rate, F_set * File_head)
+int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
-  char *p = begin;
-  int distance = length;
-  int signal = 0, result = 0;
-  char *previous, *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
-
-  while (distance > bl->k_mer)
-    {
-      if (signal == 1)
-	break;
-
-      if (distance >= bl->k_mer)
+	//char *start_point = null;
+	if (mode == 'r')
+		begin = rev_trans (begin,length);
+	int result = 0, read_length = length;
+	//char *previous = null, 
+	char *start_point = begin;
+	// initialization
+	while (read_length > bl->k_mer)
 	{
-	  memcpy (key, p, sizeof (char) * bl->k_mer);	//need to be tested
-	  key[bl->k_mer] = '\0';
-	  p += bl->k_mer;
-	  previous = p;
-	  distance -= bl->k_mer;
-	}
-
-      else
-	{
-	  memcpy (key, previous + distance, sizeof (char) * bl->k_mer);
-	  p += (bl->k_mer - distance);
-	  signal = 1;
-	}
-
-      if (model == 'r')
-	rev_trans (key);
-
-      if (bloom_check (bl, key))
-	{
-	  result =
-	    fastq_full_check (bl, begin, length, model, tole_rate, File_head);
-	  if (result > 0)
-	    return result;
-	  else if (model == 'n')
-	    break;
-	}
-
-    }				//outside while
-  if (model == 'r')
-    return 0;
-  else
-    return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
+		//if (signal == 1)
+		//	break;
+		if (read_length >= bl->k_mer)
+		{
+			start_point += bl->k_mer;
+			//previous = start_point;
+			read_length -= bl->k_mer;
+		}
+      		else
+		{
+	  		start_point += (bl->k_mer - read_length);
+	  		//signal = 1;
+		}
+		//if (model == 'r')
+		//	start_point = rev_trans (begin, reverse_read);
+		if (bloom_check (bl, start_point))
+		{
+			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
+	  	if (result > 0)
+	    		return result;
+	  	else if (mode == 'n')
+	    		break;
+		}
+	}		//outside while
+  		if (mode == 'r')
+    			return 0;
+  		else
+    			return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
 }
-
 /*full check for fastq sequence with k-mer and k-1 overlap*/
-int
-fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate, F_set * File_head)
+int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
 {
-
-  //printf ("fastq full check...\n");
-
-  int length = distance;
-
-  int count = 0, match_s = 0, mark = 1, match_time = 0;
-
-  float result;
-
-  char *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
-
-  short prev = 0, conse = 0;
-
-  while (distance >= bl->k_mer)
-    {
-      memcpy (key, p, sizeof (char) * bl->k_mer);
-      key[bl->k_mer] = '\0';
-      p += 1;
-
-      if (model == 'r')
-	rev_trans (key);
-
-      if (count >= bl->k_mer)
+	int read_length = length, count = 0, match_s = 0, mark = 1, prev = 0, conse = 0, match_time = 0;
+	float result;
+	while (read_length >= bl->k_mer)
 	{
-	  mark = 1;
-	  count = 0;
-	}
-      //if (strlen (key) == bl->k_mer)
-      //{
-	  if (bloom_check (bl, key))
-	    {
-	      match_time++;
-	      if (prev == 1)
-		conse++;
-	      else
+		start_point+= 1;
+      		if (count >= bl->k_mer)
 		{
-		  conse += bl->k_mer;
-		  prev = 1;
+	  		mark = 1;
+	  		count = 0;
 		}
-	      if (mark == 1)
+		if (bloom_check (bl, start_point))
 		{
-		  match_s += (bl->k_mer - 1);
-		  mark = 0;
+			match_time++;
+			if (prev == 1)
+				conse++;
+			else
+			{
+				conse += bl->k_mer;
+				prev = 1;
+			}
+			if (mark == 1)
+			{
+				match_s += (bl->k_mer - 1);
+				mark = 0;
+			}
+			else
+			match_s++;
 		}
-	      else
-		match_s++;
-	    }
-
-	  else
-	    {
-	      prev = 0;
-	      //printf("unhit--->\n");
-	    }
-	  count++;
-//	}			//outside if
-      distance--;
-    }				// end while
-  free (key);
-  result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
+		else
+		{
+			prev = 0;
+		}
+			count++;
+		read_length--;
+	}				// end while
+	result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
   //result = (float) match_s / (float) length;
-#pragma omp atomic
-  File_head->hits += match_time;
-#pragma omp atomic
-  File_head->all_k += (length - bl->k_mer);
-  if (result >= tole_rate)
-    return match_s;
-  else
-    return 0;
+	#pragma omp atomic
+	File_head->hits += match_time;
+	#pragma omp atomic
+	File_head->all_k += (length - bl->k_mer);
+	if (result >= tole_rate)
+		return match_s;
+	else
+	return 0;
 }
-
 /*fasta read quick check using k-mer and 0 overlap*/
 int
 fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_rate, F_set * File_head)
