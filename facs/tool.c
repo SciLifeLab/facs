@@ -50,43 +50,48 @@ void isodate(char* buf) {
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
-	//char *start_point = null;
-	if (mode == 'r')
-		begin = rev_trans (begin,length);
-	int result = 0, read_length = length;
-	//char *previous = null, 
-	char *start_point = begin;
-	// initialization
-	while (read_length > bl->k_mer)
+	if (mode == 'r') // make a copy of the read for reverse compliment process
 	{
-		//if (signal == 1)
-		//	break;
+		char *re_compliment = (char *) malloc (sizeof (char) *length);
+		memcpy(re_compliment, begin, length);
+		begin = re_compliment;
+		rev_trans (begin,length);
+	}
+	// initialization
+	int result = 0, read_length = length;
+	char *start_point = begin;
+	while (read_length > 0)
+	{
 		if (read_length >= bl->k_mer)
 		{
 			start_point += bl->k_mer;
-			//previous = start_point;
 			read_length -= bl->k_mer;
 		}
       		else
 		{
 	  		start_point += (bl->k_mer - read_length);
-	  		//signal = 1;
+			read_length = 0;
 		}
-		//if (model == 'r')
-		//	start_point = rev_trans (begin, reverse_read);
 		if (bloom_check (bl, start_point))
 		{
 			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
 	  	if (result > 0)
+		{	
+			if (mode == 'r') //free the reverse compliment read copy
+				free(begin);
 	    		return result;
+		}
 	  	else if (mode == 'n')
 	    		break;
 		}
 	}		//outside while
-  		if (mode == 'r')
-    			return 0;
-  		else
-    			return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
+  	if (mode == 'r')
+	{
+		free(begin); //free the reverse compliment read copy
+    		return 0;
+	}	
+  	else
+    		return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
 }
 /*full check for fastq sequence with k-mer and k-1 overlap*/
 int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
@@ -127,7 +132,6 @@ int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate
 		read_length--;
 	}				// end while
 	result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
-  //result = (float) match_s / (float) length;
 	#pragma omp atomic
 	File_head->hits += match_time;
 	#pragma omp atomic
@@ -135,7 +139,7 @@ int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate
 	if (result >= tole_rate)
 		return match_s;
 	else
-	return 0;
+		return 0;
 }
 /*fasta read quick check using k-mer and 0 overlap*/
 int
