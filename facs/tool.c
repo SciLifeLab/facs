@@ -74,6 +74,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	  		start_point -= (bl->k_mer-read_length);
 			read_length = 0;
 		}
+		printf("key->%0.15s\n",start_point);
 		if (bloom_check (bl, start_point))
 		{
 			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
@@ -99,7 +100,6 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 /*full check for fastq sequence with k-mer and k-1 overlap*/
 int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
 {
-	printf("full_check\n");
 	int read_length = length, count = 0, match_s = 0, mark = 1, prev = 0, conse = 0, match_time = 0;
 	float result;
 	while (read_length >= bl->k_mer)
