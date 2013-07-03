@@ -131,6 +131,7 @@ fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate
 	}
       if (strlen (key) == bl->k_mer)
 	{
+	  printf("key->%s\n",key);
 	  if (bloom_check (bl, key))
 	    {
 	      match_time++;
@@ -232,7 +233,6 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_ra
 
       if (model == 'r')
 	rev_trans (key);
-
       if (bloom_check (bl, key))
 	{
 	  result = fasta_full_check (bl, begin, next, model, tole_rate, File_head);
