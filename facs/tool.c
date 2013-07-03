@@ -50,9 +50,11 @@ void isodate(char* buf) {
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
+	printf("mode->%c---read_check\n",mode);
 	if (mode == 'r') // make a copy of the read for reverse compliment process
 	{
-		char *re_compliment = (char *) malloc (sizeof (char) *length);
+		char *re_compliment = (char *) malloc (sizeof (char) *(length+1));
+		re_compliment[length]='\0';
 		memcpy(re_compliment, begin, length);
 		begin = re_compliment;
 		rev_trans (begin,length);
@@ -75,14 +77,14 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		if (bloom_check (bl, start_point))
 		{
 			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
-	  	if (result > 0)
-		{	
-			if (mode == 'r') //free the reverse compliment read copy
-				free(begin);
-	    		return result;
-		}
-	  	else if (mode == 'n')
-	    		break;
+	  		if (result > 0)
+			{	
+				if (mode == 'r') //free the reverse compliment read copy
+					free(begin);
+	    			return result;
+			}
+	  		else if (mode == 'n')
+	    			break;
 		}
 	}		//outside while
   	if (mode == 'r')
@@ -96,6 +98,8 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 /*full check for fastq sequence with k-mer and k-1 overlap*/
 int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
 {
+	printf("full_check\n");
+	printf("%0.100s\n",start_point);
 	int read_length = length, count = 0, match_s = 0, mark = 1, prev = 0, conse = 0, match_time = 0;
 	float result;
 	while (read_length >= bl->k_mer)
@@ -199,8 +203,8 @@ fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_ra
 
       m = 0;
 
-      if (model == 'r')
-	rev_trans (key);
+      //if (model == 'r')
+	//rev_trans (key);
 
       if (bloom_check (bl, key))
 	{
@@ -265,8 +269,8 @@ fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_ra
 	}
       key[n] = '\0';
 
-      if (model == 'r')
-	rev_trans (key);
+     // if (model == 'r')
+	//rev_trans (key);
       //printf("key->%s\n",key);
       if (count >= bl->k_mer)
 	{
@@ -349,7 +353,7 @@ get_parainfo (char *full, Queue * head)
 	  Queue *pos = head;
        //   Queue *x = NEW (Queue);
       int length = 0;
-
+      cores = 1;
       if (full != NULL) {
           offset = strlen(full) / cores;
           if (*full == '>')

@@ -37,7 +37,7 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 		next_job = info->next->location;
 	}
 	else{
-		next = strchr (start_point, '\0');
+		next_job = strchr (start_point, '\0');
 	if (next_job[-1] == '\n' && next_job[-2] == '\n')
 		next_job -= 1;
 	else if (next_job[-4] == '\r' && next_job[-3] == '\n')

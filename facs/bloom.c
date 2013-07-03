@@ -123,9 +123,9 @@ bloom_check (bloom * bloom, char *str)
   char* pstr = str;
 
   //normalize sequence to lowercase
-  do
-	  *pstr = (char)tolower(*pstr);
-  while (*pstr++);
+  //do
+	//  *pstr = (char)tolower(*pstr);
+  //while (*pstr++);
 
   return bloom_test (bloom, str, RO);
 }
@@ -439,6 +439,9 @@ write_result (char *filename, char *detail)
 
 void rev_trans (char *s, int length)
 {
+  //printf("length->%d\n",length);
+  //printf("real->%d\n",strlen(s));
+  //printf("s->%s\n",s);
   //char *re_compliment = (char *) malloc (sizeof (char) *((char) (length));
   int i;
   int j;
@@ -451,6 +454,7 @@ void rev_trans (char *s, int length)
   i = 0;
   while (i < length)
     {
+    //printf ("%d\n",i);
       switch (s[i])
 	{
 	case 'A':
@@ -477,9 +481,13 @@ void rev_trans (char *s, int length)
 	case 't':
 	  s[0] = 'a';
 	  break;
+	default:
+	  break;
 	}
+      i++;
       s++;
     }
+//printf("finished\n");
 }
 
 char *
