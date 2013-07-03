@@ -553,7 +553,6 @@ hash5 (const char *key, const int seed, int length)
   //printf("ret->%llx\n",ret);
   ret = ret & 0xFFFFFFFFF;
   //printf("mask->%llx\n",0x7FFFFFFF);
-  printf("after ret->%lld\n",ret);
   return ret;
 }
 #endif /* SELF_TEST */
