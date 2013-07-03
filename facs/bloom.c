@@ -121,13 +121,16 @@ int
 bloom_check (bloom * bloom, char *str)
 {
   char* pstr = str;
-
+  int result = 0;
   //normalize sequence to lowercase
   //do
 	//  *pstr = (char)tolower(*pstr);
   //while (*pstr++);
-
-  return bloom_test (bloom, str, RO);
+  //return bloom_test (bloom, str, RO);
+  result = bloom_test (bloom, str, RO);
+  //printf("%0.500s\n",bloom->stat.elements);
+  //printf("result->%d\n",result);
+  return result;
 }
 
 int
@@ -165,7 +168,6 @@ bloom_test (bloom * bloom, char *str, int mode)
     {
 
       ret = bloom_hash (bloom, str, i, bloom->k_mer);
-
       if (!test (bloom->vector, ret))
 	{
 	  hit = 0;
@@ -188,9 +190,8 @@ BIGNUM
 bloom_hash (bloom * bloom, char *str, int i, int length)
 {
   BIGNUM ret = 0;
-
+  
   ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
-
   return ret;
 }
 
@@ -222,7 +223,6 @@ test (char *big, BIGNUM index)
     {
       return 0;
     }
-
 }
 
 int

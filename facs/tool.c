@@ -50,7 +50,7 @@ void isodate(char* buf) {
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
-	printf("mode->%c---read_check\n",mode);
+	//printf("mode->%c---read_check\n",mode);
 	if (mode == 'r') // make a copy of the read for reverse compliment process
 	{
 		char *re_compliment = (char *) malloc (sizeof (char) *(length+1));
@@ -66,12 +66,12 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	{
 		if (read_length >= bl->k_mer)
 		{
-			start_point += bl->k_mer;
+			//start_point += bl->k_mer;
 			read_length -= bl->k_mer;
 		}
       		else
 		{
-	  		start_point += (bl->k_mer - read_length);
+	  		start_point -= (bl->k_mer-read_length);
 			read_length = 0;
 		}
 		if (bloom_check (bl, start_point))
@@ -86,6 +86,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	  		else if (mode == 'n')
 	    			break;
 		}
+		start_point+=bl->k_mer;
 	}		//outside while
   	if (mode == 'r')
 	{
@@ -99,19 +100,18 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
 {
 	printf("full_check\n");
-	printf("%0.100s\n",start_point);
 	int read_length = length, count = 0, match_s = 0, mark = 1, prev = 0, conse = 0, match_time = 0;
 	float result;
 	while (read_length >= bl->k_mer)
 	{
-		start_point+= 1;
       		if (count >= bl->k_mer)
 		{
 	  		mark = 1;
 	  		count = 0;
 		}
 		if (bloom_check (bl, start_point))
-		{
+		{	
+			//printf("%0.15s\n",start_point);
 			match_time++;
 			if (prev == 1)
 				conse++;
@@ -133,13 +133,17 @@ int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate
 			prev = 0;
 		}
 			count++;
+		start_point++;
 		read_length--;
 	}				// end while
+	printf("%d\n",match_time * bl->k_mer + conse);
+        printf("%d\n",length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
 	result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
 	#pragma omp atomic
 	File_head->hits += match_time;
 	#pragma omp atomic
 	File_head->all_k += (length - bl->k_mer);
+	printf("%f\n",result);
 	if (result >= tole_rate)
 		return match_s;
 	else

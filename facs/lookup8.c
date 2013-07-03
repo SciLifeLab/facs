@@ -549,11 +549,25 @@ hash5 (const char *key, const int seed, int length)
 {
   //char s[100]={0};
   BIGNUM ret;
-  ret = hash3 ((unsigned char *) key, length, seed);
+  //printf("key->%0.15s\n",key);
+  ret = hash3 ((unsigned char *) key,length+1, seed);
   //printf("ret->%llx\n",ret);
   ret = ret & 0xFFFFFFFFF;
   //printf("mask->%llx\n",0x7FFFFFFF);
-  //printf("after ret->%lld\n",ret);
+  printf("after ret->%lld\n",ret);
   return ret;
 }
+/*
+main()
+{
+char *dick = "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTGGTTACCTGCCGTGAGTAAATTAAA";
+char *key = (char *) malloc (16 * sizeof (char));
+key[15]='\0';
+int i;
+  for (i=0;i<89;i++)
+{
+	memcpy(key,dick,15);	
+}
+}
+*/
 #endif /* SELF_TEST */
