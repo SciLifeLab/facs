@@ -58,6 +58,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		memcpy(re_compliment, begin, length);
 		begin = re_compliment;
 		rev_trans (begin,length);
+		//printf("reverse->%s\n",begin);
 	}
 	// initialization
 	int result = 0, read_length = length;
@@ -352,8 +353,8 @@ get_parainfo (char *full, Queue * head)
       int offset = 0;
 	  Queue *pos = head;
        //   Queue *x = NEW (Queue);
-      int length = 0;
       cores = 1;
+      int length = 0;
       if (full != NULL) {
           offset = strlen(full) / cores;
           if (*full == '>')
