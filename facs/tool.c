@@ -80,7 +80,6 @@ fastq_read_check (char *begin, int length, char model, bloom * bl,
 
       if (model == 'r')
 	rev_trans (key);
-
       if (bloom_check (bl, key))
 	{
 	  result =

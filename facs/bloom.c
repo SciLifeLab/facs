@@ -267,7 +267,6 @@ prefix_make (char *filename, char *prefix, char *target)
   char *position1 = strrchr (filename, '/');
 
   char *bloom_file = (char *) malloc (300 * sizeof (char));
-  memset (bloom_file, 0, 300);
   if (is_dir (target))
     {
       strcat (bloom_file, target);
