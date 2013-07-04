@@ -75,6 +75,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 			read_length = 0;
 		}
 		printf("key->%0.15s\n",start_point);
+		printf("k_mer->%d\n",bl->k_mer);
 		if (bloom_check (bl, start_point))
 		{
 			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
