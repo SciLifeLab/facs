@@ -85,9 +85,7 @@ bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
     }
 
 #ifdef DEBUG
-  fprintf (stderr, "bloom_init(%lld,%d) => (%lld,%d) =>%f\n",
-	   (BIGCAST) size, hashes, (BIGCAST) bloom->stat.elements,
-	   bloom->stat.ideal_hashes, bloom->stat.e);
+  fprintf (stderr, "bloom_init(%lld,%d) => (%lld,%d) =>%f\n", (BIGCAST) size, hashes, (BIGCAST) bloom->stat.elements, bloom->stat.ideal_hashes, bloom->stat.e);
 #endif
 
   if ((size > TOPLIMIT))
@@ -98,24 +96,14 @@ bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
 
   /* allocate our array of bytes.  where m is the size of our desired 
    * bit vector, we allocate m/8 + 1 bytes. */
-  if ((bloom->vector = (char *) malloc (sizeof (char) *
-					((long long) (bloom->stat.elements /
-						      8) + 1))) == NULL)
+  if ((bloom->vector = (char *) calloc (1, sizeof (char) *((BIGNUM) (bloom->stat.elements /8) + 1))) == NULL)
     {
       perror ("malloc");
       return -1;
     }
   else
-    memset (bloom->vector, 0,
-	    sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
+    memset (bloom->vector, 0, sizeof (char) * ((BIGNUM) (bloom->stat.elements / 8) + 1));
 
-  /* generate a collection of random integers, to use later
-   * when salting our keys before hashing them */
-
-  //sketchy_randoms(&bloom->random_nums,hashes);
-  //bloom->vector = "11111111";
-  //printf("vector size-> %d\n",sizeof(bloom->vector));
-  //memset(bloom->vector,0,sizeof(bloom->vector));
 
   return 0;
 }
@@ -124,8 +112,7 @@ void
 bloom_destroy (bloom * bloom)
 {
 
-  memset (bloom->vector, 0,
-	  sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
+  //memset (bloom->vector, 0, sizeof (char) * ((long long) (bloom->stat.elements / 8) + 1));
   free (bloom->vector);
   bloom->vector = NULL;
 }
@@ -133,15 +120,17 @@ bloom_destroy (bloom * bloom)
 int
 bloom_check (bloom * bloom, char *str)
 {
-  //printf("In bloom_check\n");
   char* pstr = str;
-
+  int result = 0;
   //normalize sequence to lowercase
   //do
-  //	  *pstr = (char)tolower(*pstr);
+	//  *pstr = (char)tolower(*pstr);
   //while (*pstr++);
-
-  return bloom_test (bloom, str, RO);
+  //return bloom_test (bloom, str, RO);
+  result = bloom_test (bloom, str, RO);
+  //printf("%0.500s\n",bloom->stat.elements);
+  //printf("result->%d\n",result);
+  return result;
 }
 
 int
@@ -153,9 +142,9 @@ bloom_add (bloom * bloom, char *str)
   char* pstr = str;
 
   //normalize sequence to lowercase
-  do
-      *pstr = (char)tolower(*pstr);
-  while (*pstr++);
+  //do
+  //    *pstr = (char)tolower(*pstr);
+  //while (*pstr++);
 
   ret = bloom_test (bloom, str, SET);
 
@@ -179,7 +168,6 @@ bloom_test (bloom * bloom, char *str, int mode)
     {
 
       ret = bloom_hash (bloom, str, i, bloom->k_mer);
-
       if (!test (bloom->vector, ret))
 	{
 	  hit = 0;
@@ -202,9 +190,8 @@ BIGNUM
 bloom_hash (bloom * bloom, char *str, int i, int length)
 {
   BIGNUM ret = 0;
-
+  
   ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
-
   return ret;
 }
 
@@ -236,7 +223,6 @@ test (char *big, BIGNUM index)
     {
       return 0;
     }
-
 }
 
 int
@@ -267,6 +253,7 @@ prefix_make (char *filename, char *prefix, char *target)
   char *position1 = strrchr (filename, '/');
 
   char *bloom_file = (char *) malloc (300 * sizeof (char));
+  memset (bloom_file, 0, 300);
   if (is_dir (target))
     {
       strcat (bloom_file, target);
@@ -331,10 +318,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       return -1;
     }
 
-  BIGNUM total_size =
-    sizeof (bloom) + sizeof (char) * ((long long) (bl->stat.elements / 8) +
-				      1) +
-    sizeof (int) * (bl->stat.ideal_hashes + 1);
+  BIGNUM total_size = sizeof (bloom) + sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1) + sizeof (int) * (bl->stat.ideal_hashes + 1);
 
 #ifdef __APPLE__
   if (ftruncate (fd, total_size) < 0)
@@ -355,7 +339,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       exit (EXIT_FAILURE);
     }
 
-  total_size = (long long) (bl->stat.elements / 8) + 1;
+  total_size = (BIGNUM) (bl->stat.elements / 8) + 1;
 
   BIGNUM off = 0;
   while (total_size > TWOG)
@@ -375,8 +359,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
     };
   close (fd);
 
-  memset (bl->vector, 0,
-	  sizeof (char) * ((long long) (bl->stat.elements / 8) + 1));
+  memset (bl->vector, 0, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
 
 #ifdef DEBUG
   printf ("big file process OK\n");
@@ -412,11 +395,9 @@ load_bloom (char *filename, bloom * bl)
       perror ("Problem reading bloom filter");
     };
 
-  bl->vector =
-    (char *) malloc (sizeof (char) *
-		     ((long long) (bl->stat.elements / 8) + 1));
+  bl->vector = (char *) calloc (1, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
 
-  BIGNUM off = 0, total_size = ((long long) (bl->stat.elements / 8) + 1);
+  BIGNUM off = 0, total_size = ((BIGNUM) (bl->stat.elements / 8) + 1);
 
   while (total_size > TWOG)
     {
@@ -455,24 +436,25 @@ write_result (char *filename, char *detail)
   close (fd);
 }
 
-void
-rev_trans (char *s)
-{
 
+void rev_trans (char *s, int length)
+{
+  //printf("length->%d\n",length);
+  //printf("real->%d\n",strlen(s));
+  //printf("s->%s\n",s);
+  //char *re_compliment = (char *) malloc (sizeof (char) *((char) (length));
   int i;
   int j;
-
-  for (i = 0, j = strlen (s) - 1; i < j; ++i, --j)
+  for (i = 0, j = length - 1; i < j; ++i, --j)
     {
       char c = s[i];
       s[i] = s[j];
       s[j] = c;
     }
-
   i = 0;
-
-  while (i < strlen (s))
+  while (i < length)
     {
+    //printf ("%d\n",i);
       switch (s[i])
 	{
 	case 'A':
@@ -499,10 +481,12 @@ rev_trans (char *s)
 	case 't':
 	  s[0] = 'a';
 	  break;
+	default:
+	  break;
 	}
       s++;
     }
-
+//printf("finished\n");
 }
 
 char *
@@ -529,8 +513,7 @@ mmaping (char *source)
       exit (-1);
   }
 
-  sm = mmap (0, (BIGCAST) statbuf.st_size, PROT_READ,
-	     MAP_SHARED | MAP_NORESERVE, fd, 0);
+  sm = mmap (0, (BIGCAST) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE, fd, 0);
 
   if (MAP_FAILED == sm){
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
@@ -554,7 +537,8 @@ large_load (char *fifoname)
   fd = fopen64 (fifoname, "r");
 #endif
 
-  char *data = (char *) malloc ((TWOG / 2 + 1) * sizeof (char));
+  //char *data = (char *) malloc ((TWOG / 2 + 1) * sizeof (char));
+  char *data = (char *) calloc (1, (TWOG / 2 + 1) * sizeof (char));
 
   data[TWOG / 2] = '\0';
 
@@ -565,7 +549,7 @@ large_load (char *fifoname)
     }
 
 #ifdef DEBUG
-  printf ("data length->%lld\n", (long long int) strlen (data));
+  printf ("data length->%lld\n", (long long) strlen (data));
 #endif
 
   fclose (fd);
