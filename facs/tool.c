@@ -50,7 +50,7 @@ void isodate(char* buf) {
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
-	printf("mode->%c---read_check\n",mode);
+	//printf("mode->%c---read_check\n",mode);
 	if (mode == 'r') // make a copy of the read for reverse compliment process
 	{
 		char *re_compliment = (char *) malloc (sizeof (char) *(length+1));
@@ -74,8 +74,8 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	  		start_point -= (bl->k_mer-read_length);
 			read_length = 0;
 		}
-		if (mode=='r')
-			printf("key->%0.15s\n",start_point);
+		//if (mode=='r')
+		//	printf("key->%0.15s\n",start_point);
 		if (bloom_check (bl, start_point))
 		{
 			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
@@ -114,7 +114,6 @@ int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate
 		}
 		if (bloom_check (bl, start_point))
 		{	
-			printf("%0.15s\n",start_point);
 			match_time++;
 			if (prev == 1)
 				conse++;
@@ -356,7 +355,6 @@ get_parainfo (char *full, Queue * head)
       int offset = 0;
 	  Queue *pos = head;
        //   Queue *x = NEW (Queue);
-      cores = 1;
       int length = 0;
       if (full != NULL) {
           offset = strlen(full) / cores;

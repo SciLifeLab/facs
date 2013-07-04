@@ -439,10 +439,6 @@ write_result (char *filename, char *detail)
 
 void rev_trans (char *s, int length)
 {
-  //printf("length->%d\n",length);
-  //printf("real->%d\n",strlen(s));
-  //printf("s->%s\n",s);
-  //char *re_compliment = (char *) malloc (sizeof (char) *((char) (length));
   int i;
   int j;
   for (i = 0, j = length - 1; i < j; ++i, --j)
@@ -454,40 +450,37 @@ void rev_trans (char *s, int length)
   i = 0;
   while (i < length)
     {
-    //printf ("%d\n",i);
       switch (s[i])
 	{
 	case 'A':
-	  s[0] = 'T';
+	  s[i] = 'T';
 	  break;
 	case 'C':
-	  s[0] = 'G';
+	  s[i] = 'G';
 	  break;
 	case 'G':
-	  s[0] = 'C';
+	  s[i] = 'C';
 	  break;
 	case 'T':
-	  s[0] = 'A';
+	  s[i] = 'A';
 	  break;
 	case 'a':
-	  s[0] = 't';
+	  s[i] = 't';
 	  break;
 	case 'c':
-	  s[0] = 'g';
+	  s[i] = 'g';
 	  break;
 	case 'g':
-	  s[0] = 'c';
+	  s[i] = 'c';
 	  break;
 	case 't':
-	  s[0] = 'a';
+	  s[i] = 'a';
 	  break;
 	default:
 	  break;
 	}
       i++;
-      s++;
     }
-//printf("finished\n");
 }
 
 char *
