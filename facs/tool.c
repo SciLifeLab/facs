@@ -90,11 +90,13 @@ fastq_read_check (char *begin, int length, char model, bloom * bl,
 	    break;
 	}
 
-    }				//outside while
+    }
+  				//outside while
   if (model == 'r')
     return 0;
   else
     return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
+  
 }
 
 /*-------------------------------------*/
