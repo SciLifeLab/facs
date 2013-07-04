@@ -120,7 +120,7 @@ bloom_destroy (bloom * bloom)
 int
 bloom_check (bloom * bloom, char *str)
 {
-  char* pstr = str;
+  //char* pstr = str;
   int result = 0;
   //normalize sequence to lowercase
   //do
@@ -139,7 +139,7 @@ bloom_add (bloom * bloom, char *str)
   //printf("key--> %s\n", str);
 
   int ret;
-  char* pstr = str;
+  //char* pstr = str;
 
   //normalize sequence to lowercase
   //do
@@ -437,7 +437,7 @@ write_result (char *filename, char *detail)
 }
 
 
-void rev_trans (char *s, int length)
+void rev_trans (char *s)
 {
   //printf("length->%d\n",length);
   //printf("real->%d\n",strlen(s));
@@ -445,14 +445,14 @@ void rev_trans (char *s, int length)
   //char *re_compliment = (char *) malloc (sizeof (char) *((char) (length));
   int i;
   int j;
-  for (i = 0, j = length - 1; i < j; ++i, --j)
+  for (i = 0, j = strlen(s) - 1; i < j; ++i, --j)
     {
       char c = s[i];
       s[i] = s[j];
       s[j] = c;
     }
   i = 0;
-  while (i < length)
+  while (i < strlen(s))
     {
     //printf ("%d\n",i);
       switch (s[i])
