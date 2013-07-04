@@ -74,8 +74,6 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	  		start_point -= (bl->k_mer-read_length);
 			read_length = 0;
 		}
-		printf("key->%0.15s\n",start_point);
-		printf("k_mer->%d\n",bl->k_mer);
 		if (bloom_check (bl, start_point))
 		{
 			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
@@ -137,14 +135,11 @@ int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate
 		start_point++;
 		read_length--;
 	}				// end while
-	printf("%d\n",match_time * bl->k_mer + conse);
-        printf("%d\n",length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
 	result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
 	#pragma omp atomic
 	File_head->hits += match_time;
 	#pragma omp atomic
 	File_head->all_k += (length - bl->k_mer);
-	printf("%f\n",result);
 	if (result >= tole_rate)
 		return match_s;
 	else

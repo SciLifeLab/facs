@@ -142,9 +142,9 @@ bloom_add (bloom * bloom, char *str)
   char* pstr = str;
 
   //normalize sequence to lowercase
-  do
-      *pstr = (char)tolower(*pstr);
-  while (*pstr++);
+  //do
+  //    *pstr = (char)tolower(*pstr);
+  //while (*pstr++);
 
   ret = bloom_test (bloom, str, SET);
 
