@@ -550,8 +550,6 @@ hash5 (const char *key, const int seed, int length)
   //char s[100]={0};
   BIGNUM ret;
   ret = hash3 ((unsigned char *) key, length, seed);
-  printf("key->%s\n",key);
-  printf("ret->%lld\n",ret);
   ret = ret & 0xFFFFFFFFF;
   //printf("mask->%llx\n",0x7FFFFFFF);
   return ret;

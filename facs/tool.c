@@ -130,7 +130,6 @@ fastq_full_check (bloom * bl, char *p, int distance, char model, float tole_rate
 	}
       if (strlen (key) == bl->k_mer)
 	{
-	  printf("key->%s\n",key);
 	  if (bloom_check (bl, key))
 	    {
 	      match_time++;

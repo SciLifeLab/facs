@@ -137,9 +137,9 @@ bloom_check (bloom * bloom, char *str)
   char* pstr = str;
 
   //normalize sequence to lowercase
-  do
-	  *pstr = (char)tolower(*pstr);
-  while (*pstr++);
+  //do
+  //	  *pstr = (char)tolower(*pstr);
+  //while (*pstr++);
 
   return bloom_test (bloom, str, RO);
 }
