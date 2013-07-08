@@ -121,12 +121,12 @@ int
 bloom_check (bloom * bloom, char *str)
 {
   //char* pstr = str;
-  //char* pstr = str;
+  char* pstr = str;
   int result = 0;
   //normalize sequence to lowercase
-  //do
-	//  *pstr = (char)tolower(*pstr);
-  //while (*pstr++);
+  do
+	  *pstr = (char)tolower(*pstr);
+  while (*pstr++);
   //return bloom_test (bloom, str, RO);
   result = bloom_test (bloom, str, RO);
   //printf("%0.500s\n",bloom->stat.elements);
@@ -140,12 +140,12 @@ bloom_add (bloom * bloom, char *str)
   //printf("key--> %s\n", str);
 
   int ret;
-  //char* pstr = str;
+  char* pstr = str;
 
   //normalize sequence to lowercase
-  //do
-  //    *pstr = (char)tolower(*pstr);
-  //while (*pstr++);
+  do
+      *pstr = (char)tolower(*pstr);
+  while (*pstr++);
 
   ret = bloom_test (bloom, str, SET);
 

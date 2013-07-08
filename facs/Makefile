@@ -1,5 +1,5 @@
 # Common compiler flags for all OS
-CFLAGS=-O3 -Wall -g -DNODEBUG
+CFLAGS=-O3 -Wall -g -DNODEBUG -pg
 
 # Detect OS
 UNAME := $(shell uname)
