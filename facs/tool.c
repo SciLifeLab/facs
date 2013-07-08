@@ -1,4 +1,4 @@
-#include <sys/stat.h>
+nclude <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
