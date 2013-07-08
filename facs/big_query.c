@@ -140,6 +140,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate,
     position = (char *) calloc ((ONEG + 1), sizeof (char));
   while (offset != -1)
     {
+/*
       if (normal == 1)
 	{
 	  position = mmaping (query);
@@ -149,6 +150,8 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate,
 	{
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
 	}
+*/
+      offset = CHUNKer (zip, offset, ONEG, position, type);
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);

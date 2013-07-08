@@ -120,14 +120,19 @@ bloom_destroy (bloom * bloom)
 int
 bloom_check (bloom * bloom, char *str)
 {
-  char* pstr = str;
   int result = 0;
-  //normalize sequence to lowercase
-  do
-	  *pstr = (char)tolower(*pstr);
-  while (*pstr++);
   result = bloom_test (bloom, str, RO);
   return result;
+}
+
+int normal_lower(char *str, int length)
+{
+	char *pstr = str;
+	while(length>0)
+	{
+		pstr[length] = (char)tolower(pstr[length]);
+		length--;
+	}
 }
 
 int

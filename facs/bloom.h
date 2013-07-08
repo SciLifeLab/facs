@@ -132,4 +132,5 @@ extern void rev_trans (char *s, int length);
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
 extern char *prefix_make (char *filename, char *prefix, char *target);
+extern int normal_lower(char *str, int length);
 #endif
