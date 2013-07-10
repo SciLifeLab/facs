@@ -54,7 +54,7 @@ remove_main (int argc, char **argv)
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  while ((opt = getopt (argc, argv, "t:r:o:q:l::m::h")) != -1)
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:m::h")) != -1)
     {
       switch (opt)
 	{
