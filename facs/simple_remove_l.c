@@ -25,11 +25,6 @@
 
 char *clean_l, *contam_l, *clean_l2, *contam_l2;
 
-/*
- *
- * THIS IS REDUNDANT CODE, SHOULD BE MERGED WITH REMOVE
- *
- */
 static int
 remove_l_usage (void)
 {

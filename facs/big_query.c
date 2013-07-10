@@ -93,7 +93,7 @@ bq_main (int argc, char **argv)
 
   if (target_path == NULL) {
       target_path = argv[0];
-  }
+  }  //set default path, which is where the binary file is.
 
   return query(source, ref, tole_rate, sampling_rate, list,
                target_path, report_fmt);
@@ -119,18 +119,24 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate,
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
   if (tole_rate == 0)
     tole_rate = mco_suggestion (bl_2->k_mer);
-
-  if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz")
-      && !strstr (query, ".tar"))
+/*
+  if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz") && !strstr (query, ".tar"))
         normal = 1;
-  else {
-      if ((zip = gzopen (query, "rb")) < 0) {
+  else
+  {
+      if ((zip = gzopen (query, "rb")) < 0)
+	{
           perror ("query open error...\n");
           exit (-1);
-	  }
+	}
       normal = 0;
   }
-
+*/
+  if ((zip = gzopen (query, "rb")) < 0)
+  {
+          perror ("query open error...\n");
+          exit (-1);
+  }
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
     type = 2;
   else
@@ -140,6 +146,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate,
     position = (char *) calloc ((ONEG + 1), sizeof (char));
   while (offset != -1)
     {
+/*
       if (normal == 1)
 	{
 	  position = mmaping (query);
@@ -149,6 +156,8 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate,
 	{
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
 	}
+*/
+      offset = CHUNKer (zip, offset, ONEG, position, type);
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
