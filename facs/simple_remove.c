@@ -24,7 +24,7 @@
 #endif
 //#include<mpi.h>
 
-char *clean, *contam;
+char *clean, *contam, *clean2, *contam2;
 
 static int
 remove_usage (void)
