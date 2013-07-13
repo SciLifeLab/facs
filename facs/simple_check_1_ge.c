@@ -22,10 +22,17 @@
 #ifndef __clang__ 
 #include <omp.h>
 #endif
-char *clean, *contam;
+char *clean, *contam, *clean2, *contam2;
+
+/*save it for the possible advanced version*/
+void init_string(int chunk)
+{
+	clean = (char *) calloc (chunk, sizeof (char));
+	contam = (char *) calloc (chunk, sizeof (char));
+}
 
 void
-fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode)
+fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, int print_flag)
 {
 	char *start_point = info->location;
 	char *next_job = NULL, *temp = NULL, *temp_piece = NULL, *previous_point = NULL;
@@ -73,16 +80,18 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
 		start_point = strchr (start_point, '\n') + 1;
 		start_point = strchr (start_point, '\n') + 1;
 		// finish scanning this read, skip to the next
-		if (result>0)
+		if (result>0 && print_flag==0)
 		{
 			#pragma omp atomic
                         File_head->reads_contam++;
+			printf("%.*s\n",start_point-previous_point,start_point);
 			// atomic process for summing captured reads number
-			contam+=remove_data(contam, previous_point, start_point);
+			//contam+=remove_data(contam, previous_point, start_point);
 		}
-		else
+		else if (result=0 && print_flag==1)
 		{
-			clean+=remove_data(clean, previous_point, start_point);
+			//clean+=remove_data(clean, previous_point, start_point);
+			printf("%.*s\n",start_point-previous_point,start_point);
 		}
 	}	// outside while
 	if (temp_piece)
