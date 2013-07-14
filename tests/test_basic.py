@@ -8,7 +8,7 @@ import contextlib
 import collections
 
 import facs
-from facs.utils import helpers, galaxy
+from facs.utils import helpers, galaxy, config
 from nose.plugins.attrib import attr
 
 @attr('standard')
@@ -48,7 +48,8 @@ class FacsBasicTest(unittest.TestCase):
             bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
             print(org, bf)
             if not os.path.exists(bf):
-                facs.build(org, bf)
+                json_doc = facs.build(org, bf)
+                helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME, config.PASSWORD, json_doc)
 
     def test_2_query(self):
         """ Generate dummy fastq files and query them against reference bloom filters.
@@ -64,7 +65,8 @@ class FacsBasicTest(unittest.TestCase):
                 qry = os.path.join(self.synthetic_fastq, sample)
                 bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
                 print(qry, bf)
-                facs.query(qry, bf)
+                json_doc = facs.query(qry, bf)
+                helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME, config.PASSWORD, json_doc)
 
     def test_3_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited
@@ -73,5 +75,7 @@ class FacsBasicTest(unittest.TestCase):
         for sample in glob.glob(os.path.join(self.custom_dir, "*.fastq")):
             print "\nQuerying custom sample %s" % sample
             for ref in os.listdir(self.reference):
-                facs.query(os.path.join(self.synthetic_fastq, sample),
+                json_doc = facs.query(os.path.join(self.synthetic_fastq, sample),
                            os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom"))
+
+                helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME, config.PASSWORD, json_doc)

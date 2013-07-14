@@ -1,0 +1,21 @@
+import os
+import sys
+import warnings
+
+import ConfigParser
+
+config = ConfigParser.SafeConfigParser()
+#try:
+conf_file = config.read([os.path.expanduser('~/.facsrc'), '.facsrc',
+            'facs.conf', 'facs.cfg', '/etc/facs.conf'])
+
+# First config file found wins
+config.readfp(open(conf_file[0]))
+
+SERVER = config.get('facs', 'SERVER').rstrip()
+DB = config.get('facs', 'DB').rstrip()
+USERNAME = config.get('facs', 'USERNAME').rstrip()
+PASSWORD = config.get('facs', 'PASSWORD').rstrip()
+#except:
+#	warnings.warn("Please make sure you've created your own configuration file (i.e: ~/.facsrc) as stated in README.md")
+#	sys.exit(-1)

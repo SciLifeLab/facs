@@ -1,16 +1,12 @@
 import os
-import collections
-import contextlib
 import subprocess
 import errno
 import shutil
 from contextlib import contextmanager
 
-import tempfile
 from tempfile import NamedTemporaryFile
-import functools
-import urllib
 import galaxy
+import couchdb
 
 
 # Aux methods
@@ -34,7 +30,7 @@ def generate_dummy_fastq(fname, num_reads, case=''):
                 f.write(ecoli_read.lower() + os.linesep)
             elif case == '_mixedcase':
                 f.write(''.join(random.choice([str.upper, str.lower])(c) for c in ecoli_read) + os.linesep)
-           
+
             f.write('+' + os.linesep) # FastQ separator
             f.write(ecoli_qual + os.linesep)
 
@@ -46,6 +42,15 @@ def generate_dummy_fastq(fname, num_reads, case=''):
                 f.write('GATTACAT' * stride + os.linesep)
                 f.write('+' + os.linesep)
                 f.write('arvestad' * stride + os.linesep)
+
+
+def send_couchdb(server, db, user, passwd, doc):
+    ''' Send JSON document to couchdb
+    '''
+    couch = couchdb.Server(server)
+    db = couch[db]
+    db.save(doc)
+
 
 ### Software management
 

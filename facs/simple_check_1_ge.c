@@ -135,13 +135,13 @@ report(char *detail, char *filename, F_set * File_head, char* query, char* fmt, 
       isodate(buffer);
 
       printf("{\n");
-      printf("\t\"timestamp\": \"%s\"\n", buffer);
-      printf("\t\"sample\": \"%s\"\n", basename(query)); //sample (query)
-      printf("\t\"bloom_filter\": \"%s\"\n", basename(filename)); //reference
+      printf("\t\"timestamp\": \"%s\",\n", buffer);
+      printf("\t\"sample\": \"%s\",\n", basename(query)); //sample (query)
+      printf("\t\"bloom_filter\": \"%s\",\n", basename(filename)); //reference
       printf("\t\"total_read_count\": %lld,\n", File_head->reads_num);
       printf("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
       printf("\t\"total_hits\": %lld,\n", File_head->hits);
-      printf("\t\"contamination_rate\": %f,\n", contamination_rate);
+      printf("\t\"contamination_rate\": %f\n", contamination_rate);
       printf("}\n");
 
   // TSV output format (via file in CWD)
