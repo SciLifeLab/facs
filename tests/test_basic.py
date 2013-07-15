@@ -66,7 +66,8 @@ class FacsBasicTest(unittest.TestCase):
                 bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
                 print(qry, bf)
                 json_doc = facs.query(qry, bf)
-                helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME, config.PASSWORD, json_doc)
+                helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME,
+                                     config.PASSWORD, json_doc)
 
     def test_3_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited
