@@ -45,6 +45,7 @@ bq_main (int argc, char **argv, char mode)
 
 /*-------defaults for bloom filter building-------*/
   int opt;
+  int print_flag = 1;
   double tole_rate = 0;
   double sampling_rate = 1;
 
@@ -53,7 +54,6 @@ bq_main (int argc, char **argv, char mode)
   char *target_path = NULL;
   char *source = NULL;
   char *report_fmt = "json";
-
   // XXX: make r and l mutually exclusive
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1) {
       switch (opt) {
@@ -78,6 +78,9 @@ bq_main (int argc, char **argv, char mode)
 	case 'f': // "json", "tsv" or none
 	  (optarg) && (report_fmt = optarg, 1);
 	  break;
+	case 'x':
+          (optarg) && ((print_flag = atoi(optarg)), 1);
+          break;
 	case 'h':
 	  return query_usage ();
 	case '?':
@@ -95,11 +98,11 @@ bq_main (int argc, char **argv, char mode)
       target_path = argv[0];
   }  //set default path, which is where the binary file is.
 
-  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, mode);
+  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, mode, print_flag);
 }
 
 int
-query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
+query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode, int print_flag)
 {
   gzFile zip = NULL;
   int type = 0, normal = 0;
