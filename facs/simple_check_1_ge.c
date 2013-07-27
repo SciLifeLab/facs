@@ -80,22 +80,18 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
 		start_point = strchr (start_point, '\n') + 1;
 		start_point = strchr (start_point, '\n') + 1;
 		// finish scanning this read, skip to the next
-		if (mode == 'r')
-			if (result>0 && print_flag==0)
-			{
-				#pragma omp atomic
-                        	File_head->reads_contam++;
-			//printf("%.*s\n",start_point-previous_point,start_point);
+		if (result>0)
+		{
+                	 #pragma omp atomic
+                         File_head->reads_contam++;
+			 if (mode=='r' && print_flag==0)
+			 	fprintf(stdout,"%.*s\n",start_point-previous_point,start_point);
+		}
+		else
+		{
+			if (mode=='r' && print_flag==1)
 				fprintf(stdout,"%.*s\n",start_point-previous_point,start_point);
-			// atomic process for summing captured reads number
-			//contam+=remove_data(contam, previous_point, start_point);
-			}
-			else if (result==0 && print_flag==1)
-			{
-			//clean+=remove_data(clean, previous_point, start_point);
-			//printf("%.*s\n",start_point-previous_point,start_point);
-				fprintf(stdout,"%.*s\n",start_point-previous_point,start_point);
-			}
+		}
 	}	// outside while
 	if (temp_piece)
 		free(temp_piece);

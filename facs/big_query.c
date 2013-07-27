@@ -98,7 +98,7 @@ bq_main (int argc, char **argv, char mode)
       target_path = argv[0];
   }  //set default path, which is where the binary file is.
 
-  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, mode, print_flag);
+  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c', print_flag);
 }
 
 int
