@@ -1,28 +1,24 @@
 import os
-import collections
-import contextlib
 import subprocess
 import errno
 import shutil
+import json
+import warnings
 from contextlib import contextmanager
 
-import tempfile
-from tempfile import NamedTemporaryFile
-import functools
-import urllib
-import galaxy
+import couchdb
 
 
 # Aux methods
 
-header='@HWI-ST188:2:1101:2751:1987#0/1'
+header = '@HWI-ST188:2:1101:2751:1987#0/1'
 ecoli_read = "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAA"
 ecoli_qual = "@Paaceeefgggfhiifghiihgiiihiiiihhhhhhhfhgcgh_fegef"
 
 def generate_dummy_fastq(fname, num_reads, case=''):
     """ Generates simplest reads with dummy qualities
     """
-    stride=13
+    stride = 13
 
     if not os.path.exists(fname):
         with open(fname, "w") as f:
@@ -34,7 +30,7 @@ def generate_dummy_fastq(fname, num_reads, case=''):
                 f.write(ecoli_read.lower() + os.linesep)
             elif case == '_mixedcase':
                 f.write(''.join(random.choice([str.upper, str.lower])(c) for c in ecoli_read) + os.linesep)
-           
+
             f.write('+' + os.linesep) # FastQ separator
             f.write(ecoli_qual + os.linesep)
 
@@ -46,6 +42,21 @@ def generate_dummy_fastq(fname, num_reads, case=''):
                 f.write('GATTACAT' * stride + os.linesep)
                 f.write('+' + os.linesep)
                 f.write('arvestad' * stride + os.linesep)
+
+
+def send_couchdb(server, db, user, passwd, doc):
+    ''' Send JSON document to couchdb
+    '''
+    try:
+        auth = couchdb.Session()
+        auth.name, auth.password = user, passwd
+        couch = couchdb.Server(server)
+        db = couch[db]
+        db.save(json.loads(doc))
+    except:
+        warnings.warn("Could not connect to {server} to report test results".format(server=server))
+        pass
+
 
 ### Software management
 
