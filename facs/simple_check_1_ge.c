@@ -121,42 +121,44 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 }
 }
 
-void
-report(char *detail, char *filename, F_set * File_head, char* query, char* fmt, char* prefix)
+char*
+report(F_set * File_head, char* query, char* fmt, char* prefix)
 {
-  char buffer[200] = { 0 };
-  float contamination_rate = (float) (File_head->reads_contam)/(float) (File_head->reads_num);
-  char *save_file = NULL;
-  save_file = statistic_save (query, prefix);
+  static char buffer[800] = { 0 };
+  static char timestamp[40] = { 0 };
+  float contamination_rate = (float) (File_head->reads_contam) /
+                             (float) (File_head->reads_num);
+
+  printf("%s\n", File_head->filename);
+
   if(!fmt){
-      return;
-  // JSON output format (via stdout)
+      fprintf(stderr, "Output format not specified\n");
+      exit(EXIT_FAILURE);
   } else if(!strcmp(fmt, "json")) {
-      isodate(buffer);
+      isodate(timestamp);
+      snprintf(buffer, sizeof(buffer),
+"{\n"
+"\t\"timestamp\": \"%s\",\n"
+"\t\"sample\": \"%s\",\n"
+"\t\"bloom_filter\": \"%s\",\n"
+"\t\"total_read_count\": %lld,\n"
+"\t\"contaminated_reads\": %lld,\n"
+"\t\"total_hits\": %lld,\n"
+"\t\"contamination_rate\": %f\n"
+"}",  timestamp, query, File_head->filename,
+        File_head->reads_num, File_head->reads_contam, File_head->hits,
+        contamination_rate);
 
-      printf("{\n");
-      printf("\t\"timestamp\": \"%s\",\n", buffer);
-      printf("\t\"sample\": \"%s\",\n", basename(query)); //sample (query)
-      printf("\t\"bloom_filter\": \"%s\",\n", basename(filename)); //reference
-      printf("\t\"total_read_count\": %lld,\n", File_head->reads_num);
-      printf("\t\"contaminated_reads\": %lld,\n", File_head->reads_contam);
-      printf("\t\"total_hits\": %lld,\n", File_head->hits);
-      printf("\t\"contamination_rate\": %f\n", contamination_rate);
-      printf("}\n");
-
-  // TSV output format (via file in CWD)
+  // TSV output format
   } else if (!strcmp(fmt, "tsv")) {
-      strcat (detail, "sample\tbloom_filter\ttotal_read_count\t\
-contaminated_reads\tcontamination_rate\n");
-
-      sprintf(buffer, "%s\t%s\t%lld\t%lld\t%f\n", basename(query),
-              basename(filename), File_head->reads_num,
-              File_head->reads_contam, contamination_rate);
-      strcat(detail, buffer);
-      //printf ("name->%s\n",basename(query));
-      //write_result(strcat(basename(query), ".tsv"), detail);
-      write_result(strcat(save_file, ".tsv"), detail);
+      sprintf(buffer,
+"sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
+"%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
+                            File_head->reads_num, File_head->reads_contam,
+                            contamination_rate);
   }
+
+  return buffer;
 }
 
 char *statistic_save (char *filename, char *prefix)
