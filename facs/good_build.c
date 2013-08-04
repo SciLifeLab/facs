@@ -109,9 +109,6 @@ build_main (int argc, char **argv)
 
       while (File_head)
 	{
-#ifdef DEBUG
-	  printf ("Path->%s\n", File_head->filename);
-#endif
 	  //map query- into memory--------------
 	  position = mmaping (File_head->filename);
 	  if (*position == '>')

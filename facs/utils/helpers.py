@@ -3,6 +3,7 @@ import subprocess
 import errno
 import shutil
 import json
+import warnings
 from contextlib import contextmanager
 
 import couchdb
@@ -53,7 +54,7 @@ def send_couchdb(server, db, user, passwd, doc):
         db = couch[db]
         db.save(json.loads(doc))
     except:
-        print("Could not connect to {server} to report test results".format(server=server))
+        warnings.warn("Could not connect to {server} to report test results".format(server=server))
         pass
 
 
