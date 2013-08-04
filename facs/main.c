@@ -38,19 +38,22 @@ int
 main (int argc, char **argv)
 {
   int ret = 0;
+  char* out = NULL;
 
   if (argc < 2)
     return usage ();
 
   if (strcmp (argv[1], "build") == 0)
     ret = build_main (argc-1, argv+1);
-  else if (strcmp (argv[1], "query") == 0)
-    ret = bq_main (argc-1, argv+1);
-  else if (strcmp (argv[1], "remove") == 0)
+  else if (strcmp (argv[1], "query") == 0){
+    out = bq_main (argc-1, argv+1);
+    printf("%s\n", out);
+  } else if (strcmp (argv[1], "remove") == 0)
     ret = remove_main (argc-1, argv+1);
   //else if (strcmp (argv[1], "classify") == 0)
   //  ret = remove_l_main (argc-1, argv+1);
   else
     usage();
+
   return ret;
 }
