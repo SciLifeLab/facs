@@ -14,6 +14,7 @@
 #include<sys/types.h>
 
 #include "tool.h"
+#include "check.h"
 #include "bloom.h"
 #include "remove.h"
 #include "remove_l.h"
@@ -21,8 +22,8 @@
 
 #ifndef __clang__
 #include<omp.h>
-#endif
 //#include<mpi.h>
+#endif
 
 char *clean, *contam, *clean2, *contam2;
 
@@ -54,7 +55,8 @@ remove_main (int argc, char **argv)
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  while ((opt = getopt (argc, argv, "t:r:o:q:l:m::h")) != -1)
+  char *report_fmt = NULL;
+  while ((opt = getopt (argc, argv, "t:r:o:q:l:m::f:h")) != -1)
     {
       switch (opt)
 	{
@@ -76,6 +78,9 @@ remove_main (int argc, char **argv)
 	case 'm':
 	  (optarg) && ((mode = atoi(optarg)), 1);
 	  break;
+        case 'f': // "json", "tsv" or none
+          (optarg) && (report_fmt = optarg, 1);
+          break;
 	case 'h':
 	  return remove_usage ();
 	default:
@@ -90,11 +95,12 @@ remove_main (int argc, char **argv)
       exit (-1);
     }
   if (mode == 0)
-      return remove_reads (source, ref, list, target_path, tole_rate);
+	query(source, ref, tole_rate, 1,  list, target_path, report_fmt, 'r');
   else
-      return remove_l (source, ref, list, target_path );
+	return remove_l (source, ref, list, target_path );
 }
 
+/*
 int
 remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate)
 {
@@ -164,7 +170,7 @@ remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate
   printf ("finish processing...\n");
   return 0;
 }
-
+*/
 /*-------------------------------------*/
 void
 fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head, int type)
@@ -336,7 +342,7 @@ fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set 
 
 /*-------------------------------------*/
 void
-save_result (char *source, char *obj_file, int type, char *prefix,char *clean, char *clean2, char *contam, char *contam2)
+save_result (char *source, char *obj_file, int type, char *prefix, char *clean2, char *contam2)
 {
   printf ("source->%s\n", source);
   printf ("obj_file->%s\n", obj_file);
@@ -408,10 +414,11 @@ save_result (char *source, char *obj_file, int type, char *prefix,char *clean, c
   printf ("mis->%s\n", mismatch);
   write_result (match, contam2);
   write_result (mismatch, clean2);
+  memset(contam2,0,strlen(contam2));
+  memset(clean2,0,strlen(clean2));
   free (match);
   free (mismatch);
   free (so_name);
   free (obj_name);
 }
-
 /*-------------------------------------*/

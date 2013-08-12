@@ -45,7 +45,6 @@ bq_main (int argc, char **argv, char mode)
 
 /*-------defaults for bloom filter building-------*/
   int opt;
-  int print_flag = 1;
   double tole_rate = 0;
   double sampling_rate = 1;
 
@@ -78,9 +77,6 @@ bq_main (int argc, char **argv, char mode)
 	case 'f': // "json", "tsv" or none
 	  (optarg) && (report_fmt = optarg, 1);
 	  break;
-	case 'x':
-          (optarg) && ((print_flag = atoi(optarg)), 1);
-          break;
 	case 'h':
 	  return query_usage ();
 	case '?':
@@ -89,20 +85,22 @@ bq_main (int argc, char **argv, char mode)
 	}
   }
 
-  if (!target_path && !source) {
-      fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
-      exit (-1);
-  }
+  if (!target_path && !source)
+	{
+      		fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
+      		exit (-1);
+  	}
 
-  if (target_path == NULL) {
-      target_path = argv[0];
-  }  //set default path, which is where the binary file is.
+  if (target_path == NULL) 
+	{
+      		target_path = argv[0];
+ 	}  //set default path, which is where the binary file is.
 
-  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c', print_flag);
+  return query(query, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
 }
 
 int
-query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode, int print_flag)
+query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
 {
   gzFile zip = NULL;
   int type = 0, normal = 0;
@@ -116,10 +114,14 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->hits = 0;
-  File_head->filename = bloom_filter;
+  File_head->filename = bloom_filter;           //extra initialization for python interface
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
+
   if (tole_rate == 0)
-    tole_rate = mco_suggestion (bl_2->k_mer);
+  	tole_rate = mco_suggestion (bl_2->k_mer); // suggest an optimal match cut-off
+  
+  if (mode == 'r')
+	init_string(); // initialize strings for containing reads
 /*
   if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz") && !strstr (query, ".tar"))
         normal = 1;
@@ -158,7 +160,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
 	}
 */
-      offset = CHUNKer (zip, offset, ONEG, position, type);
+      offset = CHUNKer (zip, offset, ONEG, position, type);	
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
@@ -176,10 +178,13 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 	      {
 		if (head->location != NULL)
 		  {
-		    if (type == 1) {
+		    if (type == 1)
+		    {
 			    fasta_process (bl_2, head, tail, File_head, sampling_rate, tole_rate);
-		    } else {
-			    fastq_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode, print_flag);
+		    } 
+		    else
+		    {
+			    fastq_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode);
 		    }
 		  }
 	      }
@@ -188,28 +193,42 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
 
-    if (position != NULL && normal == 0) {
-      memset (position, 0, strlen (position));
-	} else if (normal == 1)	{
-	  munmap (position, strlen (position));
-	} else {
-	  perror ("Cannot memset, wrong position on fastq file\n");
-	  exit (-1);
-	}
-
-      clean_list (head2, tail);
-
-    }				//end while
+  if (position != NULL && normal == 0)
+  {
+  	memset (position, 0, strlen (position));
+  } 
+  else if (normal == 1)
+  {
+	munmap (position, strlen (position));
+  } 
+  else
+  {
+ 	perror ("Cannot memset, wrong position on fastq file\n");
+	exit (-1);
+  }
+  clean_list (head2, tail);
+  if (mode == 'r')
+  {	
+		if (target_path!=NULL)
+		{
+      			save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
+  		}
+		else
+		{
+			write_default(re_clean(), re_contam(), offset);
+		}
+  }
+  }				//end while
   if (normal == 0)
-    free (position);
-
+  {
+  	free (position);        //dont like file mapping, strings need to be freed in a normal way
+  }
   report(detail, File_head->filename, File_head, query, report_fmt, target_path);
-
   if (normal == 0)
-    gzclose (zip);
-
+  {
+    	gzclose (zip);
+  }
   bloom_destroy (bl_2);
-
   return 0;
 }
 
