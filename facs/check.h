@@ -9,5 +9,5 @@ extern char *statistic_save (char *filename, char *prefix);
 extern char *remove_data(char *data, char *start, char *end);
 extern char *re_clean();
 extern char *re_contam();
-extern void init_string();
+extern void init_string(int chunk);
 #endif

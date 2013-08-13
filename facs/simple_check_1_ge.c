@@ -97,9 +97,6 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
 		{
                 	 #pragma omp atomic
                          File_head->reads_contam++;
-			 
-			 //if (mode=='r' && print_flag==0)
-			 //	fprintf(stdout,"%.*s\n",start_point-previous_point,start_point);
 			 if (mode == 'r')
 			 	{
 				#pragma omp critical

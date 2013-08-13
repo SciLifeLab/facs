@@ -38,7 +38,7 @@ query_usage (void)
 }
 
 int
-bq_main (int argc, char **argv, char mode)
+bq_main (int argc, char **argv)
 {
   if (argc < 3)
     return query_usage ();
@@ -95,8 +95,7 @@ bq_main (int argc, char **argv, char mode)
 	{
       		target_path = argv[0];
  	}  //set default path, which is where the binary file is.
-
-  return query(query, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
+  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
 }
 
 int
@@ -110,7 +109,6 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
-
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->hits = 0;
@@ -119,12 +117,11 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 
   if (tole_rate == 0)
   	tole_rate = mco_suggestion (bl_2->k_mer); // suggest an optimal match cut-off
-  
   if (mode == 'r')
-	init_string(); // initialize strings for containing reads
+	init_string(ONEG); // initialize strings for containing reads
 /*
   if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz") && !strstr (query, ".tar"))
-        normal = 1;
+        normal = 0;
   else
   {
       if ((zip = gzopen (query, "rb")) < 0)
@@ -167,7 +164,6 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
       head->next = tail;
       Queue *head2 = head;
       get_parainfo (position, head);
-
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -192,6 +188,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 	    }			// End of firstprivate
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
+
 
   if (position != NULL && normal == 0)
   {

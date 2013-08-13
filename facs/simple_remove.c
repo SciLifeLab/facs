@@ -32,7 +32,6 @@ remove_usage (void)
 {
   fprintf (stderr, "\nUsage: ./facs remove [options]\n");
   fprintf (stderr, "Options:\n");
-  fprintf (stderr, "\t-m mode to choose. 0 or 1\n");
   fprintf (stderr, "\t-r reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
   fprintf (stderr,
@@ -49,14 +48,14 @@ remove_main (int argc, char **argv)
     return remove_usage ();
 /*-------defaults for bloom filter building-------*/
   int opt;
-  int mode = 0;
   float tole_rate = 0;
+
   char *ref = NULL;
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
   char *report_fmt = NULL;
-  while ((opt = getopt (argc, argv, "t:r:o:q:l:m::f:h")) != -1)
+  while ((opt = getopt (argc, argv, "l:t:r:o:q:f:h")) != -1)
     {
       switch (opt)
 	{
@@ -73,10 +72,7 @@ remove_main (int argc, char **argv)
 	  (optarg) && (ref = optarg, 1);
 	  break;
 	case 'l':
-	  (optarg) && (list = optarg, 1);
-	  break;
-	case 'm':
-	  (optarg) && ((mode = atoi(optarg)), 1);
+	  (optarg) && ((list = optarg), 1);
 	  break;
         case 'f': // "json", "tsv" or none
           (optarg) && (report_fmt = optarg, 1);
@@ -94,10 +90,9 @@ remove_main (int argc, char **argv)
       fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
       exit (-1);
     }
-  if (mode == 0)
-	query(source, ref, tole_rate, 1,  list, target_path, report_fmt, 'r');
-  else
-	return remove_l (source, ref, list, target_path );
+   return query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
+  //else
+//	return remove_l (source, ref, list, target_path );
 }
 
 /*
