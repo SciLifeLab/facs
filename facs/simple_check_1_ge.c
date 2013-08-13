@@ -22,51 +22,103 @@
 #ifndef __clang__ 
 #include <omp.h>
 #endif
+char *clean, *contam, *clean2, *contam2;
+
+/*save it for the possible advanced version*/
+void init_string(int chunk)
+{
+	clean = (char *) calloc (chunk, sizeof (char));
+	contam = (char *) calloc (chunk, sizeof (char));
+	clean2 = clean;
+	contam2 = contam;
+}
+
+char *re_clean()
+{
+	return clean2;
+}
+
+char *re_contam()
+{
+	return contam2;
+}
 
 void
-fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
-	       float sampling_rate, float tole_rate)
+fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode)
 {
 	char *start_point = info->location;
-	char *next_job = NULL, *temp = NULL, *temp_piece = NULL;
+	char *next_job = NULL, *temp = NULL, *temp_piece = NULL, *previous_point = NULL;
+	int result = 0;
 	// initialize pointers
-	if(info->location[0] != '@'){
+	if(info->location[0] != '@')
+	{
 		return;
 	// check if job is empty
-	}else if(info->next != tail && info->next->location != NULL){
+	}
+	else if(info->next != tail && info->next->location != NULL)
+	{
 		next_job = info->next->location;
 	}
-	else{
+	else
+	{
 		next_job = strchr (start_point, '\0');
-	if (next_job[-1] == '\n' && next_job[-2] == '\n')
-		next_job -= 1;
-	else if (next_job[-4] == '\r' && next_job[-3] == '\n')
-		next_job -= 2;
+		if (next_job[-1] == '\n' && next_job[-2] == '\n')
+			next_job -= 1;
+		else if (next_job[-4] == '\r' && next_job[-3] == '\n')
+			next_job -= 2;
   	}
 	// make sure it can handle DOS and Unix format ('\r\n' and '\n')
-	while (start_point != next_job) {
-		temp = jump (start_point, 2, sampling_rate);	
+	while (start_point != next_job) 
+		{
+		if (mode == 'c')
+		{
+			temp = jump (start_point, 2, sampling_rate);	
 		// function for fast/proportional scan
-		if (start_point != temp) {
-			start_point = temp;
-			continue;
+			if (start_point != temp)
+			{
+				start_point = temp;
+				continue;
+			}
 		}
 		// skip to the next read if needed
 		#pragma omp atomic
 		File_head->reads_num++;
 		// atomic process for summing reads number
+		previous_point = start_point;
 		start_point = strchr (start_point, '\n') + 1;
 		// skip the ID line of fastq reads
-		if (fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head) > 0){
-			#pragma omp atomic
-			File_head->reads_contam++;
-			// atomic process for summing captured reads number
-			}
+		result = fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head);
 		// check the real read line
 		start_point = strchr (start_point, '\n') + 1;
 		start_point = strchr (start_point, '\n') + 1;
 		start_point = strchr (start_point, '\n') + 1;
 		// finish scanning this read, skip to the next
+		if (result>0)
+		{
+                	 #pragma omp atomic
+                         File_head->reads_contam++;
+			 if (mode == 'r')
+			 	{
+				#pragma omp critical
+					{
+						memcpy(contam,previous_point,start_point-previous_point);
+						contam+=(start_point-previous_point);
+					}
+				}
+		}
+		else
+		{
+			if (mode == 'r')
+				{
+				#pragma omp critical
+					{
+                                        	memcpy(clean,previous_point,start_point-previous_point);
+                                        	clean+=(start_point-previous_point);
+					}
+			//if (mode=='r' && print_flag==1)
+			//	fprintf(stdout,"%.*s\n",start_point-previous_point,start_point);
+					}
+		}
 	}	// outside while
 	if (temp_piece)
 		free(temp_piece);
@@ -191,3 +243,4 @@ char *statistic_save (char *filename, char *prefix)
 #endif
   return save_file;
 }
+/*-------------------------------------*/

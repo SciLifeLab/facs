@@ -364,7 +364,7 @@ get_parainfo (char *full, Queue * head)
           else if (*full == '@')
             type = 2;
           else {
-                fprintf(stderr, "File format not supported\n");
+                perror("File format not supported\n");
                 exit(EXIT_FAILURE);
           }
       }

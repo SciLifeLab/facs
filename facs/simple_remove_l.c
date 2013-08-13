@@ -143,7 +143,7 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
   int countup;
   Queue *head;
   printf ("clean_l->%s\n", clean_l);
-  save_result (source, File_head2->filename, 0, prefix, clean_l, clean_l2, contam_l, contam_l2);	// save the clean_l data
+  save_result (source, File_head2->filename, 0, prefix, clean_l2,  contam_l2);	// save the clean_l data
   free (clean_l2);
 
   printf ("1_dollar_%s\n", File_head2->filename);
@@ -185,7 +185,7 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
 	}
       memset (clean_l2, 0, strlen (position));
       memset (contam_l2, 0, strlen (position));
-      save_result (source, File_head2->filename, 0, prefix, clean_l, clean_l2, contam_l, contam_l2);
+      save_result (source, File_head2->filename, 0, prefix, clean_l2, contam_l2);
       File_head2 = File_head2->next;
     }
 }

@@ -52,7 +52,7 @@ facs_bloom_query(PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple(args, "ss|dds", &qry, &bloom, 
                         &tole_rate, &sampling_rate, report_fmt))
     return NULL;
-  ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL, report_fmt);
+  ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL, report_fmt,'c');
 
   return Py_BuildValue("i", ret);
 }
