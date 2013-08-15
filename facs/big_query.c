@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -37,11 +38,11 @@ query_usage (void)
   return 1;
 }
 
-int
+char*
 bq_main (int argc, char **argv)
 {
   if (argc < 3)
-    return query_usage ();
+    query_usage();
 
 /*-------defaults for bloom filter building-------*/
   int opt;
@@ -57,31 +58,33 @@ bq_main (int argc, char **argv)
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1) {
       switch (opt) {
 	case 't':
-	  (optarg) && ((tole_rate = atof (optarg)), 1);
+	  tole_rate = atof(optarg);
 	  break;
 	case 's':
-	  (optarg) && ((sampling_rate = atof (optarg)), 1);
+	  sampling_rate = atof(optarg);
 	  break;
 	case 'o':
-	  (optarg) && ((target_path = optarg), 1);
+	  target_path = optarg;
 	  break;
 	case 'q':
-	  (optarg) && (source = optarg, 1);
+	  source = optarg;
 	  break;
 	case 'r':
-	  (optarg) && (ref = optarg, 1);
+	  ref = optarg;
 	  break;
 	case 'l':
-	  (optarg) && (list = optarg, 1);
+	  list = optarg;
 	  break;
 	case 'f': // "json", "tsv" or none
-	  (optarg) && (report_fmt = optarg, 1);
+	  report_fmt = optarg;
 	  break;
 	case 'h':
-	  return query_usage ();
+	  query_usage();
+      break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
-	  return query_usage ();
+	  query_usage();
+      break;
 	}
   }
 
@@ -104,8 +107,8 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
   gzFile zip = NULL;
   int type = 0, normal = 0;
   BIGCAST offset = 0;
-  char *detail = (char *) calloc ((ONE * ONE * ONE), sizeof (char));
   char *position = NULL;
+  char *ret = NULL;
 
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -133,8 +136,8 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 */
   if ((zip = gzopen (query, "rb")) < 0)
   {
-          perror ("query open error...\n");
-          exit (-1);
+          fprintf(stderr, "%s\n", strerror(errno));
+          exit(EXIT_FAILURE);
   }
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
     type = 2;
@@ -220,13 +223,8 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
   if (normal == 0)
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
-  }
+}
   report(detail, File_head->filename, File_head, query, report_fmt, target_path);
-  if (normal == 0)
-  {
-    	gzclose (zip);
-  }
-  bloom_destroy (bl_2);
   return 0;
 }
 

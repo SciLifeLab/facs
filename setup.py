@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-import sys
 import os
 import glob
 
@@ -45,7 +44,8 @@ setup(name='facs',
       zip_safe=False,
       install_requires=[
             "nose",
-            "nose-timer"
+            "nose-timer",
+            "couchdb"
       ],
       entry_points="""
       # -*- Entry points: -*-
