@@ -114,7 +114,6 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
   File_head->hits = 0;
   File_head->filename = bloom_filter;           //extra initialization for python interface
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
-
   if (tole_rate == 0)
   	tole_rate = mco_suggestion (bl_2->k_mer); // suggest an optimal match cut-off
   if (mode == 'r')
@@ -157,7 +156,9 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
 	}
 */
-      offset = CHUNKer (zip, offset, ONEG, position, type);	
+      offset = CHUNKer (zip, offset, ONEG, position, type);
+	printf("here\n");
+	
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
@@ -180,6 +181,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 		    } 
 		    else
 		    {
+				printf("here\n");
 			    fastq_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode);
 		    }
 		  }

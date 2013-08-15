@@ -18,6 +18,7 @@
 #include "remove.h"
 #include "remove_l.h"
 #include "file_dir.h"
+#include "big_query.h"
 
 #ifndef __clang__
 #include<omp.h>
@@ -83,9 +84,9 @@ remove_l (char *source, char *ref, char *list, char *prefix)
 		  {
 		    //printf("location->%0.20s\n",head->location);
 		    if (type == 1)
-		      fasta_process_m (bl_2, head, tail, tole_rate, File_head, 1);
+		      fasta_process (bl_2, head, tail, File_head, 1.0, tole_rate);
 		    else
-		      fastq_process_m (bl_2, head, tail, tole_rate, File_head, 1);
+		      fastq_process (bl_2, head, tail, File_head, 1.0, tole_rate, 'r');
 		  }
 	      }
 	      head = head->next;
