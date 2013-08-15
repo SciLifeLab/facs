@@ -157,7 +157,6 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 	}
 */
       offset = CHUNKer (zip, offset, ONEG, position, type);
-	printf("here\n");
 	
       Queue *head = NEW (Queue);
       head->location = NULL;

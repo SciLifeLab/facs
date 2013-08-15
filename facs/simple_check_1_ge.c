@@ -101,7 +101,6 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
 			 	{
 				#pragma omp critical
 					{
-						printf("here\n");
 						memcpy(contam,previous_point,start_point-previous_point);
 						contam+=(start_point-previous_point);
 					}
