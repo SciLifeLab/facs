@@ -38,8 +38,8 @@ query_usage (void)
   return 1;
 }
 
-char*
-bq_main (int argc, char **argv)
+
+int bq_main (int argc, char **argv)
 {
   if (argc < 3)
     query_usage();
@@ -224,7 +224,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
 }
-  report(detail, File_head->filename, File_head, query, report_fmt, target_path);
+  report(File_head, query, report_fmt, target_path);
   return 0;
 }
 

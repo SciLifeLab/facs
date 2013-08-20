@@ -173,8 +173,8 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 }
 }
 
-char*
-report(F_set * File_head, char* query, char* fmt, char* prefix)
+
+void report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
   static char buffer[800] = { 0 };
   static char timestamp[40] = { 0 };
