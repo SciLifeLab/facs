@@ -101,8 +101,7 @@ int bq_main (int argc, char **argv)
   return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
 }
 
-int
-query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
+int query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
 {
   gzFile zip = NULL;
   int type = 0, normal = 0;
@@ -120,7 +119,7 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
   if (tole_rate == 0)
   	tole_rate = mco_suggestion (bl_2->k_mer); // suggest an optimal match cut-off
   if (mode == 'r')
-	init_string(ONEG); // initialize strings for containing reads
+ 	init_string(1); // initialize strings for containing reads
 /*
   if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz") && !strstr (query, ".tar"))
         normal = 0;
@@ -183,7 +182,6 @@ query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, 
 		    } 
 		    else
 		    {
-				printf("here\n");
 			    fastq_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode);
 		    }
 		  }
