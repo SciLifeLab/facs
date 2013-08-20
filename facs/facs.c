@@ -91,6 +91,6 @@ facs_bloom_remove(PyObject * self, PyObject * args)
     return NULL;
 
   ret = remove_reads(src, ref, NULL, NULL, tole_rate);
-
+  ret = query(src, ref, tole_rate, 1.000,  NULL, NULL, report_fmt, 'r');
   return Py_BuildValue ("i", ret);
 }
