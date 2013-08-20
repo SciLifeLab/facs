@@ -21,7 +21,7 @@
 #include "big_query.h"
 
 #ifndef __clang__
-#include<omp.h>
+#include <omp.h>
 #endif
 
 char *clean_l, *contam_l, *clean_l2, *contam_l2;
