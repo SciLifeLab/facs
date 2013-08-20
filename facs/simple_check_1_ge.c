@@ -25,6 +25,7 @@
 char *clean, *contam, *clean2, *contam2;
 
 /*save it for the possible advanced version*/
+
 void init_string(int chunk)
 {
 	clean = (char *) calloc (chunk, sizeof (char));
@@ -179,8 +180,6 @@ void report(F_set *File_head, char *query, char *fmt, char *prefix)
   static char timestamp[40] = { 0 };
   float contamination_rate = (float) (File_head->reads_contam) /
                              (float) (File_head->reads_num);
-
-  printf("dick~%s\n", File_head->filename);
 
   if(!fmt){
       fprintf(stderr, "Output format not specified\n");
