@@ -84,13 +84,14 @@ facs_bloom_remove(PyObject * self, PyObject * args)
 {
   double tole_rate = 0;
   char *src, *ref, *list, *prefix;
+  char *report_fmt = "json";
   int ret;
 
   if (!PyArg_ParseTuple
       (args, "ss|ssd", &src, &ref, &list, &prefix, &tole_rate))
     return NULL;
 
-  ret = remove_reads(src, ref, NULL, NULL, tole_rate);
-  ret = query(src, ref, tole_rate, 1.000,  NULL, NULL, report_fmt, 'r');
+  //ret = remove_reads(src, ref, NULL, NULL, tole_rate);
+  ret = query(src, ref, tole_rate, 1.000,  NULL, NULL, report_fmt , 'r');
   return Py_BuildValue ("i", ret);
 }
