@@ -147,7 +147,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
     position = (char *) calloc ((ONEG + 1), sizeof (char));
   while (offset != -1)
     {
-/*
+
       if (normal == 1)
 	{
 	  position = mmaping (query);
@@ -157,8 +157,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
 	{
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
 	}
-*/
-      offset = CHUNKer (zip, offset, ONEG, position, type);
+      //offset = CHUNKer (zip, offset, ONEG, position, type);
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
@@ -190,7 +189,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
 	}			// End of single - no implied barrier (nowait)
       }				// End of parallel region - implied barrier
 
-
+  
   if (position != NULL && normal == 0)
   {
   	memset (position, 0, strlen (position));
@@ -204,6 +203,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
  	perror ("Cannot memset, wrong position on fastq file\n");
 	exit (-1);
   }
+  
   clean_list (head2, tail);
   if (mode == 'r')
   {	
@@ -217,10 +217,12 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
 		}
   }
   }				//end while
+  
   if (normal == 0)
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
-}
+  }
+  
   report(File_head, query, report_fmt, target_path);
   return 0;
 }
