@@ -178,8 +178,8 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 void report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
   static char timestamp[40] = { 0 };
-  float contamination_rate = (float) (File_head->reads_contam) /
-                             (float) (File_head->reads_num);
+  float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
+  printf ("rate->%f\n",contamination_rate);
 
   if(!fmt){
       fprintf(stderr, "Output format not specified\n");
@@ -194,8 +194,8 @@ void report(F_set *File_head, char *query, char *fmt, char *prefix)
 "\t\"total_read_count\": %lld,\n"
 "\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"contamination_rate\": %f\n"
-"}",  timestamp, query, File_head->filename,
+"\t\"contamination_rate\": %f\n}"
+,  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         contamination_rate);
 
