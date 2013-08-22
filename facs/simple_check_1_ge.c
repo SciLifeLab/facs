@@ -73,7 +73,10 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
 		{
 		if (mode == 'c')
 		{
-			temp = jump (start_point, 2, sampling_rate);	
+			if (sampling_rate<1)
+				temp = jump (start_point, 2, sampling_rate);
+			else
+				temp = start_point;
 		// function for fast/proportional scan
 			if (start_point != temp)
 			{
