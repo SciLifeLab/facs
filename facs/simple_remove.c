@@ -18,6 +18,7 @@
 #include "bloom.h"
 #include "remove.h"
 #include "remove_l.h"
+#include "big_query.h"
 #include "file_dir.h"
 
 #ifndef __clang__
@@ -94,8 +95,7 @@ remove_main (int argc, char **argv)
 }
 
 /*-------------------------------------*/
-void
-save_result (char *source, char *obj_file, int type, char *prefix, char *clean2, char *contam2)
+void save_result (char *source, char *obj_file, char type, char *prefix, char *clean2, char *contam2)
 {
   printf ("source->%s\n", source);
   printf ("obj_file->%s\n", obj_file);
@@ -153,7 +153,7 @@ save_result (char *source, char *obj_file, int type, char *prefix, char *clean2,
   strcat (match, "_contam");
   strcat (mismatch, "_clean");
 
-  if (type == 1)
+  if (type == '>')
     {
       strcat (match, ".fasta");
       strcat (mismatch, ".fasta");

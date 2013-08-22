@@ -45,8 +45,9 @@ remove_l (char *source, char *ref, char *list, char *prefix)
 {
 /*-------------------------------------*/
   char *position;
-  int type = 1;
+  char type = '\0';
   float tole_rate = 0;
+  double sampling_rate = 1;
   clean_l2 = clean_l;
   contam_l2 = contam_l;
 /*-------------------------------------*/
@@ -82,11 +83,7 @@ remove_l (char *source, char *ref, char *list, char *prefix)
 	      {
 		if (head->location)
 		  {
-		    //printf("location->%0.20s\n",head->location);
-		    if (type == 1)
-		      fasta_process (bl_2, head, tail, File_head, 1.0, tole_rate);
-		    else
-		      fastq_process (bl_2, head, tail, File_head, 1.0, tole_rate, 'r');
+			read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, 'r', type);
 		  }
 	      }
 	      head = head->next;

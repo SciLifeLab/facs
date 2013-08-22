@@ -415,7 +415,7 @@ get_parainfo (char *full, Queue * head)
 
 /*reads skipping process for proportional check*/
 char *
-jump (char *target, int type, float sampling_rate)
+jump (char *target, char type, float sampling_rate)
 {
   //printf("here\n");
   float seed = rand () % 10;
@@ -425,7 +425,7 @@ jump (char *target, int type, float sampling_rate)
 
       char *point;
 
-      if (type == 1)
+      if (type == '>')
 	point = strchr (target + 1, '>');	//point to >
       else
 	{
@@ -483,4 +483,45 @@ fq_read_length (char *data)
   while (*data != '\n')
     data--;
   return origin - data;
+}
+/*check the head of the file and see if it is standard*/
+char *check_fmt (Queue *info, Queue *tail, char *start_point, char type)
+{
+	char *next_job = NULL;
+        if(info->location[0] != type)
+        {
+                return next_job;
+        }
+        else if(info->next != tail && info->next->location != NULL)
+        {
+                next_job = info->next->location;
+        }
+        else
+        {
+                next_job = strchr (start_point, '\0');
+                if (next_job[-1] == '\n' && next_job[-2] == '\n')
+                        next_job -= 1;
+                else if (next_job[-4] == '\r' && next_job[-3] == '\n')
+                        next_job -= 2;
+        }
+	return next_job;
+}
+/*get the correct starting point*/
+char *get_right_sp (char *start_point ,char type)
+{
+	char *tmp = NULL;
+	if (type == '@')
+	{
+		tmp = strchr(start_point,'\n');
+		if (tmp != NULL)
+			start_point = tmp+1;
+		else
+			start_point = NULL;
+	}
+	else
+	{
+		tmp = strchr(start_point+1,'>');
+		start_point = tmp;
+	}
+	return start_point;	
 }

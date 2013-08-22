@@ -44,36 +44,23 @@ char *re_contam()
 	return contam2;
 }
 
-void
-fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode)
+void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
 {
 	char *start_point = info->location;
-	char *next_job = NULL, *temp = NULL, *temp_piece = NULL, *previous_point = NULL;
+	char *next_job = NULL, *temp = NULL, *previous_point = NULL, *temp_next = NULL;
 	int result = 0;
-	// initialize pointers
-	if(info->location[0] != '@')
-	{
+	next_job = check_fmt (info, tail, start_point, fmt_type);
+        // make sure it can handle DOS and Unix format ('\r\n' and '\n')
+	if (next_job == NULL)
 		return;
-	// check if job is empty
-	}
-	else if(info->next != tail && info->next->location != NULL)
-	{
-		next_job = info->next->location;
-	}
-	else
-	{
-		next_job = strchr (start_point, '\0');
-		if (next_job[-1] == '\n' && next_job[-2] == '\n')
-			next_job -= 1;
-		else if (next_job[-4] == '\r' && next_job[-3] == '\n')
-			next_job -= 2;
-  	}
-	// make sure it can handle DOS and Unix format ('\r\n' and '\n')
 	while (start_point != next_job) 
 		{
 		if (mode == 'c')
 		{
-			temp = jump (start_point, 2, sampling_rate);	
+			if (sampling_rate<1)
+				temp = jump (start_point, fmt_type, sampling_rate);
+			else
+				temp = start_point;
 		// function for fast/proportional scan
 			if (start_point != temp)
 			{
@@ -86,14 +73,23 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
 		File_head->reads_num++;
 		// atomic process for summing reads number
 		previous_point = start_point;
-		start_point = strchr (start_point, '\n') + 1;
-		// skip the ID line of fastq reads
-		result = fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head);
-		// check the real read line
-		start_point = strchr (start_point, '\n') + 1;
-		start_point = strchr (start_point, '\n') + 1;
-		start_point = strchr (start_point, '\n') + 1;
-		// finish scanning this read, skip to the next
+		start_point = get_right_sp (start_point, fmt_type);
+		// skip the ID line
+		if (fmt_type == '@')
+		{
+			result = fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head);
+			start_point = strchr (start_point, '\n') + 1;
+			start_point = strchr (start_point, '\n') + 1;
+			start_point = strchr (start_point, '\n') + 1;
+		}
+		else
+		{
+			temp_next = strchr(start_point+1,'>');
+			if (temp_next == NULL)
+				temp_next = next_job;
+			result = fasta_read_check (start_point, temp_next, 'n', bl, tole_rate, File_head);
+			start_point = temp_next;
+		}
 		if (result>0)
 		{
                 	 #pragma omp atomic
@@ -116,70 +112,15 @@ fastq_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float 
                                         	memcpy(clean,previous_point,start_point-previous_point);
                                         	clean+=(start_point-previous_point);
 					}
-			//if (mode=='r' && print_flag==1)
-			//	fprintf(stdout,"%.*s\n",start_point-previous_point,start_point);
-					}
+				}
 		}
 	}	// outside while
-	if (temp_piece)
-		free(temp_piece);
 }
 /*-------------------------------------*/
-void
-fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
-	       float sampling_rate, float tole_rate)
-{
-#ifdef DEBUG
-  printf ("fasta processing...\n");
-#endif
-  char *temp_next, *next, *temp;
-
-  if (info->location == NULL)
-    return;
-  else if (info->next != tail)
-    next = info->next->location;
-  else{
-      next = strchr (info->location, '\0');
-      //if ((next-1)=='\n')
-      //next -= 1;
-      if ((next[-1]) == '\n' && next[-2] == '\n')
-	next -= 1;
-      else if (next[-4] == '\r' && next[-3] == '\n')
-	next -= 2;
-  }
-
-  char *p = info->location;
-
-  while (p != next) {
-      temp = jump (p, 1, sampling_rate);	// generate random number and judge
-                                            // if need to scan this read
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-#pragma omp atomic
-      File_head->reads_num++;
-      temp_next = strchr (p + 1, '>');
-
-      if (!temp_next)
-        temp_next = next;
-
-      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0) {
-#pragma omp atomic
-	    File_head->reads_contam++;
-	  }
-
-      p = temp_next;
-    }
-}
-}
-
-
 void report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
   static char timestamp[40] = { 0 };
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
-  printf ("rate->%f\n",contamination_rate);
 
   if(!fmt){
       fprintf(stderr, "Output format not specified\n");
