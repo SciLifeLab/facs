@@ -222,8 +222,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
   return 0;
 }
 
-char *
-strrstr (char *s, char *str)
+char *strrstr (char *s, char *str)
 {
   char *p;
   int len = strlen (s);
@@ -235,8 +234,7 @@ strrstr (char *s, char *str)
   return NULL;
 }
 
-void
-clean_list (Queue * head, Queue * tail)
+void clean_list (Queue * head, Queue * tail)
 {
   Queue *element;
   while (head != tail)
@@ -250,8 +248,7 @@ clean_list (Queue * head, Queue * tail)
 }
 
 
-BIGCAST
-CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
+BIGCAST CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
 {
   char c;
   char *pos = NULL;
@@ -287,7 +284,7 @@ CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
   if (pos)
     {
       offset += (pos - data);
-      //memset (pos, 0, strlen (pos));
+      memset (pos, 0, strlen (pos));
     }
 
   if (length < chunk)
@@ -330,8 +327,7 @@ BIGCAST CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *ex
   return offset;
 }
 
-char *
-bac_2_n (char *filename)
+char *bac_2_n (char *filename)
 {
   while (*filename != '\n')
     filename--;

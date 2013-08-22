@@ -512,11 +512,7 @@ char *get_right_sp (char *start_point ,char type)
 	char *tmp = NULL;
 	if (type == '@')
 	{
-		tmp = strchr(start_point,'\n');
-		if (tmp != NULL)
-			start_point = tmp+1;
-		else
-			start_point = NULL;
+		start_point = strchr(start_point,'\n')+1;
 	}
 	else
 	{
