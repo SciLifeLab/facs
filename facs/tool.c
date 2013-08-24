@@ -352,6 +352,7 @@ get_parainfo (char *full, Queue * head)
 #else
 	  int cores = 1;
 #endif
+      cores = 1;
       short add = 0;
       int offset = 0;
 	  Queue *pos = head;
@@ -429,9 +430,10 @@ jump (char *target, char type, float sampling_rate)
 	point = strchr (target + 1, '>');	//point to >
       else
 	{
-	  point = strstr (target + 1, "\n+") + 1;	//point to +
-	  point = strchr (point, '\n') + 1;	//point to quality line
-	  point = strchr (point, '\n') + 1;	//point to next read starting
+	  //point = strstr (target + 1, "\n+") + 1;	//point to +
+	  int x;
+          for (x=0;x<4;x++)
+	  	point = strchr (point, '\n') + 1;	//point to quality line
 	}
       if (point)
 	target = point;
@@ -509,15 +511,9 @@ char *check_fmt (Queue *info, Queue *tail, char *start_point, char type)
 /*get the correct starting point*/
 char *get_right_sp (char *start_point ,char type)
 {
-	char *tmp = NULL;
 	if (type == '@')
 	{
 		start_point = strchr(start_point,'\n')+1;
-	}
-	else
-	{
-		tmp = strchr(start_point+1,'>');
-		start_point = tmp;
 	}
 	return start_point;	
 }
