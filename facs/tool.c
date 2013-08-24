@@ -53,7 +53,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	//printf("mode->%c---read_check\n",mode);
 	if (mode == 'r') // make a copy of the read for reverse compliment process
 	{
-		char *re_compliment = (char *) malloc (sizeof (char) *(length+1));
+		char *re_compliment = (char *) calloc (length+1, sizeof (char));
 		re_compliment[length]='\0';
 		memcpy(re_compliment, begin, length);
 		begin = re_compliment;
@@ -79,7 +79,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		//	printf("key->%0.15s\n",start_point);
 		if (bloom_check (bl, start_point))
 		{
-			result = fastq_full_check (bl, begin, length, tole_rate, File_head);
+			result = total_full_check (bl, begin, length, tole_rate, File_head);
 	  		if (result > 0)
 			{	
 				if (mode == 'r') //free the reverse compliment read copy
@@ -101,8 +101,8 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
     		return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
 		}
 }
-/*full check for fastq sequence with k-mer and k-1 overlap*/
-int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
+/*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
+int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
 {
 	int read_length = length, count = 0, match_s = 0, mark = 1, prev = 0, conse = 0, match_time = 0;
 	float result;
@@ -150,193 +150,63 @@ int fastq_full_check (bloom * bl, char *start_point, int length, float tole_rate
 		return 0;
 }
 /*fasta read quick check using k-mer and 0 overlap*/
-int
-fasta_read_check (char *begin, char *next, char model, bloom * bl, float tole_rate, F_set * File_head)
+int fasta_read_check (char *begin, char *next, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
-
-  char *p = strchr (begin + 1, '\n') + 1;
-
-  if (!p || *p == '>')
-    return 1;
-
-  int n, m, result, count_enter=0;
-  char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
-  char *pre_key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
-
-  key[bl->k_mer] = '\0';
-
-  while (p != next)
-    {
-      while (n < bl->k_mer)
-	{
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-	  else
-	    count_enter++;
-	  m++;
-	}			//inner while
-
-      if (m == 0)
-	break;
-
-      if (strlen (key) == bl->k_mer)
-	memcpy (pre_key, key, sizeof (char) * (bl->k_mer + 1));
-
-      else
-	{
-	  char *temp_key = (char *) malloc (bl->k_mer * sizeof (char));
-
-	  memcpy (temp_key, pre_key + strlen (key), bl->k_mer - strlen (key));
-
-	  memcpy (temp_key + bl->k_mer - strlen (key), key, sizeof (char) * (strlen (key) + 1));
-
-	  free (key);
-
-	  key = temp_key;
-
-	}
-      p += m;
-
-      n = 0;
-
-      m = 0;
-
-      //if (model == 'r')
-	//rev_trans (key);
-
-      if (bloom_check (bl, key))
-	{
-	  result = fasta_full_check (bl, begin, next, model, tole_rate, File_head);
-	  if (result > 0)
-	    return result;
-	  //else if (model == 'n')     //use recursion to check the sequence forward and backward
-	  //    return fasta_read_check (begin, next, 'r', bl);
-	  else if (model == 'n')
-	    break;
-	}
-
-      //memset (key, 0, bl->k_mer);
-    }				//outside while
-  if (model == 'r')
-    return 0;
-  else
-    return fasta_read_check (begin, next, 'r', bl, tole_rate, File_head);
-}
-
-/*fasta full check using k-mer and k-1 overlap*/
-int
-fasta_full_check (bloom * bl, char *begin, char *next, char model, float tole_rate, F_set * File_head)
-{
-  int match_s = 0, count = 0, mark = 1;
-
-  int n = 0, m = 0, count_enter = 0, match_time = 0;
-
-  short previous = 0, conse = 0;
-
-  float result;
-
-  char *key = (char *) malloc ((bl->k_mer + 1) * sizeof (char));
-
-  begin = strchr (begin + 1, '\n') + 1;
-
-  char *p = begin;
-
-  while (p != next)
-    {
-      if (*p == '\n')
-	count_enter++;
-      p++;
-    }
-
-  p = begin;
-
-  while (*p != '>' && *p != '\0')
-    {
-      while (n < bl->k_mer)
-	{
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-
-	  m++;
-	}
-      key[n] = '\0';
-
-     // if (model == 'r')
-	//rev_trans (key);
-      //printf("key->%s\n",key);
-      if (count >= bl->k_mer)
-	{
-	  mark = 1;
-	  count = 0;
-	}
-      //if (strlen (key) == bl->k_mer)
-	//{
-	  if (bloom_check (bl, key))
-	    {
-	      match_time++;
-	      if (previous == 1)
-		conse++;
-	      else
-		{
-		  conse += bl->k_mer;
-		  previous = 1;
+	//char *start_point = strchr (begin + 1, '\n') + 1;
+	// skip id line
+	char *start_point = NULL;
+	int length = 0, result = 0, read_length = 0;
+	if (!begin || *begin == '>')
+  		return 1;
+	// in case the read is empty
+	if (mode == 'n')
+		start_point = fa_count (begin, next);
+	else
+		start_point = begin;
+	length = strlen(start_point);
+	read_length = length;
+       	if (mode == 'r') // make a copy of the read for reverse compliment process
+       	{
+                rev_trans (start_point,length);
+        }
+	// reverse compliment process
+        normal_lower(start_point,length); 
+	//normalize the whole read tddo the lower case
+        while (read_length > 0)
+        {
+                if (read_length >= bl->k_mer)
+                {
+			read_length-=bl->k_mer;
 		}
-	      if (mark == 1)
-		{
-		  match_s += (bl->k_mer - 1);
-		  mark = 0;
-		}
-	      else
-		match_s++;
-	    }
-
-	  else
-	    {
-	      previous = 0;
-	      //printf("unhit--->\n");
-	    }
-
-	  count++;
-	//}			//outside if
-      //printf("score->%d\n",match_s);
-      p++;
-      if (p[0] == '\n')
-	p++;
-      n = 0;
-      m = 0;
-    }				// end of while
-  //result = (float) match_s / (float) (next - begin - count_enter);
-  //result = (float) match_time*(bl->k_mer)/(float)((next-begin-count_enter-bl->k_mer+2)*(bl->k_mer)+2*dx_add(bl->k_mer));
-  //result = (float) ((match_time+conse)*(bl->k_mer))/(float)((next-begin-count_enter-bl->k_mer+2+conse)*(bl->k_mer)+2*dx_add(bl->k_mer));
-  //result = (float) ((match_time)*(bl->k_mer))/(float)((next-begin-count_enter-bl->k_mer+2)*(bl->k_mer)+2*dx_add(bl->k_mer));
-  //result = (float)(match_time*bl->k_mer+conse)/(float)((next-begin-count_enter-bl->k_mer+2)*bl->k_mer+conse+2*dx_add(bl->k_mer));
-  //printf ("result1->%f\n",result);
-  //result = (float)(match_time*bl->k_mer)/(float)((next-begin-count_enter)*bl->k_mer-2*dx_add(bl->k_mer-1));
-  result = (float) (match_time * bl->k_mer + conse) / (float) ((next - begin - count_enter) * bl->k_mer - 2 * bl->dx + (next - begin - count_enter) - bl->k_mer + 1);
-
-#pragma omp atomic
-  File_head->hits += match_time;
-#pragma omp atomic
-  File_head->all_k += (next - begin - count_enter - bl->k_mer);
-
-  if (result >= tole_rate)	//match >tole_rate considered as contaminated
-    return match_s;
-  else
-    return 0;
+		else
+                {
+                        start_point -= (bl->k_mer-read_length);
+                        read_length = 0;
+                }
+		if (bloom_check (bl, start_point))
+                {
+                	result = total_full_check (bl, begin, length, tole_rate, File_head);
+                        if (result > 0)
+                        {
+                                if (mode == 'r') //free the reverse compliment read copy
+                                        free(begin);
+                                return result;
+                        }
+                        else if (mode == 'n')
+                                break;
+                }
+                start_point+=bl->k_mer;
+        }               //outside while
+        if (mode == 'r')
+        {
+                free(begin); //free the reverse compliment read copy
+                return 0;
+        }
+        else
+        {
+                return fasta_read_check (begin, next, 'r', bl, tole_rate, File_head);
+        }
 }
-
 /*Parallel job distribution*/
 int
 get_parainfo (char *full, Queue * head)
@@ -481,10 +351,10 @@ dx_add (int k_mer)
 int
 fq_read_length (char *data)
 {
-  char *origin = data;
-  while (*data != '\n')
-    data--;
-  return origin - data;
+	char *origin = data;
+	while (*data != '\n')
+		data--;
+	return origin - data;
 }
 /*check the head of the file and see if it is standard*/
 char *check_fmt (Queue *info, Queue *tail, char *start_point, char type)
@@ -511,9 +381,24 @@ char *check_fmt (Queue *info, Queue *tail, char *start_point, char type)
 /*get the correct starting point*/
 char *get_right_sp (char *start_point ,char type)
 {
-	if (type == '@')
-	{
-		start_point = strchr(start_point,'\n')+1;
-	}
+	start_point = strchr(start_point,'\n')+1;
 	return start_point;	
+}
+/*count useful characters for fasta reads*/
+char *fa_count (char *start, char *end)
+{
+	char *tequila_is_my_lady = (char *) calloc (end-start+1, sizeof(char));
+	char *p = tequila_is_my_lady;
+	// conservatively allocate memory
+	while (start!=end)
+	{
+		if (start[0]!='\n' && start[0]!='\0')
+		{
+			p[0]=start[0];
+		}
+		p++;
+		start++;
+	} 
+	p[0] = '\0';
+	return tequila_is_my_lady;
 }
