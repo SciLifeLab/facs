@@ -87,7 +87,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 			temp_next = strchr(start_point+1,'>');
 			if (temp_next == NULL)
 				temp_next = next_job;
-			result = fasta_read_check (start_point, temp_next, 'n', bl, tole_rate, File_head);
+			result = fasta_read_check (start_point, temp_next-start_point, 'n', bl, tole_rate, File_head);
 			start_point = temp_next;
 		}
 		if (result>0)

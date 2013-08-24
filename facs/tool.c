@@ -150,27 +150,26 @@ int total_full_check (bloom * bl, char *start_point, int length, float tole_rate
 		return 0;
 }
 /*fasta read quick check using k-mer and 0 overlap*/
-int fasta_read_check (char *begin, char *next, char mode, bloom * bl, float tole_rate, F_set * File_head)
+int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
-	//char *start_point = strchr (begin + 1, '\n') + 1;
 	// skip id line
 	char *start_point = NULL;
-	int length = 0, result = 0, read_length = 0;
+	int true_length = 0, result = 0, read_length = 0;
 	if (!begin || *begin == '>')
   		return 1;
 	// in case the read is empty
 	if (mode == 'n')
-		start_point = fa_count (begin, next);
+		start_point = fa_count (begin, length);
 	else
 		start_point = begin;
-	length = strlen(start_point);
-	read_length = length;
+	true_length = strlen(start_point);
+	read_length = true_length;
        	if (mode == 'r') // make a copy of the read for reverse compliment process
        	{
-                rev_trans (start_point,length);
+                rev_trans (start_point,true_length);
         }
 	// reverse compliment process
-        normal_lower(start_point,length); 
+        normal_lower(start_point,true_length); 
 	//normalize the whole read tddo the lower case
         while (read_length > 0)
         {
@@ -185,7 +184,7 @@ int fasta_read_check (char *begin, char *next, char mode, bloom * bl, float tole
                 }
 		if (bloom_check (bl, start_point))
                 {
-                	result = total_full_check (bl, begin, length, tole_rate, File_head);
+                	result = total_full_check (bl, begin, true_length, tole_rate, File_head);
                         if (result > 0)
                         {
                                 if (mode == 'r') //free the reverse compliment read copy
@@ -204,7 +203,7 @@ int fasta_read_check (char *begin, char *next, char mode, bloom * bl, float tole
         }
         else
         {
-                return fasta_read_check (begin, next, 'r', bl, tole_rate, File_head);
+                return fasta_read_check (begin, length, 'r', bl, tole_rate, File_head);
         }
 }
 /*Parallel job distribution*/
@@ -302,8 +301,11 @@ jump (char *target, char type, float sampling_rate)
 	{
 	  //point = strstr (target + 1, "\n+") + 1;	//point to +
 	  int x;
-          for (x=0;x<4;x++)
-	  	point = strchr (point, '\n') + 1;	//point to quality line
+          //for (x=0;x<4;x++)
+        point = strchr (point, '\n') + 1; 
+        point = strchr (point, '\n') + 1; 
+        point = strchr (point, '\n') + 1; 
+	point = strchr (point, '\n') + 1;	//point to quality line
 	}
       if (point)
 	target = point;
@@ -385,12 +387,12 @@ char *get_right_sp (char *start_point ,char type)
 	return start_point;	
 }
 /*count useful characters for fasta reads*/
-char *fa_count (char *start, char *end)
+char *fa_count (char *start, int length)
 {
-	char *tequila_is_my_lady = (char *) calloc (end-start+1, sizeof(char));
+	char *tequila_is_my_lady = (char *) calloc (length+1, sizeof(char));
 	char *p = tequila_is_my_lady;
 	// conservatively allocate memory
-	while (start!=end)
+	while (length>0)
 	{
 		if (start[0]!='\n' && start[0]!='\0')
 		{
@@ -398,6 +400,7 @@ char *fa_count (char *start, char *end)
 		}
 		p++;
 		start++;
+		length--;
 	} 
 	p[0] = '\0';
 	return tequila_is_my_lady;
