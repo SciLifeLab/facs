@@ -151,23 +151,20 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
     {
 
       if (normal == 1)
-	{
+      {
 	  position = mmaping (query);
 	  offset = -1;
-	}
+      }
       else
-	{
+      {
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
-	}
-      if (offset == -1)
-      	reset_string();
-      //offset = CHUNKer (zip, offset, ONEG, position, type);
+      }
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
       head->next = tail;
       Queue *head2 = head;
-      get_parainfo (position, head);
+      get_parainfo (position, head, type);
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -211,6 +208,10 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
 	else
 	{
 		write_default(re_clean(), re_contam(), offset);
+	}
+	if (offset == -1)
+	{
+		reset_string();
 	}
   }
   }				//end while

@@ -205,12 +205,11 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 }
 /*Parallel job distribution*/
 int
-get_parainfo (char *full, Queue * head)
+get_parainfo (char *full, Queue * head, char type)
 {
 #ifdef DEBUG
   printf ("distributing...\n");
 #endif
-	  int type = 0;
       char *previous = NULL;
 	  char *temp = full;
 #ifndef __clang__
@@ -223,59 +222,47 @@ get_parainfo (char *full, Queue * head)
 	  Queue *pos = head;
        //   Queue *x = NEW (Queue);
       int length = 0;
-      if (full != NULL) {
+      if (full != NULL)
+      {
           offset = strlen(full) / cores;
-          if (*full == '>')
-            type = 1;
-          else if (*full == '@')
-            type = 2;
-          else {
-                perror("File format not supported\n");
-                exit(EXIT_FAILURE);
-          }
       }
-      
-      if (type == 1) {
-              for (add = 0; add < cores; add++) {
+      if (type == '>')
+      {
+              for (add = 0; add < cores; add++)
+              {
                   Queue *x = NEW (Queue);
                   if (add == 0 && *full != '>')
-                    temp = strchr (full, '>');	//drop the possible fragment
-
+                  	temp = strchr (full, '>');	//drop the possible fragment
                   if (add != 0)
-                    temp = strchr (full + offset * add, '>');
+                  	temp = strchr (full + offset * add, '>');
                   x->location = temp;
                   x->number = &add;
                   x->next = pos->next;
                   pos->next = x;
                   pos = pos->next;
               }
-
-	  } else {
-              //char *tx = strchr(full,'\n');
-              //length = strchr(tx+1,'\n')-(tx+1);
-     
-	      for (add = 0; add < cores; add++) {
-              char *tx = strchr(full,'\n');
-              length = strchr(tx+1,'\n')-(tx+1);
-              
-	      Queue *x = NEW (Queue);
-              x->location = NULL;
-              //char *tx = strchr(full,'\n');
-              //length = strchr(tx+1,'\n')-(tx+1);
-              if (add != 0)
-                  temp = fastq_relocate(full, offset*add, length);
-                       
-              if (previous!=temp) {
-                  previous = temp;
-                  x->location = temp;
-                  x->number = &add;
-                  x->next = pos->next;
-                  pos->next = x;
-                  pos = pos->next;
-              }
+      } 
+      else
+      {
+	      for (add = 0; add < cores; add++) 
+              {
+              	char *tx = strchr(full,'\n');
+              	length = strchr(tx+1,'\n')-(tx+1);
+	      	Queue *x = NEW (Queue);
+              	x->location = NULL;
+              	if (add != 0)
+                	temp = fastq_relocate(full, offset*add, length);          
+              	if (previous!=temp)
+		{
+                	previous = temp;
+                	x->location = temp;
+                	x->number = &add;
+                	x->next = pos->next;
+                	pos->next = x;
+                	pos = pos->next;
+                }
 	      }
-    }
-
+      }
   return type;
 }
 
@@ -283,7 +270,6 @@ get_parainfo (char *full, Queue * head)
 char *
 jump (char *target, char type, float sampling_rate)
 {
-  //printf("here\n");
   float seed = rand () % 10;
 
   if (seed >= (float) sampling_rate * 10)

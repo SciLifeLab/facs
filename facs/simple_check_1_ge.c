@@ -55,7 +55,9 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	char *next_job = NULL, *temp = NULL, *previous_point = NULL, *temp_next = NULL;
 	int result = 0;
 	next_job = check_fmt (info, tail, start_point, fmt_type);
-        // make sure it can handle DOS and Unix format ('\r\n' and '\n')
+        printf("current->%0.10s<--->next->%0.10s\n",start_point,next_job);
+	printf("%0.10s\n",next_job-10);
+	// make sure it can handle DOS and Unix format ('\r\n' and '\n')
 	if (next_job == NULL)
 		return;
 	while (start_point != next_job) 
