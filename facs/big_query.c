@@ -159,6 +159,8 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
 	{
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
 	}
+      if (offset == -1)
+      	reset_string();
       //offset = CHUNKer (zip, offset, ONEG, position, type);
       Queue *head = NEW (Queue);
       head->location = NULL;
@@ -202,14 +204,14 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
   clean_list (head2, tail);
   if (mode == 'r')
   {	
-		if (target_path!=NULL)
-		{
-      			save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
-  		}
-		else
-		{
-			write_default(re_clean(), re_contam(), offset);
-		}
+	if (target_path!=NULL)
+	{
+      		save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
+  	}
+	else
+	{
+		write_default(re_clean(), re_contam(), offset);
+	}
   }
   }				//end while
   

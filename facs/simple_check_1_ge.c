@@ -44,6 +44,11 @@ char *re_contam()
 	return contam2;
 }
 
+void reset_string()
+{
+	memset(clean2,0,strlen(clean2));
+	memset(contam2,0,strlen(contam2));
+}
 void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
 {
 	char *start_point = info->location;
