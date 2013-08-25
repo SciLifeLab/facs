@@ -155,12 +155,14 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	if (!begin || *begin == '>')
   		return 1;
 	// in case the read is empty
+	//printf("length->%d\n",length);
 	if (mode == 'n')
 		start_point = fa_count (begin, length);
 	else
 		start_point = begin;
 	true_length = strlen(start_point);
 	read_length = true_length;
+	//printf("true_length->%d\n",true_length);
        	if (mode == 'r') // make a copy of the read for reverse compliment process
        	{
                 rev_trans (start_point,true_length);
@@ -168,6 +170,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	// reverse compliment process
         normal_lower(start_point,true_length); 
 	//normalize the whole read tddo the lower case
+	//printf("%0.10s\n",start_point);
         while (read_length > 0)
         {
                 if (read_length >= bl->k_mer)
@@ -181,7 +184,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
                 }
 		if (bloom_check (bl, start_point))
                 {
-                	result = total_full_check (bl, begin, true_length, tole_rate, File_head);
+                	result = total_full_check (bl, start_point, true_length, tole_rate, File_head);
                         if (result > 0)
                         {
                                 if (mode == 'r') //free the reverse compliment read copy
@@ -217,6 +220,7 @@ get_parainfo (char *full, Queue * head, char type)
 #else
 	  int cores = 1;
 #endif
+	cores = 1;
       short add = 0;
       int offset = 0;
 	  Queue *pos = head;
@@ -373,11 +377,11 @@ char *fa_count (char *start, int length)
 	// conservatively allocate memory
 	while (length>0)
 	{
-		if (start[0]!='\n' && start[0]!='\0')
+		if (*start!='\n')
 		{
 			p[0]=start[0];
+			p++;
 		}
-		p++;
 		start++;
 		length--;
 	} 
