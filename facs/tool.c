@@ -168,10 +168,11 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
                 rev_trans (start_point,true_length);
         }
 	// reverse compliment process
+	begin = start_point;
         normal_lower(start_point,true_length); 
 	//normalize the whole read tddo the lower case
-	//printf("%0.10s\n",start_point);
-        while (read_length > 0)
+        printf("strlen->%d\n",strlen(start_point));
+	while (read_length > 0)
         {
                 if (read_length >= bl->k_mer)
                 {
@@ -220,7 +221,6 @@ get_parainfo (char *full, Queue * head, char type)
 #else
 	  int cores = 1;
 #endif
-	cores = 1;
       short add = 0;
       int offset = 0;
 	  Queue *pos = head;

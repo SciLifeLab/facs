@@ -64,7 +64,7 @@ remove_l (char *source, char *ref, char *list, char *prefix)
   F_set *File_head2 = File_head;
 
   position = mmaping (source);
-  type = get_parainfo (position, head);
+  type = get_parainfo (position, head,'@');
   clean_l = (char *) malloc (strlen (position) * sizeof (char));
   contam_l = (char *) malloc (strlen (position) * sizeof (char));
   while (File_head)
