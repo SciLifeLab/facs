@@ -168,10 +168,12 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
                 rev_trans (start_point,true_length);
         }
 	// reverse compliment process
-	begin = start_point;
-        normal_lower(start_point,true_length); 
+	if (mode == 'n')
+		begin = start_point;
+	//printf("mode->%c----dick%s\n",mode,start_point);
+        normal_lower(start_point-1,true_length); 
+	//printf("mode->%c----dick%s\n",mode,start_point);
 	//normalize the whole read tddo the lower case
-        printf("strlen->%d\n",strlen(start_point));
 	while (read_length > 0)
         {
                 if (read_length >= bl->k_mer)
