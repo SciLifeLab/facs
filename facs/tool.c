@@ -98,13 +98,46 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		rev_trans (begin,length);
 	}
 	// initialization
-	int read_length = length;
+	int result, read_length = length;
 	char *start_point = begin;
 	if (mode == 'n')
 	{
 		normal_lower(start_point,length); //normalize the whole read tddo the lower case
 	}
-	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode);
+        while (read_length > 0) 
+        { 
+                if (read_length >= bl->k_mer)
+                {
+                        read_length -= bl->k_mer;
+                }
+                else
+                {
+                        start_point -= (bl->k_mer-read_length);
+                        read_length = 0;
+                }
+                if (bloom_check (bl, start_point))
+                {
+                        result = total_full_check (bl, begin, length, tole_rate, File_head);
+                        if (result > 0)
+                        {
+                                if (mode == 'r')
+                                        free(begin);
+                                return result;
+                        }
+                        else if (mode == 'n')
+                                break;
+                }
+                start_point+=bl->k_mer;
+        }
+        if (mode == 'r')
+        {
+                free(begin);
+                return 0;
+        }
+        else
+        {
+                return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
+        }
 }
 /*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
 int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
@@ -159,7 +192,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 {
 	// skip id line
 	char *start_point = NULL;
-	int true_length = 0, read_length = 0;
+	int result, true_length = 0, read_length = 0;
 	if (!begin || *begin == '>')
   		return 1;
 	// in case the read is empty
@@ -181,7 +214,41 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
         normal_lower(start_point,true_length); 
 	//printf("mode->%c----dick%s\n",mode,start_point);
 	//normalize the whole read tddo the lower case
-	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode);
+	while (read_length > 0) 
+        { 
+                if (read_length >= bl->k_mer)
+                {
+                        read_length -= bl->k_mer;
+                }
+                else
+                {
+                        start_point -= (bl->k_mer-read_length);
+                        read_length = 0;
+                }
+                if (bloom_check (bl, start_point))
+                {
+                        result = total_full_check (bl, begin, true_length, tole_rate, File_head);
+                        if (result > 0)
+                        {
+                                if (mode == 'r')
+                                        free(begin);
+                                return result;
+                        }
+                        else if (mode == 'n')
+                                break;
+                }
+                start_point+=bl->k_mer;
+        }
+        if (mode == 'r')
+        {
+                free(begin);
+                return 0;
+        }
+        else
+        {
+                return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
+        }
+	//return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode);
 }
 /*Parallel job distribution*/
 int
