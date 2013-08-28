@@ -168,9 +168,10 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
         }
 	// reverse compliment process
 	if (mode == 'n')
+	{
 		begin = start_point;
-	//printf("mode->%c----dick%s\n",mode,start_point);
-        normal_lower(start_point,true_length); 
+        	normal_lower(start_point,true_length);
+	}
 	//printf("mode->%c----dick%s\n",mode,start_point);
 	//normalize the whole read tddo the lower case
 	while (read_length > 0)
@@ -224,7 +225,7 @@ get_parainfo (char *full, Queue * head, char type)
 #endif
       short add = 0;
       int offset = 0;
-	  Queue *pos = head;
+      Queue *pos = head;
        //   Queue *x = NEW (Queue);
       int length = 0;
       if (full != NULL)
