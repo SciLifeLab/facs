@@ -155,7 +155,6 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	if (!begin || *begin == '>')
   		return 1;
 	// in case the read is empty
-	//printf("length->%d\n",length);
 	if (mode == 'n')
 		start_point = fa_count (begin, length);
 	else
@@ -171,7 +170,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	if (mode == 'n')
 		begin = start_point;
 	//printf("mode->%c----dick%s\n",mode,start_point);
-        normal_lower(start_point-1,true_length); 
+        normal_lower(start_point,true_length); 
 	//printf("mode->%c----dick%s\n",mode,start_point);
 	//normalize the whole read tddo the lower case
 	while (read_length > 0)
@@ -187,7 +186,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
                 }
 		if (bloom_check (bl, start_point))
                 {
-                	result = total_full_check (bl, start_point, true_length, tole_rate, File_head);
+                	result = total_full_check (bl, begin, true_length, tole_rate, File_head);
                         if (result > 0)
                         {
                                 if (mode == 'r') //free the reverse compliment read copy
@@ -206,7 +205,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
         }
         else
         {
-                return fasta_read_check (begin, length, 'r', bl, tole_rate, File_head);
+                return fasta_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
         }
 }
 /*Parallel job distribution*/
