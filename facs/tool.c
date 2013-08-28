@@ -47,6 +47,44 @@ void isodate(char* buf) {
     sprintf(timestamp + 20, "%03d%s", tv.tv_usec / 1000, timestamp + 23);
     sprintf(buf, "%s", timestamp);
 }
+/*sub function for quick pass*/
+int total_subscan (bloom *bl, Fset *File_head, char *begin, char *start_point, int read_length, int true_length, float tole_rate, char mode)
+{
+	while (read_length > 0)
+        {
+                if (read_length >= bl->k_mer)
+                {
+                        read_length -= bl->k_mer;
+                }
+                else
+                {
+                        start_point -= (bl->k_mer-read_length);
+                        read_length = 0;
+                }
+                if (bloom_check (bl, start_point))
+                {
+                        result = total_full_check (bl, begin, length, tole_rate, File_head);
+                        if (result > 0)
+                        {
+                                if (mode == 'r') 
+                                        free(begin);
+                                return result;
+                        }
+                        else if (mode == 'n')
+                                break;
+                }
+                start_point+=bl->k_mer;
+        }               
+        if (mode == 'r')
+        {
+                free(begin); 
+                return 0;
+        }
+        else
+        {
+                return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
+        }
+}
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
@@ -61,12 +99,14 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	// initialization
 	int result = 0, read_length = length;
 	char *start_point = begin;
-	normal_lower(start_point,length); //normalize the whole read tddo the lower case
+	if (mode == 'n')
+	{
+		normal_lower(start_point,length); //normalize the whole read tddo the lower case
+	}
 	while (read_length > 0)
 	{
 		if (read_length >= bl->k_mer)
 		{
-			//start_point += bl->k_mer;
 			read_length -= bl->k_mer;
 		}
       		else
@@ -79,7 +119,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 			result = total_full_check (bl, begin, length, tole_rate, File_head);
 	  		if (result > 0)
 			{	
-				if (mode == 'r') //free the reverse compliment read copy
+				if (mode == 'r') 
 					free(begin);
 	    			return result;
 			}
@@ -87,10 +127,10 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	    			break;
 		}
 		start_point+=bl->k_mer;
-	}		//outside while
+	}	
   	if (mode == 'r')
 	{
-		free(begin); //free the reverse compliment read copy
+		free(begin); 
     		return 0;
 	}	
   	else
