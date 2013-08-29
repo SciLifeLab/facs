@@ -39,7 +39,7 @@ query_usage (void)
 }
 
 
-int bq_main (int argc, char **argv)
+char *bq_main (int argc, char **argv)
 {
   if (argc < 3)
     query_usage();
@@ -101,7 +101,7 @@ int bq_main (int argc, char **argv)
   return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
 }
 
-int query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
+char *query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
 {
   gzFile zip = NULL;
   int type = 0, normal = 0;
@@ -223,8 +223,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
   }
   
-  report(File_head, query, report_fmt, target_path);
-  return 0;
+  return report(File_head, query, report_fmt, target_path);
 }
 
 char *

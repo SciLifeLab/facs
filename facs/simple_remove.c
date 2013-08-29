@@ -38,14 +38,13 @@ remove_usage (void)
 	   "\t-l input list containing all Bloom filters, one per line\n");
   fprintf (stderr, "\t-t threshold value\n");
   fprintf (stderr, "\n");
-  return 1;
+  exit (1);
 }
 
-int
-remove_main (int argc, char **argv)
+char *remove_main (int argc, char **argv)
 {
   if (argc < 2)
-    return remove_usage ();
+  	remove_usage ();
 /*-------defaults for bloom filter building-------*/
   int opt;
   float tole_rate = 0;
@@ -78,10 +77,10 @@ remove_main (int argc, char **argv)
           (optarg) && (report_fmt = optarg, 1);
           break;
 	case 'h':
-	  return remove_usage ();
+	  remove_usage ();
 	default:
 	  printf ("Unknown option: -%c\n", (char) optopt);
-	  return remove_usage ();
+	  remove_usage ();
 	}
     }
 
@@ -94,8 +93,7 @@ remove_main (int argc, char **argv)
 }
 
 /*-------------------------------------*/
-void
-save_result (char *source, char *obj_file, int type, char *prefix, char *clean2, char *contam2)
+void save_result (char *source, char *obj_file, int type, char *prefix, char *clean2, char *contam2)
 {
   printf ("source->%s\n", source);
   printf ("obj_file->%s\n", obj_file);

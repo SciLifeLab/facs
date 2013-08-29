@@ -178,9 +178,10 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 }
 
 
-void report(F_set *File_head, char *query, char *fmt, char *prefix)
+char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
-  static char timestamp[40] = { 0 };
+  static char buffer[100] = {0};
+  static char timestamp[40] = {0};
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
   if(!fmt){
@@ -188,7 +189,7 @@ void report(F_set *File_head, char *query, char *fmt, char *prefix)
       exit(EXIT_FAILURE);
   } else if(!strcmp(fmt, "json")) {
       isodate(timestamp);
-      fprintf(stdout,
+      fprintf(buffer,
 "{\n"
 "\t\"timestamp\": \"%s\",\n"
 "\t\"sample\": \"%s\",\n"
@@ -203,13 +204,13 @@ void report(F_set *File_head, char *query, char *fmt, char *prefix)
 
   // TSV output format
   } else if (!strcmp(fmt, "tsv")) {
-      fprintf(stdout,
+      fprintf(buffer,
 "sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
                             contamination_rate);
   }
-
+  return buffer;
 }
 
 char *statistic_save (char *filename, char *prefix)
