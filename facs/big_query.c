@@ -107,7 +107,6 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   int type = 0, normal = 0;
   BIGCAST offset = 0;
   char *position = NULL;
-  char *ret = NULL;
 
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);

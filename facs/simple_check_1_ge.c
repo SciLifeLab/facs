@@ -180,7 +180,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
 char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
-  static char buffer[100] = {0};
+  char buffer[100] = {0};
   static char timestamp[40] = {0};
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
