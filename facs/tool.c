@@ -98,12 +98,14 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		rev_trans (begin,length);
 	}
 	// initialization
-	int result, read_length = length;
+	int result;
+	int read_length = length;
 	char *start_point = begin;
 	if (mode == 'n')
 	{
 		normal_lower(start_point,length); //normalize the whole read tddo the lower case
 	}
+	
         while (read_length > 0) 
         { 
                 if (read_length >= bl->k_mer)
@@ -138,6 +140,8 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
         {
                 return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
         }
+	
+	//return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode);
 }
 /*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
 int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
@@ -192,7 +196,8 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 {
 	// skip id line
 	char *start_point = NULL;
-	int result, true_length = 0, read_length = 0;
+	//int result; 
+	int true_length = 0, read_length = 0;
 	if (!begin || *begin == '>')
   		return 1;
 	// in case the read is empty
@@ -214,6 +219,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
         normal_lower(start_point,true_length); 
 	//printf("mode->%c----dick%s\n",mode,start_point);
 	//normalize the whole read tddo the lower case
+	/*
 	while (read_length > 0) 
         { 
                 if (read_length >= bl->k_mer)
@@ -248,7 +254,8 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
         {
                 return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
         }
-	//return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode);
+	*/
+	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode);
 }
 /*Parallel job distribution*/
 int
@@ -330,7 +337,7 @@ jump (char *target, char type, float sampling_rate)
 	{
 	  //point = strstr (target + 1, "\n+") + 1;	//point to +
           //for (x=0;x<4;x++)
-        point = strchr (point, '\n') + 1; 
+        point = strchr (target, '\n') + 1; 
         point = strchr (point, '\n') + 1; 
         point = strchr (point, '\n') + 1; 
 	point = strchr (point, '\n') + 1;	//point to quality line
