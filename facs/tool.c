@@ -105,7 +105,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	{
 		normal_lower(start_point,length); //normalize the whole read tddo the lower case
 	}
-	
+	/*
         while (read_length > 0) 
         { 
                 if (read_length >= bl->k_mer)
@@ -140,8 +140,8 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
         {
                 return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
         }
-	
-	//return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode);
+	*/	
+	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode);
 }
 /*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
 int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
