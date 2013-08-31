@@ -128,7 +128,7 @@ bloom_check (bloom * bloom, char *str)
 int normal_lower(char *str, int length)
 {
 	char *pstr = str;
-	while(length>0)
+	while(length>=0)
 	{
 		pstr[length] = (char)tolower(pstr[length]);
 		length--;

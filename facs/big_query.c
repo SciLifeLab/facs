@@ -9,12 +9,14 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+
 #include "tool.h"
 #include "bloom.h"
 #include "check.h"
 #include "remove.h"
 #include "file_dir.h"
 #include "big_query.h"
+#include "remove.h"
 
 #ifndef __clang__
   // openMP not yet ported to clang: http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU
@@ -36,7 +38,7 @@ query_usage (void)
   fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
            query file\n");
   fprintf (stderr, "\n");
-  return 1;
+  exit(1);
 }
 
 
@@ -107,7 +109,8 @@ int bq_main (int argc, char **argv)
 char *query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
 {
   gzFile zip = NULL;
-  int type = 0, normal = 0;
+  char type = '@';
+  int normal = 0;
   BIGCAST offset = 0;
   char *position = NULL;
 
@@ -141,9 +144,9 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
           exit(EXIT_FAILURE);
   }
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
-    type = 2;
+    type = '@';
   else
-    type = 1;
+    type = '>';
 
   if (normal == 0)
     position = (char *) calloc ((ONEG + 1), sizeof (char));
@@ -151,21 +154,20 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
     {
 
       if (normal == 1)
-	{
+      {
 	  position = mmaping (query);
 	  offset = -1;
-	}
+      }
       else
-	{
+      {
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
-	}
-      //offset = CHUNKer (zip, offset, ONEG, position, type);
+      }
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
       head->next = tail;
       Queue *head2 = head;
-      get_parainfo (position, head);
+      get_parainfo (position, head, type);
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -176,14 +178,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	      {
 		if (head->location != NULL)
 		  {
-		    if (type == 1)
-		    {
-			    fasta_process (bl_2, head, tail, File_head, sampling_rate, tole_rate);
-		    } 
-		    else
-		    {
-			    fastq_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode);
-		    }
+			    read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode, type);
 		  }
 	      }
 	      head = head->next;
@@ -209,14 +204,18 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   clean_list (head2, tail);
   if (mode == 'r')
   {	
-		if (target_path!=NULL)
-		{
-      			save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
-  		}
-		else
-		{
-			write_default(re_clean(), re_contam(), offset);
-		}
+	if (target_path!=NULL)
+	{
+      		save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
+  	}
+	else
+	{
+		write_default(re_clean(), re_contam(), offset);
+	}
+	if (offset == -1)
+	{
+		reset_string();
+	}
   }
   }				//end while
   
@@ -228,8 +227,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   return report(File_head, query, report_fmt, target_path);
 }
 
-char *
-strrstr (char *s, char *str)
+char *strrstr (char *s, char *str)
 {
   char *p;
   int len = strlen (s);
@@ -241,8 +239,7 @@ strrstr (char *s, char *str)
   return NULL;
 }
 
-void
-clean_list (Queue * head, Queue * tail)
+void clean_list (Queue * head, Queue * tail)
 {
   Queue *element;
   while (head != tail)
@@ -256,23 +253,16 @@ clean_list (Queue * head, Queue * tail)
 }
 
 
-BIGCAST
-CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, int type)
+BIGCAST CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
 {
-  char c, v;
+  char c;
   char *pos = NULL;
   int length = 0;
-
-  if (type == 2)
-    v = '@';
-  else
-    v = '>';
-
   if (offset == 0)
     while (offset < 10 * ONE)
       {
 	c = gzgetc (zip);
-	if (c == v)
+	if (c == type)
 	  break;
 	offset++;
       }
@@ -285,7 +275,7 @@ CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, int type)
 
   if (length >= chunk)
     {
-      if (type == 2)
+      if (type == '@')
 	{
 	  pos = strrstr (data, "\n+");
 	  pos = bac_2_n (pos - 1);
@@ -308,9 +298,7 @@ CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, int type)
   return offset;
 }
 
-BIGCAST
-CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra,
-	 int type)
+BIGCAST CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra, char type)
 {
   memset (position, 0, chunk);
   char c, *position2 = position;
@@ -320,7 +308,7 @@ CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra,
     while (offset < 10 * ONE)
       {
 	c = gzgetc (zip);
-	if ((c == '@' && type == 2) && (c == '>' && type == 1))
+	if (c == type)
 	  break;
 	offset++;
       }
@@ -344,8 +332,7 @@ CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra,
   return offset;
 }
 
-char *
-bac_2_n (char *filename)
+char *bac_2_n (char *filename)
 {
   while (*filename != '\n')
     filename--;
