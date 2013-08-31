@@ -180,7 +180,7 @@ fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
 
 char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
-  char buffer[100] = {0};
+  static char buffer[800] = {0};
   static char timestamp[40] = {0};
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
@@ -189,7 +189,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
       exit(EXIT_FAILURE);
   } else if(!strcmp(fmt, "json")) {
       isodate(timestamp);
-      fprintf(buffer,
+      snprintf(buffer, sizeof(buffer),
 "{\n"
 "\t\"timestamp\": \"%s\",\n"
 "\t\"sample\": \"%s\",\n"
@@ -197,14 +197,14 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 "\t\"total_read_count\": %lld,\n"
 "\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"contamination_rate\": %f\n}"
-,  timestamp, query, File_head->filename,
+"\t\"contamination_rate\": %f\n"
+"}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         contamination_rate);
 
   // TSV output format
   } else if (!strcmp(fmt, "tsv")) {
-      fprintf(buffer,
+      sprintf(buffer,
 "sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
