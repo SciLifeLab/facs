@@ -19,7 +19,7 @@
 #include "remove.h"
 #include "remove_l.h"
 #include "file_dir.h"
-
+#include "big_query.h"
 #ifndef __clang__
 #include<omp.h>
 //#include<mpi.h>
@@ -41,10 +41,10 @@ remove_usage (void)
   exit (1);
 }
 
-char *remove_main (int argc, char **argv)
+int remove_main (int argc, char **argv)
 {
   if (argc < 2)
-  	remove_usage ();
+  	return remove_usage ();
 /*-------defaults for bloom filter building-------*/
   int opt;
   float tole_rate = 0;
@@ -77,10 +77,10 @@ char *remove_main (int argc, char **argv)
           (optarg) && (report_fmt = optarg, 1);
           break;
 	case 'h':
-	  remove_usage ();
+	  return remove_usage ();
 	default:
 	  printf ("Unknown option: -%c\n", (char) optopt);
-	  remove_usage ();
+	  return remove_usage ();
 	}
     }
 
@@ -89,7 +89,9 @@ char *remove_main (int argc, char **argv)
       fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
       exit (-1);
     }
-   return query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
+  char *result = query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
+  printf("%s\n",result);
+  return 1;
 }
 
 /*-------------------------------------*/

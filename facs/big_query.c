@@ -12,6 +12,7 @@
 #include "tool.h"
 #include "bloom.h"
 #include "check.h"
+#include "remove.h"
 #include "file_dir.h"
 #include "big_query.h"
 
@@ -39,10 +40,10 @@ query_usage (void)
 }
 
 
-char *bq_main (int argc, char **argv)
+int bq_main (int argc, char **argv)
 {
   if (argc < 3)
-    query_usage();
+    return query_usage();
 
 /*-------defaults for bloom filter building-------*/
   int opt;
@@ -79,12 +80,12 @@ char *bq_main (int argc, char **argv)
 	  report_fmt = optarg;
 	  break;
 	case 'h':
-	  query_usage();
-      break;
+	  return query_usage();
+      	  break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
-	  query_usage();
-      break;
+	  return query_usage();
+      	  break;
 	}
   }
 
@@ -98,7 +99,9 @@ char *bq_main (int argc, char **argv)
 	{
       		target_path = argv[0];
  	}  //set default path, which is where the binary file is.
-  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
+  char *result = query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
+  printf("%s\n",result);
+  return 1;
 }
 
 char *query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
