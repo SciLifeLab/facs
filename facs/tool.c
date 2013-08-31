@@ -98,7 +98,6 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		rev_trans (begin,length);
 	}
 	// initialization
-	int result;
 	int read_length = length;
 	char *start_point = begin;
 	if (mode == 'n')

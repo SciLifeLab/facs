@@ -123,57 +123,6 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	}	// outside while
 }
 /*-------------------------------------*/
-<<<<<<< HEAD
-void
-fasta_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head,
-	       float sampling_rate, float tole_rate)
-{
-#ifdef DEBUG
-  printf ("fasta processing...\n");
-#endif
-  char *temp_next, *next, *temp;
-
-  if (info->location == NULL)
-    return;
-  else if (info->next != tail)
-    next = info->next->location;
-  else{
-      next = strchr (info->location, '\0');
-      //if ((next-1)=='\n')
-      //next -= 1;
-      if ((next[-1]) == '\n' && next[-2] == '\n')
-	next -= 1;
-      else if (next[-4] == '\r' && next[-3] == '\n')
-	next -= 2;
-  }
-
-  char *p = info->location;
-
-  while (p != next) {
-      temp = jump (p, 1, sampling_rate);	// generate random number and judge
-                                            // if need to scan this read
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-#pragma omp atomic
-      File_head->reads_num++;
-      temp_next = strchr (p + 1, '>');
-
-      if (!temp_next)
-        temp_next = next;
-
-      if (fasta_read_check (p, temp_next, 'n', bl, tole_rate, File_head) > 0) {
-#pragma omp atomic
-	    File_head->reads_contam++;
-	  }
-
-      p = temp_next;
-    }
-}
-}
-
-
 char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
   static char buffer[800] = {0};
