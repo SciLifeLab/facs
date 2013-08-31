@@ -119,6 +119,7 @@ extern int is_prime (BIGNUM m);
 extern void get_rec (struct bloomstat *stat);
 extern BIGNUM report_capacity (bloom * bloom);
 
+extern void write_default (char *clean, char *contam, BIGCAST sign);
 extern void write_result (char *filename, char *detail);
 extern void build_help (void);
 extern void check_help (void);
@@ -132,5 +133,5 @@ extern void rev_trans (char *s, int length);
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
 extern char *prefix_make (char *filename, char *prefix, char *target);
-extern int normal_lower(char *str, int length);
+extern void normal_lower(char *str, int length);
 #endif

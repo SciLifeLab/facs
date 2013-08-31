@@ -18,9 +18,10 @@
 #include "remove.h"
 #include "remove_l.h"
 #include "file_dir.h"
+#include "big_query.h"
 
 #ifndef __clang__
-#include<omp.h>
+#include <omp.h>
 #endif
 
 char *clean_l, *contam_l, *clean_l2, *contam_l2;
@@ -44,8 +45,9 @@ remove_l (char *source, char *ref, char *list, char *prefix)
 {
 /*-------------------------------------*/
   char *position;
-  int type = 1;
+  char type = '\0';
   float tole_rate = 0;
+  double sampling_rate = 1;
   clean_l2 = clean_l;
   contam_l2 = contam_l;
 /*-------------------------------------*/
@@ -62,7 +64,7 @@ remove_l (char *source, char *ref, char *list, char *prefix)
   F_set *File_head2 = File_head;
 
   position = mmaping (source);
-  type = get_parainfo (position, head);
+  type = get_parainfo (position, head,'@');
   clean_l = (char *) malloc (strlen (position) * sizeof (char));
   contam_l = (char *) malloc (strlen (position) * sizeof (char));
   while (File_head)
@@ -81,11 +83,7 @@ remove_l (char *source, char *ref, char *list, char *prefix)
 	      {
 		if (head->location)
 		  {
-		    //printf("location->%0.20s\n",head->location);
-		    if (type == 1)
-		      fasta_process_m (bl_2, head, tail, tole_rate, File_head, 1);
-		    else
-		      fastq_process_m (bl_2, head, tail, tole_rate, File_head, 1);
+			read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, 'r', type);
 		  }
 	      }
 	      head = head->next;
@@ -143,7 +141,7 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
   int countup;
   Queue *head;
   printf ("clean_l->%s\n", clean_l);
-  save_result (source, File_head2->filename, 0, prefix, clean_l, clean_l2, contam_l, contam_l2);	// save the clean_l data
+  save_result (source, File_head2->filename, 0, prefix, clean_l2,  contam_l2);	// save the clean_l data
   free (clean_l2);
 
   printf ("1_dollar_%s\n", File_head2->filename);
@@ -185,7 +183,7 @@ all_save (F_set * File_head2, Queue * head2, Queue * tail, char *source,
 	}
       memset (clean_l2, 0, strlen (position));
       memset (contam_l2, 0, strlen (position));
-      save_result (source, File_head2->filename, 0, prefix, clean_l, clean_l2, contam_l, contam_l2);
+      save_result (source, File_head2->filename, 0, prefix, clean_l2, contam_l2);
       File_head2 = File_head2->next;
     }
 }

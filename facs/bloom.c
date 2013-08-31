@@ -125,10 +125,10 @@ bloom_check (bloom * bloom, char *str)
   return result;
 }
 
-int normal_lower(char *str, int length)
+void normal_lower(char *str, int length)
 {
 	char *pstr = str;
-	while(length>0)
+	while(length>=0)
 	{
 		pstr[length] = (char)tolower(pstr[length]);
 		length--;
@@ -423,19 +423,33 @@ load_bloom (char *filename, bloom * bl)
   return ret;
 }
 
-void
-write_result (char *filename, char *detail)
+void write_default (char *clean, char *contam, BIGCAST sign)
 {
-  int fd;
-
-  fd = open (filename, O_CREAT | O_RDWR, S_IRWXU);
-  if (write (fd, detail, strlen (detail)) < 0)
-    {
-      perror (" error writing result file ");
-      exit (EXIT_FAILURE);
-    }
-
-  close (fd);
+	if (sign==-1)
+	{
+		fprintf(stdout,"%s",clean);
+		fprintf(stderr,"%s",contam);
+	}
+	else
+	{
+		fprintf(stdout,"%s\n",clean);
+		fprintf(stderr,"%s\n",contam);
+	}
+}
+void write_result (char *filename, char *detail)
+{
+	FILE *fd;
+	fd = fopen(filename,"a+");
+	if (fd == NULL)
+	{
+		perror (" error writing result file ");
+      		exit (EXIT_FAILURE);
+	}
+	if (feof(fd)==0)
+		fprintf(fd, "%s", detail);  //first time writing data into files normal case
+	else
+		fprintf(fd, "\n%s",detail); //not first time writing stuff into files, add an extra '\n'
+	fclose(fd);
 }
 
 void rev_trans (char *s, int length)

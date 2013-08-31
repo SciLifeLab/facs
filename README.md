@@ -107,7 +107,6 @@ organism    bloom_filter    total_read_count    contaminated_reads  contaminatio
 test200.fastq   eschColi_K12.bloom  201 1   0.004975
 ```
 
-
 Finally, if one wants to remove those reads from the sample, one should run the following
 command:
 
@@ -115,11 +114,18 @@ command:
 $ ./facs remove -r ecoli.bloom -q contaminated_sample.fastq
 ```
 
-Two output files will be generated:
+Output:
+By using stdout and stderr, clean sequences will be stored in stdout, contaminated sequences
+will be stored in stderr. They can be stored into specific files, for instance:
+
+```
+$./facs remove -r ecoli.bloom -q contaminated_sample.fastq > clean_part.fastq >& contaminated_part.fastq
+```
+
+If output_path '-o' is specified, two output files will be generated:
 
 `contaminated_sample_ecoli_contam.fastq`
 `contaminated_sample_ecoli_clean.fastq`
-
 
 Python interface
 ----------------
