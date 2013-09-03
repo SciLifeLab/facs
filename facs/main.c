@@ -26,9 +26,9 @@ usage (void)
   fprintf (stderr,
 	   "         query         query a Bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
   fprintf (stderr,
-	   "         remove        mode 0 (-m 0): remove (contamination) sequences from FASTQ/FASTA file\n");
+	   "         remove        remove (contamination) sequences from FASTQ/FASTA file\n");
   fprintf (stderr,
-	   "         remove        mode 1 (-m 1): classify reads to the most likely reference genomes\n");
+	   "         classify      classify reads to the most likely reference genomes\n");
   fprintf (stderr, "\n");
   return 1;
 }
@@ -38,7 +38,6 @@ int
 main (int argc, char **argv)
 {
   int ret = 0;
-  char* out = NULL;
 
   if (argc < 2)
     return usage ();
@@ -46,8 +45,7 @@ main (int argc, char **argv)
   if (strcmp (argv[1], "build") == 0)
     ret = build_main (argc-1, argv+1);
   else if (strcmp (argv[1], "query") == 0){
-    out = bq_main (argc-1, argv+1);
-    printf("%s\n", out);
+    ret = bq_main (argc-1, argv+1);
   } else if (strcmp (argv[1], "remove") == 0)
     ret = remove_main (argc-1, argv+1);
   //else if (strcmp (argv[1], "classify") == 0)

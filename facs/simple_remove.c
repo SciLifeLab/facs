@@ -14,47 +14,48 @@
 #include<sys/types.h>
 
 #include "tool.h"
+#include "check.h"
 #include "bloom.h"
 #include "remove.h"
 #include "remove_l.h"
+#include "big_query.h"
 #include "file_dir.h"
-
+#include "big_query.h"
 #ifndef __clang__
 #include<omp.h>
-#endif
 //#include<mpi.h>
+#endif
 
-char *clean, *contam;
+char *clean, *contam, *clean2, *contam2;
 
 static int
 remove_usage (void)
 {
   fprintf (stderr, "\nUsage: ./facs remove [options]\n");
   fprintf (stderr, "Options:\n");
-  fprintf (stderr, "\t-m mode to choose. 0 or 1\n");
   fprintf (stderr, "\t-r reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
   fprintf (stderr,
 	   "\t-l input list containing all Bloom filters, one per line\n");
   fprintf (stderr, "\t-t threshold value\n");
   fprintf (stderr, "\n");
-  return 1;
+  exit (1);
 }
 
-int
-remove_main (int argc, char **argv)
+int remove_main (int argc, char **argv)
 {
   if (argc < 2)
-    return remove_usage ();
+  	return remove_usage ();
 /*-------defaults for bloom filter building-------*/
   int opt;
-  int mode = 0;
   float tole_rate = 0;
+
   char *ref = NULL;
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  while ((opt = getopt (argc, argv, "t:r:o:q:l:m::h")) != -1)
+  char *report_fmt = NULL;
+  while ((opt = getopt (argc, argv, "l:t:r:o:q:f:h")) != -1)
     {
       switch (opt)
 	{
@@ -71,11 +72,11 @@ remove_main (int argc, char **argv)
 	  (optarg) && (ref = optarg, 1);
 	  break;
 	case 'l':
-	  (optarg) && (list = optarg, 1);
+	  (optarg) && ((list = optarg), 1);
 	  break;
-	case 'm':
-	  (optarg) && ((mode = atoi(optarg)), 1);
-	  break;
+        case 'f': // "json", "tsv" or none
+          (optarg) && (report_fmt = optarg, 1);
+          break;
 	case 'h':
 	  return remove_usage ();
 	default:
@@ -89,254 +90,13 @@ remove_main (int argc, char **argv)
       fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
       exit (-1);
     }
-  if (mode == 0)
-      return remove_reads (source, ref, list, target_path, tole_rate);
-  else
-      return remove_l (source, ref, list, target_path );
-}
-
-int
-remove_reads (char *source, char *ref, char *list, char *prefix, float tole_rate)
-{
-  int type = 0;
-  char *position;
-  char *clean2;
-  char *contam2;
-  
-  bloom *bl_2 = NEW (bloom);
-  Queue *head = NEW (Queue);
-  head->location = NULL;
-  Queue *tail = NEW (Queue);
-  head->next = tail;
-  Queue *head2 = head;
-  position = mmaping (source);
-
-  type = get_parainfo (position, head);
-  F_set *File_head = NEW (F_set);
-  File_head = make_list (ref, list);
-  
-  //position = mmaping (source);
-  //type = get_parainfo (position, head);
-  clean = (char *) calloc (strlen (position), sizeof (char));
-  contam = (char *) calloc (strlen (position), sizeof (char));
-  clean2 = clean;
-  contam2 = contam;
-  
-  while (File_head)
-    {
-      memset (clean2, 0, strlen (position));
-      memset (contam2, 0, strlen (position));
-      clean = clean2;
-      contam = contam2;
-      load_bloom (File_head->filename, bl_2);
-
-      if (tole_rate == 0)
-        tole_rate = mco_suggestion (bl_2->k_mer);
-
-#pragma omp parallel
-      {
-#pragma omp single nowait
-	{
-	  while (head != tail)
-	    {
-#pragma omp task firstprivate(head)
-	      {
-		if (head->location != NULL)
-		  {
-		    if (type == 1)
-		      fasta_process_m (bl_2, head, tail, tole_rate,
-				       File_head,0);
-		    else
-		      fastq_process_m (bl_2, head, tail, tole_rate,
-				       File_head,0);
-		  }
-	      }
-	      head = head->next;
-	    }
-	}			// End of single - no implied barrier (nowait)
-      }				// End of parallel region - implied barrier
-      save_result (source, File_head->filename, type, prefix, clean, clean2, contam, contam2);
-      File_head = File_head->next;
-      head = head2;
-      bloom_destroy (bl_2);
-    }				//end while
-  munmap (position, strlen (position));
-  printf ("finish processing...\n");
-  return 0;
+  char *result = query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
+  printf("%s\n",result);
+  return 1;
 }
 
 /*-------------------------------------*/
-void
-fastq_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head, int type)
-{
-
-  int read_num = 0, read_contam = 0, countup = 0;
-  char *p = info->location;
-  char *next, *temp_start, *temp_end, *temp_piece = NULL;
-
-  if (info->next == NULL)
-    return;
-  else if (info->next != tail)
-    next = info->next->location;
-  else
-    {
-      next = strchr (p, '\0');
-      if ((next[-1]) == '\n' && next[-2] == '\n')
-	next -= 1;
-      else if (next[-4] == '\r' && next[-3] == '\n')
-	next -= 2;
-    }
-
-  if (type == 1)
-	if (info->score == NULL)
-    	{
-         read_num = count_read (p, next, 2);
-         info->score = (short *) malloc (read_num * sizeof (short));
-         info->number = (short *) malloc (read_num * sizeof (short));
-    	}
-
-  while (p != next)
-    {
-
-      read_num++;
-
-      temp_start = p;
-
-      if (p == '\0' || p == NULL)
-	break;
-
-      p = strchr (p, '\n') + 1;
-
-      temp_end = strchr(p,'\n')+1;
-      temp_end = strchr(temp_end,'\n')+1;
-      temp_end = strchr(temp_end,'\n');
-      //temp_end = strstr (p, "\n@");
-
-      if (!temp_end)
-	temp_end = strchr (p, '\0');
-      int result =
-	fastq_read_check (p, strchr (p, '\n') - p, 'n', bl, tole_rate, File_head);
-
-      if (result == 0)
-	{
-#pragma omp critical
-	  {
-	    memcpy (clean, temp_start, temp_end - temp_start);
-	    clean += (temp_end - temp_start);
-	    if (*temp_end != '\0')
-	      {
-		clean[0] = '\n';
-		clean++;
-	      }
-	  }
-	}
-      else if (result > 0)
-	{
-#pragma omp critical
-	  {
-	    read_contam++;
-	    memcpy (contam, temp_start, temp_end - temp_start);
-	    contam += (temp_end - temp_start);
-	    if (*temp_end != '\0')
-	      {
-		contam[0] = '\n';
-		contam++;
-	      }
-	  }
-	}
-	if (type == 1)
-      		if (info->score[countup] < result)
-	  	   {
-	    	    info->score[countup] = result;	//record score 
-	    	    info->number[countup] = File_head->number;	//record bloom number
-	           }
-
-      if (*temp_end == '\0')
-	break;
-
-      p = temp_end + 1;
-      countup++;
-    }				// outside while
-//free(key);
-  if (temp_piece)
-    free (temp_piece);
-}
-
-/*-------------------------------------*/
-void
-fasta_process_m (bloom * bl, Queue * info, Queue * tail, float tole_rate, F_set * File_head, int type)
-{
-  //printf ("fasta processing...\n");
-
-  int read_num = 0, read_contam = 0, countup = 0;
-
-  char *p = info->location;
-
-  char *next;
-
-  char *temp = p;
-
-  if (info->next == NULL)
-    return;
-  else if (info->next != tail)
-    next = info->next->location;
-  else
-    {
-      next = strchr (p, '\0');
-      if ((next[-1]) == '\n' && next[-2] == '\n')
-	next -= 1;
-      else if (next[-4] == '\r' && next[-3] == '\n')
-	next -= 2;
-    }
-
-  if (type == 1)
-	if (info->score == NULL)
-    	{
-         read_num = count_read (p, next, 2);
-         info->score = (short *) malloc (read_num * sizeof (short));
-         info->number = (short *) malloc (read_num * sizeof (short));
-    	}
-
-  while (p != next)
-    {
-      read_num++;
-      temp = strchr (p + 1, '>');
-      if (!temp)
-	temp = next;
-
-      int result = fasta_read_check (p, temp, 'n', bl, tole_rate, File_head);
-      if (result == 0)
-	{
-#pragma omp critical
-	  {
-	    memcpy (clean, p, temp - p);
-	    clean += (temp - p);
-	  }
-	}
-      else if (result > 0)
-	{
-#pragma omp critical
-	  {
-	    read_contam++;
-	    memcpy (contam, p, temp - p);
-	    contam += (temp - p);
-	  }
-	}
-	if (type == 1)
-      		if (info->score[countup] < result)
-	  	   {
-	    	    info->score[countup] = result;	//record score 
-	    	    info->number[countup] = File_head->number;	//record bloom number
-	           }
-	countup++;
-      p = temp;
-    }
-  //printf ("all->%d\ncontam->%d\n", read_num, read_contam);
-}
-
-/*-------------------------------------*/
-void
-save_result (char *source, char *obj_file, int type, char *prefix,char *clean, char *clean2, char *contam, char *contam2)
+void save_result (char *source, char *obj_file, char type, char *prefix, char *clean2, char *contam2)
 {
   printf ("source->%s\n", source);
   printf ("obj_file->%s\n", obj_file);
@@ -394,7 +154,7 @@ save_result (char *source, char *obj_file, int type, char *prefix,char *clean, c
   strcat (match, "_contam");
   strcat (mismatch, "_clean");
 
-  if (type == 1)
+  if (type == '>')
     {
       strcat (match, ".fasta");
       strcat (mismatch, ".fasta");
@@ -408,10 +168,11 @@ save_result (char *source, char *obj_file, int type, char *prefix,char *clean, c
   printf ("mis->%s\n", mismatch);
   write_result (match, contam2);
   write_result (mismatch, clean2);
+  memset(contam2,0,strlen(contam2));
+  memset(clean2,0,strlen(clean2));
   free (match);
   free (mismatch);
   free (so_name);
   free (obj_name);
 }
-
 /*-------------------------------------*/
