@@ -95,7 +95,6 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 			result = fasta_read_check (start_point, temp_next-start_point, 'n', bl, tole_rate, File_head);
 			start_point = temp_next;
 		}
-		printf("%0.10s<--->%0.10s\n",previous_point,start_point);
 		if (result>0)
 		{
 		
