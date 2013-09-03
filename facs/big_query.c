@@ -79,7 +79,7 @@ int bq_main (int argc, char **argv)
 	  list = optarg;
 	  break;
 	case 'f': // "json", "tsv" or none
-	  report_fmt = optarg;
+	  (optarg) && (report_fmt = optarg, 1);
 	  break;
 	case 'h':
 	  return query_usage();
