@@ -425,8 +425,8 @@ char *get_right_sp (char *start_point ,char type)
 /*count useful characters for fasta reads*/
 char *fa_count (char *start, int length)
 {
-	char *tequila_is_my_lady = (char *) calloc (length+1, sizeof(char));
-	char *p = tequila_is_my_lady;
+	char *reads = (char *) calloc (length+1, sizeof(char));
+	char *p = reads;
 	// conservatively allocate memory
 	while (length>0)
 	{
@@ -439,5 +439,5 @@ char *fa_count (char *start, int length)
 		length--;
 	} 
 	p[0] = '\0';
-	return tequila_is_my_lady;
+	return reads;
 }
