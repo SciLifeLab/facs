@@ -48,7 +48,7 @@ void isodate(char* buf) {
     sprintf(buf, "%s", timestamp);
 }
 /*sub function for quick pass*/
-int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, int read_length, int true_length, float tole_rate, char mode)
+int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, int read_length, int true_length, float tole_rate, char mode, char type)
 {
 	int result = 0;
 	while (read_length > 0)
@@ -83,8 +83,11 @@ int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, 
         }
         else
         {
-                return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
-        }
+		if (type=='q')
+                	return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
+        	else
+			return fasta_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
+	}
 }
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
@@ -140,7 +143,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
                 return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
         }
 	*/	
-	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode);
+	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode, 'q');
 }
 /*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
 int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
@@ -254,7 +257,7 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
                 return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
         }
 	*/
-	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode);
+	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode, 'a');
 }
 /*Parallel job distribution*/
 int
@@ -270,6 +273,7 @@ get_parainfo (char *full, Queue * head, char type)
 #else
 	  int cores = 1;
 #endif
+	cores =1;
       short add = 0;
       int offset = 0;
 	  Queue *pos = head;
