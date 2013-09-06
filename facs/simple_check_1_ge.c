@@ -94,10 +94,10 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 				temp_next = next_job;
 			result = fasta_read_check (start_point, temp_next-start_point, 'n', bl, tole_rate, File_head);
 			start_point = temp_next;
-			//printf("%0.10s<--->%0.10s\n",start_point,temp_next);
 		}
 		if (result>0)
 		{
+		
                 	 #pragma omp atomic
                          File_head->reads_contam++;
 			 if (mode == 'r')

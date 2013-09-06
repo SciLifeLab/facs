@@ -79,7 +79,7 @@ int bq_main (int argc, char **argv)
 	  list = optarg;
 	  break;
 	case 'f': // "json", "tsv" or none
-	  report_fmt = optarg;
+	  (optarg) && (report_fmt = optarg, 1);
 	  break;
 	case 'h':
 	  return query_usage();
@@ -123,8 +123,8 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
   if (tole_rate == 0)
   	tole_rate = mco_suggestion (bl_2->k_mer); // suggest an optimal match cut-off
-//  if (mode == 'r')
-// 	init_string(1); // initialize strings for containing reads
+  if (mode == 'r')
+ 	init_string(ONEG); // initialize strings for containing reads
 /*
   if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz") && !strstr (query, ".tar"))
         normal = 0;

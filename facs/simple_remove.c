@@ -54,7 +54,7 @@ int remove_main (int argc, char **argv)
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  char *report_fmt = NULL;
+  char *report_fmt = "json";
   while ((opt = getopt (argc, argv, "l:t:r:o:q:f:h")) != -1)
     {
       switch (opt)
