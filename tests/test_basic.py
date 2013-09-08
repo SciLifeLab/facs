@@ -58,7 +58,9 @@ class FacsBasicTest(unittest.TestCase):
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
-	os.system("ln -s /usr/lib/libssl.so.0.9.8 /usr/lib/libssl.so.10")
+	os.system("ls")
+	os.system("/home/travis/build/SciLifeLab/facs/tests/data/bin/twoBitToFa");
+	#os.system("ln -s /usr/lib/libssl.so.0.9.8 /usr/lib/libssl.so.10")
 	#os.system("sudo ln -s /lib/libcrypto.so.0.9.8 /lib/libcrypto.so.10");
         for ref in os.listdir(self.reference):
             org = os.path.join(self.reference, ref, "seq", ref+".fa")
