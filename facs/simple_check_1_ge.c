@@ -22,32 +22,32 @@
 #ifndef __clang__ 
 #include <omp.h>
 #endif
-char *clean, *contam, *clean2, *contam2;
+char *_clean, *_contam, *_clean2, *_contam2;
 
 /*save it for the possible advanced version*/
 
 void init_string(int chunk)
 {
-	clean = (char *) calloc (chunk, sizeof (char));
-	contam = (char *) calloc (chunk, sizeof (char));
-	clean2 = clean;
-	contam2 = contam;
+	_clean = (char *) calloc (chunk, sizeof (char));
+	_contam = (char *) calloc (chunk, sizeof (char));
+	_clean2 = _clean;
+	_contam2 = _contam;
 }
 
 char *re_clean()
 {
-	return clean2;
+	return _clean2;
 }
 
 char *re_contam()
 {
-	return contam2;
+	return _contam2;
 }
 
 void reset_string()
 {
-	memset(clean2,0,strlen(clean2));
-	memset(contam2,0,strlen(contam2));
+	memset(_clean2,0,strlen(_clean2));
+	memset(_contam2,0,strlen(_contam2));
 }
 void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
 {
@@ -104,8 +104,8 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 			 	{
 				#pragma omp critical
 					{
-						memcpy(contam,previous_point,start_point-previous_point);
-						contam+=(start_point-previous_point);
+						memcpy(_contam,previous_point,start_point-previous_point);
+						_contam+=(start_point-previous_point);
 					}
 				}
 		}
@@ -115,8 +115,8 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 				{
 				#pragma omp critical
 					{
-                                        	memcpy(clean,previous_point,start_point-previous_point);
-                                        	clean+=(start_point-previous_point);
+                                        	memcpy(_clean,previous_point,start_point-previous_point);
+                                        	_clean+=(start_point-previous_point);
 					}
 				}
 		}
@@ -127,7 +127,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 {
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
-  float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
+  float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
 
   if(!fmt){
       fprintf(stderr, "Output format not specified\n");
@@ -140,20 +140,20 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 "\t\"sample\": \"%s\",\n"
 "\t\"bloom_filter\": \"%s\",\n"
 "\t\"total_read_count\": %lld,\n"
-"\t\"contaminated_reads\": %lld,\n"
+"\t\"_contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"contamination_rate\": %f\n"
+"\t\"_contamination_rate\": %f\n"
 "}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
-        contamination_rate);
+        _contamination_rate);
 
   // TSV output format
   } else if (!strcmp(fmt, "tsv")) {
       sprintf(buffer,
-"sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
+"sample\tbloom_filter\ttotal_read_count\t_contaminated_reads\t_contamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
-                            contamination_rate);
+                            _contamination_rate);
   }
   return buffer;
 }
