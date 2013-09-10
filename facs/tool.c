@@ -273,7 +273,6 @@ get_parainfo (char *full, Queue * head, char type)
 #else
 	  int cores = 1;
 #endif
-	cores =1;
       short add = 0;
       int offset = 0;
 	  Queue *pos = head;

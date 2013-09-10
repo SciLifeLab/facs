@@ -152,7 +152,6 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
     position = (char *) calloc ((ONEG + 1), sizeof (char));
   while (offset != -1)
     {
-
       if (normal == 1)
       {
 	  position = mmaping (query);
