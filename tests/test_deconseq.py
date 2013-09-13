@@ -126,17 +126,44 @@ class FastqScreenTest(unittest.TestCase):
             self.databases.append(("DATABASE", ref, bwt_index))
 
         self.config = """
-BOWTIE\t\t{bowtie}
-THREADS\t\t8\n
-""".format(bowtie="bowtie")
-
+package DeconSeqConfig;\n
+use strict;\n
+use constant DEBUG => 0;\n
+use constant PRINT_STUFF => 1;\n
+use constant VERSION => '0.4.3';\n
+use constant VERSION_INFO => 'DeconSeq version '.VERSION;\n
+use constant ALPHABET => 'ACGTN';\n
+use constant DB_DIR => 'db/';\n
+use constant TMP_DIR => 'tmp/';\n
+use constant OUTPUT_DIR => '/proj/b2012037/private/datasets/';\n
+use constant PROG_NAME => 'bwa64';  use constant PROG_DIR => './';\n
+use constant DBS => {\n
+"""
+#header
         for db in range(len(self.databases)):
-            self.config_dbs = """
-{database}\t{short_name}\t{full_path}
-""".format(database=self.databases[db][0], short_name=self.databases[db][1],
-           full_path=self.databases[db][2])
-
-            self.config=self.config+self.config_dbs
+            self.config_dbs = self.databases[db][0]+"=>"+"{name=>"+"\'"+"self.databases[db][0]"+"\'"+",db=>"+'\''+self.databases[db]+'\''+",parts=>1},"
+#database
+	self.config_end = """
+};\n
+use base qw(Exporter);\n
+use vars qw(@EXPORT);\n
+@EXPORT = qw(\n
+             DEBUG\n
+             PRINT_STUFF\n
+             VERSION\n
+             VERSION_INFO\n
+             ALPHABET\n
+             PROG_NAME\n
+             PROG_DIR\n
+             DB_DIR\n
+             TMP_DIR\n
+             OUTPUT_DIR\n
+             DBS\n
+             DB_DEFAULT\n
+             );\n
+1;\n
+"""
+            self.config=self.config+self.config_dbs+self.config_end
         return self.config
 
     def prepare_local_perl():
