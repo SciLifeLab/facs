@@ -24,7 +24,7 @@ class FastqScreenTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
 
-        self.fscreen_url = 'http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/fastq_screen_v0.4.tar.gz'
+        self.deconseq_url = 'http://sourceforge.net/projects/deconseq/files/standalone/deconseq-standalone-0.4.3.tar.gz/download'
 
         helpers._mkdir_p(self.tmp)
 
@@ -37,7 +37,7 @@ class FastqScreenTest(unittest.TestCase):
 
     def tearDown(self):
         # cleanup .tar.gz, decompressed folder and tmp
-        fname, dirname, _ = helpers._get_expected_file(self.fscreen_url)
+        fname, dirname, _ = helpers._get_expected_file(self.deconseq_url)
         try:
             shutil.rmtree(dirname)
             os.remove(fname)
@@ -45,55 +45,48 @@ class FastqScreenTest(unittest.TestCase):
         except:
             pass
 
-    def test_1_fetch_fastqscreen(self):
-        """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
+    def test_1_fetch_deconseq(self):
+        """Downloads and installs deconseq locally, generates DeconSeq_conf.pm file
         """
         #self.assertTrue(self._is_bowtie_present())
         # Does not work @UPPMAX, maybe some env var tweaked by the module system?
         # ... works elsewhere.
 
-        dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
-        self._fetch_bowtie_indices()
+        dirname, fname = helpers._fetch_and_unpack(self.deconseq_url)
+        #self._fetch_bowtie_indices()
 
-        fscreen_src = os.path.join(dirname, "fastq_screen")
-        fscreen_dst = os.path.join(self.progs, "fastq_screen")
+        deconseq_src = os.path.join(dirname, "deconseq")
+        deconseq_dst = os.path.join(self.progs, "deconseq.pl")
 
-        if not os.path.exists(fscreen_dst):
-            shutil.move(fscreen_path, self.progs)
+        if not os.path.exists(deconseq_dst):
+            shutil.move(deconseq_path, self.progs)
 
         # truncates config file if present, depending on present reference genomes
-        cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'w')
+        cfg = open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w')
         cfg.write(self._genconf())
         cfg.close()
 
-    def test_2_run_fastq_screen(self):
-        """Runs fastq_screen tests against synthetically generated fastq files folder
+    def test_2_run_deconseq(self):
+        """Runs deconseq tests against synthetically generated fastq files folder
         """
-        cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'rU')
-        fscreen_dst = os.path.join(self.progs, "fastq_screen")
+        cfg = open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'rU')
+        deconseq_dst = os.path.join(self.progs, "deconseq.pl")
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = [fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+            cl = [deconseq_dst, "--outdir", self.tmp, "-f",fastq_path]
             subprocess.call(cl)
 
             # Process fastq_screen results format and report it in JSON
             fastq_name = os.path.basename(fastq)
-            fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
-            fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
+            deconseq_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
+            deconseq_resfile = os.path.join(self.tmp, deconseq_name)
 
-            if os.path.exists(fastq_screen_resfile):
-                with open(fastq_screen_resfile, 'rU') as fh:
-                    print self._fastq_screen_metrics_to_json(fh, fastq_name)
+            if os.path.exists(deconseq_resfile):
+                with open(deconseq_resfile, 'rU') as fh:
+                    print self._deconseq_metrics_to_json(fh, fastq_name)
 
-    ## Aux methods for the test
-    def _is_bowtie_present(self):
-        bowtie = subprocess.Popen(['which','bowtie'], shell=True, env=env,
-                                  stdout=subprocess.PIPE).communicate()[0]
-        # XXX: Figure out why this does behave in shell but not here
-        return os.path.basename(bowtie) == "bowtie"
-
-    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name):
+    def _deconseq_metrics_to_json(self, in_handle, fastq_name):
         reader = csv.reader(in_handle, delimiter="\t")
         data = defaultdict(lambda: defaultdict(list))
 
@@ -125,11 +118,11 @@ class FastqScreenTest(unittest.TestCase):
         for ref in os.listdir(self.reference):
             # Downloads bowtie indexes genome(s)
             genomes.append(ref)
-            galaxy.rsync_genomes(self.reference, genomes, ["bowtie"])
+            galaxy.rsync_genomes(self.reference, genomes, ["bwa"])
 
     def _genconf(self):
         for ref in os.listdir(self.reference):
-            bwt_index = os.path.abspath(os.path.join(self.reference, ref, "bowtie_index", ref))
+            bwt_index = os.path.abspath(os.path.join(self.reference, ref, "bwa_index", ref))
             self.databases.append(("DATABASE", ref, bwt_index))
 
         self.config = """
