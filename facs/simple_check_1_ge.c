@@ -140,9 +140,9 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 "\t\"sample\": \"%s\",\n"
 "\t\"bloom_filter\": \"%s\",\n"
 "\t\"total_read_count\": %lld,\n"
-"\t\"_contaminated_reads\": %lld,\n"
+"\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"_contamination_rate\": %f\n"
+"\t\"contamination_rate\": %f\n"
 "}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         _contamination_rate);
@@ -150,7 +150,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
   // TSV output format
   } else if (!strcmp(fmt, "tsv")) {
       sprintf(buffer,
-"sample\tbloom_filter\ttotal_read_count\t_contaminated_reads\t_contamination_rate\n"
+"sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
                             _contamination_rate);
