@@ -48,13 +48,9 @@ def send_couchdb(server, db, user, passwd, doc):
     ''' Send JSON document to couchdb
     '''
     try:
-        db = couchdb.Database('/'.join(server, db))
-        db.resource.http.add_credentials(user, passwd)
-
-        #auth = couchdb.Session()
-        #auth.name, auth.password = user, passwd
-        #couch = couchdb.Server(server)
-        #db = couch[db]
+        couch = couchdb.Server(server)
+        couch.resource.credentials = (user, passwd)
+        db = couch[db]
         db.save(json.loads(doc))
     except:
         warnings.warn("Could not connect to {server} to report test results".format(server=server))
