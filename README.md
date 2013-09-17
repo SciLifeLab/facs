@@ -140,3 +140,24 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> facs.query("contaminated_sample.fastq.gz", "ecoli.bloom")
 >>> facs.remove("contaminated_sample.fastq", "ecoli.bloom")
 ```
+
+Update results to a database
+----------------------------
+
+FACS provides results in [JSON](http://www.json.org/) format, which eases the
+storage of these results in a CouchDB instance. To do so, you need to create a
+configuration file with the information for your CouchDB instance. 
+
+The file should be named either .facsrc or .facs.cnf and should be located in 
+your home directory. For system wide installations it can also be located at
+/etc/facs.conf.
+
+The format should be like this:
+
+```
+[facs]
+SERVER: <your server address>
+DB: <DB name>
+USER: <username>
+PASSWORD: <password>
+```
