@@ -98,9 +98,6 @@ int remove_main (int argc, char **argv)
 /*-------------------------------------*/
 void save_result (char *source, char *obj_file, char type, char *prefix, char *clean2, char *contam2)
 {
-  printf ("source->%s\n", source);
-  printf ("obj_file->%s\n", obj_file);
-  printf ("prefix->%s\n", prefix);
   char *so = NULL, *obj = NULL;
 
   char *match = (char *) calloc (4 * ONE, sizeof (char)),
@@ -136,21 +133,12 @@ void save_result (char *source, char *obj_file, char type, char *prefix, char *c
       strncat (match, source, so - source);
       strncat (mismatch, source, so - source);
     }
-  //printf ("objname->%s\n",obj_name);
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, so_name);
   strcat (mismatch, so_name);
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, "_");
   strcat (mismatch, "_");
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, obj_name);
   strcat (mismatch, obj_name);
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, "_contam");
   strcat (mismatch, "_clean");
 

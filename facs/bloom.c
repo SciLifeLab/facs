@@ -245,34 +245,19 @@ char *
 prefix_make (char *filename, char *prefix, char *target)
 {
   char *position1 = strrchr (filename, '/');
-
   char *bloom_file = (char *) calloc (1, 3*ONE * sizeof (char));
-  if (is_dir (target))
-    {
-      strcat (bloom_file, target);
-      if (position1 != NULL)
-	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
-    }
-  else if (target)
-    {
-      strcat (bloom_file, target);
-    }
-  else if (target != NULL && prefix != NULL)
-    {
-      if (position1 != NULL)
-	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
-      else
-	strncat (bloom_file, filename, strrchr (filename, '.') - filename);
-      strcat (bloom_file, ".bloom");
-      bloom_file++;
-    }
-  else
-    {
-      if (position1 != NULL)
-	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
-      else
-	strncat (bloom_file, filename, strrchr (filename, '.') - filename+1);
-    }
+  if (target)
+  {
+  	strcat (bloom_file, target);
+  }
+  if (!target || is_dir(target))
+  {
+  	if (position1 != NULL)
+  		strncat (bloom_file, position1, (strrchr (position1, '.') - position1));
+  	else
+		strncat (bloom_file, filename, strrchr (filename, '.') - filename);
+  	strcat (bloom_file,".bloom");
+  }
   return bloom_file;
 }
 
@@ -286,15 +271,6 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 #ifdef DEBUG
   printf ("Bloom file to be written in: %s\n", bloom_file);
 #endif
-  if (prefix == NULL && target == NULL)
-  {
-  	strcat (bloom_file, "bloom");
-	if (*bloom_file=='/')
-		bloom_file++;
-  }
-  else if (is_dir (target))
-    strcat (bloom_file, ".bloom");
- printf ("Bloom file to be written in: %s\n", bloom_file);
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
