@@ -138,8 +138,6 @@ void normal_lower(char *str, int length)
 int
 bloom_add (bloom * bloom, char *str)
 {
-  //printf("key--> %s\n", str);
-
   int ret;
   char* pstr = str;
 
@@ -231,13 +229,7 @@ int
 finder (BIGNUM index, deref * dr)
 {
 
-  //dr->index = (BIGNUM) (index / 8);
-  //dr->spot = 1<<(2, (index % 8));
   dr->index = (BIGNUM) (index >> 3);
-  //dr->spot = pow (2, (index % 8));
-  //dr->spot = 0x80;
-  //dr->spot = dr->spot >> (index & 0x07);
-  //dr->spot = pow(2,(index & 0x07));
   dr->spot = 1 << (index & 0x07);
   return 0;
 }
@@ -281,7 +273,6 @@ prefix_make (char *filename, char *prefix, char *target)
       else
 	strncat (bloom_file, filename, strrchr (filename, '.') - filename+1);
     }
-
   return bloom_file;
 }
 
@@ -308,10 +299,9 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
   #ifndef __clang__
-    fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE);
+    fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, PERMS);
   #endif
 #endif
-  printf("fd->%d\n",fd);
   if (fd < 0)
     {
       perror (bloom_file);
