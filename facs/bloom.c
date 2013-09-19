@@ -254,8 +254,7 @@ prefix_make (char *filename, char *prefix, char *target)
 {
   char *position1 = strrchr (filename, '/');
 
-  char *bloom_file = (char *) malloc (300 * sizeof (char));
-  memset (bloom_file, 0, 300);
+  char *bloom_file = (char *) calloc (1, 3*ONE * sizeof (char));
   if (is_dir (target))
     {
       strcat (bloom_file, target);
@@ -280,7 +279,7 @@ prefix_make (char *filename, char *prefix, char *target)
       if (position1 != NULL)
 	strncat (bloom_file, position1, strrchr (position1, '.') - position1);
       else
-	strncat (bloom_file, filename, strrchr (filename, '.') - filename);
+	strncat (bloom_file, filename, strrchr (filename, '.') - filename+1);
     }
 
   return bloom_file;
@@ -293,33 +292,31 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   int fd;
 
   bloom_file = prefix_make (filename, prefix, target);
-
 #ifdef DEBUG
   printf ("Bloom file to be written in: %s\n", bloom_file);
 #endif
-
   if (prefix == NULL && target == NULL)
-    {
-      strcat (bloom_file, ".bloom");
-      bloom_file++;
-    }
+  {
+  	strcat (bloom_file, "bloom");
+	if (*bloom_file=='/')
+		bloom_file++;
+  }
   else if (is_dir (target))
     strcat (bloom_file, ".bloom");
-
+ printf ("Bloom file to be written in: %s\n", bloom_file);
 #ifdef __APPLE__
   fd = open (bloom_file, O_RDWR | O_CREAT, PERMS);
 #else // assume linux
   #ifndef __clang__
-    fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE, PERMS);
+    fd = open (bloom_file, O_RDWR | O_CREAT | O_LARGEFILE);
   #endif
 #endif
-
+  printf("fd->%d\n",fd);
   if (fd < 0)
     {
       perror (bloom_file);
       return -1;
     }
-
   BIGNUM total_size = sizeof (bloom) + sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1) + sizeof (int) * (bl->stat.ideal_hashes + 1);
 
 #ifdef __APPLE__
@@ -361,7 +358,7 @@ save_bloom (char *filename, bloom * bl, char *prefix, char *target)
     };
   close (fd);
 
-  memset (bl->vector, 0, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
+//  memset (bl->vector, 0, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
 
 #ifdef DEBUG
   printf ("big file process OK\n");

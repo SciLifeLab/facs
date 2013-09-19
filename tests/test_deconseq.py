@@ -12,8 +12,8 @@ from collections import defaultdict
 import facs
 from facs.utils import helpers, galaxy
 
-class FastqScreenTest(unittest.TestCase):
-    """Tests against Fastq Screen, to compare performance metrics.
+class deconseqTest(unittest.TestCase):
+    """Tests against deconseq, to compare performance metrics.
     """
     def setUp(self):
         self.data_dir  = os.path.join(os.path.dirname(__file__), "data")
