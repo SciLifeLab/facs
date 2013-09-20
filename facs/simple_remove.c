@@ -18,8 +18,9 @@
 #include "bloom.h"
 #include "remove.h"
 #include "remove_l.h"
+#include "big_query.h"
 #include "file_dir.h"
-
+#include "big_query.h"
 #ifndef __clang__
 #include<omp.h>
 //#include<mpi.h>
@@ -38,14 +39,13 @@ remove_usage (void)
 	   "\t-l input list containing all Bloom filters, one per line\n");
   fprintf (stderr, "\t-t threshold value\n");
   fprintf (stderr, "\n");
-  return 1;
+  exit (1);
 }
 
-int
-remove_main (int argc, char **argv)
+int remove_main (int argc, char **argv)
 {
   if (argc < 2)
-    return remove_usage ();
+  	return remove_usage ();
 /*-------defaults for bloom filter building-------*/
   int opt;
   float tole_rate = 0;
@@ -54,7 +54,7 @@ remove_main (int argc, char **argv)
   char *list = NULL;
   char *target_path = NULL;
   char *source = NULL;
-  char *report_fmt = NULL;
+  char *report_fmt = "json";
   while ((opt = getopt (argc, argv, "l:t:r:o:q:f:h")) != -1)
     {
       switch (opt)
@@ -90,12 +90,13 @@ remove_main (int argc, char **argv)
       fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
       exit (-1);
     }
-   return query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
+  char *result = query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
+  printf("%s\n",result);
+  return 1;
 }
 
 /*-------------------------------------*/
-void
-save_result (char *source, char *obj_file, int type, char *prefix, char *clean2, char *contam2)
+void save_result (char *source, char *obj_file, char type, char *prefix, char *clean2, char *contam2)
 {
   printf ("source->%s\n", source);
   printf ("obj_file->%s\n", obj_file);
@@ -153,7 +154,7 @@ save_result (char *source, char *obj_file, int type, char *prefix, char *clean2,
   strcat (match, "_contam");
   strcat (mismatch, "_clean");
 
-  if (type == 1)
+  if (type == '>')
     {
       strcat (match, ".fasta");
       strcat (mismatch, ".fasta");

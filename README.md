@@ -31,20 +31,17 @@ In order to fetch the source code and compile, run:
 $ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8
 ```
 
-Please note that python's <a href="https://github.com/brainsik/virtualenv-burrito">virtualenv</a>
-is needed to run the tests.
 
-If you are compiling on MacOSX or with <a href='http://clang.llvm.org/'>LLVM's clang</a>, please note that FACS it'll run
-in single core mode since <a href="http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU">OpenMP is still not ported to clang</a>.
+Citation
+----------
 
-Also, `wget` is required to run the testsuite, so please run:
+Henrik Stranneheim, Max Käller, Tobias Allander, Björn Andersson, Lars Arvestad, Joakim Lundeberg: Classification of DNA sequences using Bloom filters. Bioinformatics 26(13): 1595-1600 (2010)
 
-```
-brew install wget
-```
 
-Or use <a href="http://fink.sf.net/">whatever</a> <a href="http://www.macports.org/">packaging</a>
-<a href='http://mxcl.github.com/homebrew/'>means</a> you have in MacOSX.
+License
+----------
+
+The code is freely available under MIT license as well as the hashing algorithm 'lookup8', which is developed by Bob Jenkins and used under MIT license.
 
 Usage
 ------
@@ -142,4 +139,25 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> facs.build("ecoli.fasta", "ecoli.bloom")
 >>> facs.query("contaminated_sample.fastq.gz", "ecoli.bloom")
 >>> facs.remove("contaminated_sample.fastq", "ecoli.bloom")
+```
+
+Update results to a database
+----------------------------
+
+FACS provides results in [JSON](http://www.json.org/) format, which eases the
+storage of these results in a CouchDB instance. To do so, you need to create a
+configuration file with the information for your CouchDB instance. 
+
+The file should be named either .facsrc or .facs.cnf and should be located in 
+your home directory. For system wide installations it can also be located at
+/etc/facs.conf.
+
+The format should be like this:
+
+```
+[facs]
+SERVER: <your server address>
+DB: <DB name>
+USER: <username>
+PASSWORD: <password>
 ```

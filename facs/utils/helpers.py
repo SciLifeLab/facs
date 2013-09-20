@@ -48,9 +48,8 @@ def send_couchdb(server, db, user, passwd, doc):
     ''' Send JSON document to couchdb
     '''
     try:
-        auth = couchdb.Session()
-        auth.name, auth.password = user, passwd
         couch = couchdb.Server(server)
+        couch.resource.credentials = (user, passwd)
         db = couch[db]
         db.save(json.loads(doc))
     except:

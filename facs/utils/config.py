@@ -5,11 +5,10 @@ import warnings
 import ConfigParser
 
 config = ConfigParser.SafeConfigParser()
-#try:
 conf_file = config.read([os.path.expanduser('~/.facsrc'), '.facsrc',
             'facs.conf', 'facs.cfg', '/etc/facs.conf'])
 try:
-# First config file found wins
+    # First config file found wins
     config.readfp(open(conf_file[0]))
 
     SERVER = config.get('facs', 'SERVER').rstrip()

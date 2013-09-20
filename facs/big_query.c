@@ -9,11 +9,14 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+
 #include "tool.h"
 #include "bloom.h"
 #include "check.h"
+#include "remove.h"
 #include "file_dir.h"
 #include "big_query.h"
+#include "remove.h"
 
 #ifndef __clang__
   // openMP not yet ported to clang: http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU
@@ -35,14 +38,14 @@ query_usage (void)
   fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
            query file\n");
   fprintf (stderr, "\n");
-  return 1;
+  exit(1);
 }
 
 
 int bq_main (int argc, char **argv)
 {
   if (argc < 3)
-    query_usage();
+    return query_usage();
 
 /*-------defaults for bloom filter building-------*/
   int opt;
@@ -76,15 +79,15 @@ int bq_main (int argc, char **argv)
 	  list = optarg;
 	  break;
 	case 'f': // "json", "tsv" or none
-	  report_fmt = optarg;
+	  (optarg) && (report_fmt = optarg, 1);
 	  break;
 	case 'h':
-	  query_usage();
-      break;
+	  return query_usage();
+      	  break;
 	case '?':
 	  printf ("Unknown option: -%c\n", (char) optopt);
-	  query_usage();
-      break;
+	  return query_usage();
+      	  break;
 	}
   }
 
@@ -98,16 +101,18 @@ int bq_main (int argc, char **argv)
 	{
       		target_path = argv[0];
  	}  //set default path, which is where the binary file is.
-  return query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
+  char *result = query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
+  printf("%s\n",result);
+  return 1;
 }
 
-int query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
+char *query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
 {
   gzFile zip = NULL;
-  int type = 0, normal = 0;
+  char type = '@';
+  int normal = 0;
   BIGCAST offset = 0;
   char *position = NULL;
-  char *ret = NULL;
 
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -118,8 +123,8 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
   if (tole_rate == 0)
   	tole_rate = mco_suggestion (bl_2->k_mer); // suggest an optimal match cut-off
-//  if (mode == 'r')
-// 	init_string(1); // initialize strings for containing reads
+  if (mode == 'r')
+ 	init_string(ONEG); // initialize strings for containing reads
 /*
   if ((get_size (query) < 2 * ONEG) && !strstr (query, ".gz") && !strstr (query, ".tar"))
         normal = 0;
@@ -139,9 +144,9 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
           exit(EXIT_FAILURE);
   }
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
-    type = 2;
+    type = '@';
   else
-    type = 1;
+    type = '>';
 
   if (normal == 0)
     position = (char *) calloc ((ONEG + 1), sizeof (char));
@@ -149,21 +154,20 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
     {
 
       if (normal == 1)
-	{
+      {
 	  position = mmaping (query);
 	  offset = -1;
-	}
+      }
       else
-	{
+      {
 	  offset = CHUNKer (zip, offset, ONEG, position, type);
-	}
-      //offset = CHUNKer (zip, offset, ONEG, position, type);
+      }
       Queue *head = NEW (Queue);
       head->location = NULL;
       Queue *tail = NEW (Queue);
       head->next = tail;
       Queue *head2 = head;
-      get_parainfo (position, head);
+      get_parainfo (position, head, type);
 #pragma omp parallel
       {
 #pragma omp single nowait
@@ -174,14 +178,7 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
 	      {
 		if (head->location != NULL)
 		  {
-		    if (type == 1)
-		    {
-			    fasta_process (bl_2, head, tail, File_head, sampling_rate, tole_rate);
-		    } 
-		    else
-		    {
-			    fastq_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode);
-		    }
+			    read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode, type);
 		  }
 	      }
 	      head = head->next;
@@ -207,28 +204,29 @@ int query (char *query, char *bloom_filter, double tole_rate, double sampling_ra
   clean_list (head2, tail);
   if (mode == 'r')
   {	
-		if (target_path!=NULL)
-		{
-      			save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
-  		}
-		else
-		{
-			write_default(re_clean(), re_contam(), offset);
-		}
+	if (target_path!=NULL)
+	{
+      		save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
+  	}
+	else
+	{
+		write_default(re_clean(), re_contam(), offset);
+	}
+	if (offset == -1)
+	{
+		reset_string();
+	}
   }
   }				//end while
   
   if (normal == 0)
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
-  }
-  
-  report(File_head, query, report_fmt, target_path);
-  return 0;
+  } 
+  return report(File_head, query, report_fmt, target_path);
 }
 
-char *
-strrstr (char *s, char *str)
+char *strrstr (char *s, char *str)
 {
   char *p;
   int len = strlen (s);
@@ -240,8 +238,7 @@ strrstr (char *s, char *str)
   return NULL;
 }
 
-void
-clean_list (Queue * head, Queue * tail)
+void clean_list (Queue * head, Queue * tail)
 {
   Queue *element;
   while (head != tail)
@@ -255,23 +252,16 @@ clean_list (Queue * head, Queue * tail)
 }
 
 
-BIGCAST
-CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, int type)
+BIGCAST CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
 {
-  char c, v;
+  char c;
   char *pos = NULL;
   int length = 0;
-
-  if (type == 2)
-    v = '@';
-  else
-    v = '>';
-
   if (offset == 0)
     while (offset < 10 * ONE)
       {
 	c = gzgetc (zip);
-	if (c == v)
+	if (c == type)
 	  break;
 	offset++;
       }
@@ -284,7 +274,7 @@ CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, int type)
 
   if (length >= chunk)
     {
-      if (type == 2)
+      if (type == '@')
 	{
 	  pos = strrstr (data, "\n+");
 	  pos = bac_2_n (pos - 1);
@@ -307,9 +297,7 @@ CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, int type)
   return offset;
 }
 
-BIGCAST
-CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra,
-	 int type)
+BIGCAST CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra, char type)
 {
   memset (position, 0, chunk);
   char c, *position2 = position;
@@ -319,7 +307,7 @@ CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra,
     while (offset < 10 * ONE)
       {
 	c = gzgetc (zip);
-	if ((c == '@' && type == 2) && (c == '>' && type == 1))
+	if (c == type)
 	  break;
 	offset++;
       }
@@ -343,8 +331,7 @@ CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *extra,
   return offset;
 }
 
-char *
-bac_2_n (char *filename)
+char *bac_2_n (char *filename)
 {
   while (*filename != '\n')
     filename--;
