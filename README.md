@@ -25,21 +25,35 @@ It supports large genome files (>4GB), human genome, for instance.
 Quickstart
 ----------
 
-In order to fetch the source code and compile, run:
+In order to fetch the source code run:
 
 ```
-$ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8
+$ git clone https://github.com/SciLifeLab/facs
 ```
+
+For the python interface, it is highly recommended to install and run FACS under
+a python virtual environment. Python virtual environments provide and isolated
+environment to run your python code, solving dependency and version problems, and 
+indirectly permissions. Read more about virtualenv [here](https://pypi.python.org/pypi/virtualenv).
+
+To easily install a virtual environment you can use [virtualenv-burrito](https://github.com/brainsik/virtualenv-burrito).
+Follow the instructions in the link provided in order to create a new virtual 
+environment. 
+
+Installing
+----------
+----------
+Just type ```make python``` after creating and activating the virtual environment.
 
 
 Citation
-----------
+--------
 
 Henrik Stranneheim, Max Käller, Tobias Allander, Björn Andersson, Lars Arvestad, Joakim Lundeberg: Classification of DNA sequences using Bloom filters. Bioinformatics 26(13): 1595-1600 (2010)
 
 
 License
-----------
+-------
 
 The code is freely available under MIT license as well as the hashing algorithm 'lookup8', which is developed by Bob Jenkins and used under MIT license.
 
