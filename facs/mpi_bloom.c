@@ -17,13 +17,14 @@
 
 #include "tool.h"
 #include "bloom.h"
+#include "query.h"
+#include "check.h"
 #include "hashes.h"
 
 #include<omp.h>
 #include<mpi.h>
 
-Queue *head, *head2, *tail;
-void struc_init ();
+void struc_init (char *filename, int total_piece, BIGCAST offset, BIGCAST share,  int ntask, int mytask, int page);
 /*-------------------------------------*/
 int gather ();
 /*-------------------------------------*/
@@ -34,7 +35,7 @@ mpi_main (int argc, char **argv)
   double tole_rate = 0, sampling_rate = 1;
   char *ref = NULL, *list = NULL, *target_path = NULL, *source = NULL, *report_fmt = "json";
   int opt, ntask = 0, mytask = 0, page = getpagesize (), total_piece;
-  BIGCAST buffer=0, share=0, offset=0, chunk=0, total_size=0;
+  BIGCAST buffer=0, share=0, offset=0, chunk=1000000000/page, total_size=0;
   bloom *bl_2 = NEW (bloom);
   Queue *head = NEW (Queue), *tail = NEW (Queue), *head2 = head;
   head->location = NULL;
@@ -85,8 +86,15 @@ mpi_main (int argc, char **argv)
   MPI_Init (&argc, &argv);
   MPI_Comm_size (MPI_COMM_WORLD, &ntask);
   MPI_Comm_rank (MPI_COMM_WORLD, &mytask);
-  struc_init ();		//structure init
-  load_bloom (all_ref, bl_2);
+  struc_init (source, &total_piece, &offset, &share,  int ntask, int mytask, int page);
+  F_set *File_head = make_list (bloom_filter, list);
+  File_head->reads_num = 0;
+  File_head->reads_contam = 0;
+  File_head->hits = 0;
+  File_head->filename = bloom_filter;
+  load_bloom (File_head->filename, bl_2);	//load a bloom filter
+  if (tole_rate == 0)
+  	tole_rate = mco_suggestion (bl_2->k_mer);
   while (share > 0)
   {
   	position = ammaping (source);
@@ -126,9 +134,9 @@ mpi_main (int argc, char **argv)
 }
 /*-------------------------------------*/
 void
-struc_init (int *chunk, int *total_piece, BIGCAST *offset, BIGCAST *share, int page, int ntask, int mytask)
+struc_init (char *filename, int total_piece, BIGCAST offset, BIGCAST share,  int ntask, int mytask, int page)
 {
-  get_size (source);		//get total size of file
+  total_piece = get_size(filename)/page;
   share = total_piece / ntask;	//every task gets an euqal piece
   if (total_piece % ntask != 0 && mytask == (ntask - 1))
   	share += (total_piece % ntask);	//last node tasks extra job
