@@ -90,7 +90,6 @@ mpi_main (int argc, char **argv)
   while (share > 0)
   {
   	position = ammaping (source);
-  	list_init ();
   	get_parainfo (position);
    	head = head->next;
 #pragma omp parallel
@@ -116,19 +115,18 @@ mpi_main (int argc, char **argv)
       		offset += buffer;
   }
   printf ("finish processing...\n");
-  MPI_Barrier (MPI_COMM_WORLD);	//wait until all threads finish jobs
-  gather ();			//gather all matched and missed info
-  if (mytask == 0)		//finishing time
+  MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
+  gather ();			//gather info from all nodes
+  if (mytask == 0)		
   {
-      evaluate (detail, all_ref);
-      statistic_save (detail, source);
+	return report(File_head, query, report_fmt, target_path);
   }
   MPI_Finalize ();
   return 0;
 }
 /*-------------------------------------*/
 void
-struc_init ()
+struc_init (int *chunk, int *total_piece, BIGCAST *offset, BIGCAST *share, int page, int ntask, int mytask)
 {
   get_size (source);		//get total size of file
   share = total_piece / ntask;	//every task gets an euqal piece
