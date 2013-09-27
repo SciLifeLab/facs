@@ -91,9 +91,9 @@ typedef struct file_list
 #define ONE 100
 
 BIGNUM mkprime (BIGNUM startval);
-extern double get_mu (BIGNUM num_hit, double prob);
-extern double get_sigma (BIGNUM num_hit, double prob);
-extern double get_evalue (BIGNUM number, double mu, double sigma);
+//extern double get_mu (BIGNUM num_hit, double prob);
+//extern double get_sigma (BIGNUM num_hit, double prob);
+//extern double get_evalue (BIGNUM number, double mu, double sigma);
 extern BIGCAST get_size (char *filename);
 
 extern int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity,

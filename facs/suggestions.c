@@ -10,66 +10,21 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include "prob.h"
 #define MB 1048576
-
-
-double
-get_mu (BIGNUM num_hit, double prob)
+int prob_suggestion (int k_mer)
 {
-  return ((double) num_hit) * prob;
+if (k_mer<=12)
+	return 0.51038;
+else if (k_mer<=15)
+	return 0.05569;
+else if (k_mer<=18)
+	return 0.000636;
+else 
+	return 0.0001057;
 }
 
-double
-get_sigma (BIGNUM num_hit, double prob)
-{
-  return (double) num_hit *prob * (1 - prob);
-}
-
-double
-get_evalue (BIGNUM number, double mu, double sigma)
-{
-  return cdf (number, mu, sigma);
-}
-
-/*
-float get_probability (BIGCAST hits, BIGCAST total, int k_mer)
-{
-double times = (double)total/(100*MB);
-double prob = 0;
-int rand_hit = 0;
-//((k_mer/3)==0)&&(k_mer=k_mer,1)||(k_mer-(k_mer%3));
-switch (k_mer)
-{
-  case 9:
-  rand_hit = 10;
-  break;
-  case 12:
-  rand_hit = 20;
-  break;
-  case 15:
-  rand_hit = 40;
-  break;
-  case 18:
-  rand_hit = 80;
-  break;
-  case 21:
-  rand_hit = 100;
-  break;
-  default:
-  printf ("cant handle this k_mer so far\n");
-  exit(-1);
-}
-prob = (double)hits/times;
-if (prob<rand_hit)
-    return 0;
-else
-    return hits/total; 
-}
-*/
-
-
-int
-kmer_suggestion (BIGCAST size)
+int kmer_suggestion (BIGCAST size)
 {
   if (size < 10 * MB)
     {
@@ -107,8 +62,7 @@ kmer_suggestion (BIGCAST size)
     }
 }
 
-float
-mco_suggestion (int k_mer)
+float mco_suggestion (int k_mer)
 {
   switch (k_mer)
     {
@@ -129,8 +83,7 @@ mco_suggestion (int k_mer)
     }
 }
 
-int
-get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
+int get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
 {
   stats->capacity = n;
   stats->e = e;
@@ -139,8 +92,7 @@ get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
   return 0;
 }
 
-BIGNUM
-find_close_prime (BIGNUM m)
+BIGNUM find_close_prime (BIGNUM m)
 {
   if ((m % 2) == 0)
     m += 1;
@@ -156,14 +108,11 @@ find_close_prime (BIGNUM m)
 Given the desired capacity and error rate, calculate the appropriate values
 for number of hash functions and size of array
 */
-void
-get_rec (struct bloomstat *stat)
+void get_rec (struct bloomstat *stat)
 {
   /* assuming perfect number of cells, k directly depends on e */
   stat->ideal_hashes = (int) log (stat->e) / log (0.5);
-  stat->elements =
-    find_close_prime ((BIGNUM) 13 * stat->capacity *
-		      (BIGNUM) stat->ideal_hashes / (BIGNUM) 9);
+  stat->elements = find_close_prime((BIGNUM) 13 * stat->capacity *(BIGNUM) stat->ideal_hashes / (BIGNUM) 9);
   /*
      recalculate k with the actual m, not the ideal 
      wouldn't need to if it wasn't prime, but that causes problems
@@ -172,8 +121,7 @@ get_rec (struct bloomstat *stat)
   stat->ideal_hashes = 9 * stat->elements / (13 * stat->capacity);
 }
 
-int
-is_prime (BIGNUM m)
+int is_prime (BIGNUM m)
 {
   BIGNUM a = (BIGNUM) sqrtl ((long double) m);
   BIGNUM currval = 3;

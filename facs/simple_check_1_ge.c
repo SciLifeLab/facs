@@ -15,6 +15,7 @@
 #include <sys/types.h>
 
 #include "tool.h"
+#include "prob.h"
 #include "check.h"
 #include "bloom.h"
 #include "file_dir.h"
@@ -123,12 +124,13 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	}	// outside while
 }
 /*-------------------------------------*/
-char *report(F_set *File_head, char *query, char *fmt, char *prefix)
+char *report(F_set *File_head, char *query, char *fmt, char *prefix, int k_mer)
 {
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
-
+  printf ("k-mer->%d File_head->all_k->%lld\n",k_mer,File_head->all_k);
+  double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob_suggestion(k_mer)),get_sigma(File_head->all_k,prob_suggestion(k_mer)));
   if(!fmt){
       fprintf(stderr, "Output format not specified\n");
       exit(EXIT_FAILURE);
@@ -143,9 +145,10 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 "\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
 "\t\"contamination_rate\": %f\n"
+"\t\"p_value\": %e\n"
 "}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
-        contamination_rate);
+        contamination_rate,p_value);
 
   // TSV output format
   } else if (!strcmp(fmt, "tsv")) {
@@ -153,7 +156,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
 "sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
-                            contamination_rate);
+                            contamination_rate,p_value);
   }
   return buffer;
 }

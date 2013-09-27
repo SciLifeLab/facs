@@ -20,18 +20,32 @@
 #include "query.h"
 #include "check.h"
 #include "hashes.h"
-
+#include "mpi_bloom.h"
 #include<omp.h>
 #include<mpi.h>
-
-void struc_init (char *filename, int total_piece, BIGCAST offset, BIGCAST share,  int ntask, int mytask, int page);
 /*-------------------------------------*/
-int gather ();
-/*-------------------------------------*/
-char *ammaping (char *source);
+static int mpicheck_usage (void)
+{
+  fprintf (stderr, "\nUsage: mpirun -n Nr_of_nodes ./facs query [options]\n");
+  fprintf (stderr, "Options:\n");
+  fprintf (stderr, "\t-r reference Bloom filter to query against\n");
+  fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
+  fprintf (stderr, "\t-l input list containing all Bloom filters,\
+           one per line\n");
+  fprintf (stderr, "\t-t threshold value\n");
+  fprintf (stderr, "\t-f report output format, valid values are:\
+           'json' and 'tsv'\n");
+  fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
+           query file\n");
+  fprintf (stderr, "\n");
+  exit(1);
+}
 /*-------------------------------------*/
 mpi_main (int argc, char **argv)
 {
+  if (argc<3)
+	return mpicheck_usage();
+/*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
   char *ref = NULL, *list = NULL, *target_path = NULL, *source = NULL, *report_fmt = "json";
   int opt, ntask = 0, mytask = 0, page = getpagesize (), total_piece;
@@ -40,6 +54,7 @@ mpi_main (int argc, char **argv)
   Queue *head = NEW (Queue), *tail = NEW (Queue), *head2 = head;
   head->location = NULL;
   head->next = tail;
+/*------------get opt------------------*/
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1)
   {
       switch (opt)
@@ -66,11 +81,11 @@ mpi_main (int argc, char **argv)
           (optarg) && (report_fmt = optarg, 1);
           break;
         case 'h':
-          return query_usage();
+          return mpicheck_usage();
           break;
         case '?':
           printf ("Unknown option: -%c\n", (char) optopt);
-          return query_usage();
+          return mpicheck_usage();
           break;
       }
   }
@@ -83,6 +98,7 @@ mpi_main (int argc, char **argv)
   {
                 target_path = argv[0];
   } 
+  /*----------MPI initilize------------*/
   MPI_Init (&argc, &argv);
   MPI_Comm_size (MPI_COMM_WORLD, &ntask);
   MPI_Comm_rank (MPI_COMM_WORLD, &mytask);
@@ -95,7 +111,7 @@ mpi_main (int argc, char **argv)
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
   if (tole_rate == 0)
   	tole_rate = mco_suggestion (bl_2->k_mer);
-  while (share > 0)
+  while (share <)
   {
   	position = ammaping (source);
   	get_parainfo (position);
@@ -118,7 +134,7 @@ mpi_main (int argc, char **argv)
 		}
       	}	
 	}
-     		munmap (position, buffer * PAGE);
+     		memset (position, 0, strlen(position));
       		share -= buffer;
       		offset += buffer;
   }
