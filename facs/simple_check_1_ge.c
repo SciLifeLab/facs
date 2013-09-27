@@ -124,13 +124,12 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	}	// outside while
 }
 /*-------------------------------------*/
-char *report(F_set *File_head, char *query, char *fmt, char *prefix, int k_mer)
+char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob)
 {
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
-  printf ("k-mer->%d File_head->all_k->%lld\n",k_mer,File_head->all_k);
-  double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob_suggestion(k_mer)),get_sigma(File_head->all_k,prob_suggestion(k_mer)));
+  double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
   if(!fmt){
       fprintf(stderr, "Output format not specified\n");
       exit(EXIT_FAILURE);

@@ -12,16 +12,29 @@
 #include <sys/types.h>
 #include "prob.h"
 #define MB 1048576
-int prob_suggestion (int k_mer)
+double prob_suggestion (int k_mer)
 {
+double prob = 0;
+/* average prob */
 if (k_mer<=12)
-	return 0.51038;
+	prob = 0.51038;
 else if (k_mer<=15)
-	return 0.05569;
+	prob = 0.05569;
 else if (k_mer<=18)
-	return 0.000636;
+	prob = 0.00636;
 else 
-	return 0.0001057;
+	prob = 0.001057;
+/*maximum prob
+if (k_mer<=12)
+        prob = 0.756533;
+else if (k_mer<=15)
+        prob = 0.188584; 
+else if (k_mer<=18) 
+        prob = 0.02548;
+else  
+        prob = 0.00129;
+*/ 
+return prob;
 }
 
 int kmer_suggestion (BIGCAST size)

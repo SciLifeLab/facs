@@ -34,7 +34,7 @@ double get_sigma (long long num_hit, double prob)
 /*
 int main()
 {	
-        printf ("CDF->%e\n",cdf(18783005,get_mu(18783005000,0.026),get_sigma(18783000005,0.026)));
+        printf ("CDF->%e\n",cdf(36774,get_mu(91783370,0.006057),get_sigma(91783370,0.006057)));
 	return 0;
 } 
 */

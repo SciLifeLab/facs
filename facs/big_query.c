@@ -11,6 +11,7 @@
 #include <sys/types.h>
 
 #include "tool.h"
+#include "prob.h"
 #include "bloom.h"
 #include "check.h"
 #include "remove.h"
@@ -113,7 +114,6 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   int normal = 0;
   BIGCAST offset = 0;
   char *position = NULL;
-
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
   File_head->reads_num = 0;
@@ -221,8 +221,8 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   if (normal == 0)
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
-  } 
-  return report(File_head, query, report_fmt, target_path, bl_2->k_mer);
+  }
+  return report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
 }
 
 char *strrstr (char *s, char *str)
