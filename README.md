@@ -105,6 +105,7 @@ be contaminated with ecoli in that particular sample:
     "contaminated_reads": 1,
     "total_hits": 36,
     "contamination_rate": 0.004975,
+    "p_value": 1.522929e-01
 }
 ```
 
