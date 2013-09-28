@@ -105,8 +105,8 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 			 	{
 				#pragma omp critical
 					{
-						memcpy(contam,previous_point,start_point-previous_point);
-						contam+=(start_point-previous_point);
+						memcpy(_contam,previous_point,start_point-previous_point);
+						_contam+=(start_point-previous_point);
 					}
 				}
 		}
@@ -116,8 +116,8 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 				{
 				#pragma omp critical
 					{
-                                        	memcpy(clean,previous_point,start_point-previous_point);
-                                        	clean+=(start_point-previous_point);
+                                        	memcpy(_clean,previous_point,start_point-previous_point);
+                                        	_clean+=(start_point-previous_point);
 					}
 				}
 		}
@@ -128,10 +128,16 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
 {
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
+<<<<<<< HEAD
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
   double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
   if(!fmt)
   {
+=======
+  float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
+
+  if(!fmt){
+>>>>>>> d7edc1614c3851e37fd5ddf57a2080f80677952f
       fprintf(stderr, "Output format not specified\n");
       exit(EXIT_FAILURE);
   } 
@@ -150,7 +156,12 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
 "\t\"p_value\": %e\n"
 "}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
+<<<<<<< HEAD
         contamination_rate,p_value);
+=======
+        _contamination_rate);
+
+>>>>>>> d7edc1614c3851e37fd5ddf57a2080f80677952f
   // TSV output format
   }
   else if (!strcmp(fmt, "tsv"))
@@ -159,7 +170,11 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
 "sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\t%e\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
+<<<<<<< HEAD
                             contamination_rate,p_value);
+=======
+                            _contamination_rate);
+>>>>>>> d7edc1614c3851e37fd5ddf57a2080f80677952f
   }
   return buffer;
 }

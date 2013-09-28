@@ -148,7 +148,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   else
   	type = '>';
   if (normal == 0)
-  	position = (char *) calloc ((ONEG + 1), sizeof (char));
+  	position = (char *) calloc (1,(ONEG+1)*sizeof (char));
   while (offset != -1)
   {
       if (normal == 1)
