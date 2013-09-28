@@ -19,8 +19,7 @@
 #include "file_dir.h"
 #include "tool.h"
 
-static int
-build_usage (void)
+static int build_usage (void)
 {
   fprintf (stderr, "\nUsage: ./facs build [options]\n");
   fprintf (stderr, "Options:\n");
@@ -36,15 +35,12 @@ build_usage (void)
   return 1;
 }
 
-int
-build_main (int argc, char **argv)
+int build_main (int argc, char **argv)
 {
   if (argc < 2)
-    build_usage ();
-
+  	build_usage ();
   char *position;
   BIGNUM capacity;
-
 /*-------defaults for bloom filter building-------*/
   int opt;
   int k_mer = 0;
@@ -54,10 +50,9 @@ build_main (int argc, char **argv)
   char *prefix = NULL;
   char *target_path = NULL;
   char *source = NULL;
-
   //XXX make -l and -r mutually exclusive
   while ((opt = getopt (argc, argv, "e:k:o:r:l:h")) != -1)
-    {
+  {
       switch (opt)
 	{
 	case 'e':
@@ -81,60 +76,51 @@ build_main (int argc, char **argv)
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  return build_usage ();
 	}
-    }
-
+  }
   if (!list && !source)
-    {
-      fprintf (stderr,
-	       "\nPlease, at least specify a reference file (-r) and an output bloom filter (-o)\n");
+  {
+      fprintf (stderr, "\nPlease, at least specify a reference file (-r) and an output bloom filter (-o)\n");
       exit (-1);
-    }
-
+  }
   if (!list)
-    {
+  {
 #ifdef DEBUG
       printf ("[bloom build]: source is %s\n", source);
       printf ("[bloom build]: target is %s\n", target_path);
 #endif
-      build (source, target_path, k_mer, error_rate, NULL);
-    }
+      build (source, target_path, k_mer, error_rate, argv[0]);
+  }
   else
-    {
+  {
       bloom *bl_2 = NEW (bloom);
       Queue *head = NEW (Queue);
       Queue *tail = NEW (Queue);
       head->next = tail;
       F_set *File_head = NEW (F_set);
       File_head = make_list (source, list);
-
       while (File_head)
-	{
+      {
 	  //map query- into memory--------------
 	  position = mmaping (File_head->filename);
 	  if (*position == '>')
-	    capacity = strlen (position);
+	  	capacity = strlen (position);
 	  else
-	    capacity = strlen (position) / 2;
-
+	  	capacity = strlen (position) / 2;
 	  init_bloom (bl_2, capacity, error_rate, k_mer, File_head->filename);
 	  ref_add (bl_2, position);
-	  save_bloom (File_head->filename, bl_2, prefix, target_path);
+	  save_bloom (File_head->filename, bl_2, argv[0], target_path);
 	  bloom_destroy (bl_2);
-
 	  munmap (position, strlen (position));
 	  File_head = File_head->next;
-	}
-    }
+      }
+  }
   return 0;
 }
 
-void
-init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer,
-	    char *filename)
+void init_bloom(bloom *bl, BIGNUM capacity,float error_rate,int k_mer,char *filename)
 {
   int flags = 3;
   get_suggestion (&bl->stat, capacity, error_rate);
-
 #ifdef DEBUG
   printf ("Capacity: %lld\n", bl->stat.capacity);
   printf ("Vector size: %lld\n", bl->stat.elements);
@@ -142,47 +128,34 @@ init_bloom (bloom * bl, BIGNUM capacity, float error_rate, int k_mer,
   printf ("Error rate: %f\n", bl->stat.e);
   printf ("Real size: %lld\n", bl->stat.elements / 8);
 #endif
-
-  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	      bl->stat.ideal_hashes, NULL, flags);
+  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e, bl->stat.ideal_hashes, NULL, flags);
   //printf ("k_mer->%d\n", k_mer);
   if (k_mer != 0)
-    bl->k_mer = k_mer;
+  	bl->k_mer = k_mer;
   else
-    bl->k_mer = kmer_suggestion (get_size (filename));
+  	bl->k_mer = kmer_suggestion (get_size (filename));
   bl->dx = dx_add (bl->k_mer);
-  printf ("k_mer->%d\n", bl->k_mer);
 }
 
-int
-build (char *ref_name, char *target_path, int k_mer, double error_rate,
-       char *prefix)
+int build (char *ref_name, char *target_path, int k_mer, double error_rate, char *prefix)
 {
   char *position = mmaping (ref_name);
-
   bloom *bl = NEW (bloom);
   if (k_mer != 0)
-    bl->k_mer = k_mer;
+  	bl->k_mer = k_mer;
   else
-    bl->k_mer = kmer_suggestion (get_size (ref_name));
-
-  printf ("k_mer->%d\n", bl->k_mer);
+  	bl->k_mer = kmer_suggestion (get_size (ref_name));
   bl->stat.e = error_rate;
   bl->dx = dx_add (bl->k_mer);
   bl->stat.capacity = strlen (position);
   get_rec (&bl->stat);
-
-  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e,
-	      bl->stat.ideal_hashes, NULL, 3);
+  bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e, bl->stat.ideal_hashes, NULL, 3);
   ref_add (bl, position);
-  save_bloom (ref_name, bl, NULL, target_path);
-
+  save_bloom (ref_name, bl, prefix, target_path);
   return 0;
 }
-
 /*-------------------------------------*/
-char *
-fasta_title (char *full)
+char *fasta_title (char *full)
 {
   char *ptr;
   ptr = strchr (full, '\n');
@@ -190,105 +163,87 @@ fasta_title (char *full)
 }
 
 /*-------------------------------------*/
-void
-fasta_add (bloom * bl, char *position)
+void fasta_add (bloom * bl, char *position)
 {
   while (*position != '\0')
     {
       if (*position == '>')
-	position = fasta_title (position);
+      	position = fasta_title (position);
       else
 	position = fasta_data (bl, position);
     }
 }
-
 /*-------------------------------------*/
-void
-fastq_add (bloom * bl, char *position)
+void fastq_add (bloom * bl, char *position)
 {
-
-  char *key = (char *) malloc (bl->k_mer * sizeof (char) + 1);
-
+  char *key = (char *) calloc (1,bl->k_mer * sizeof (char) + 1);
   while (position[0] != '\0')
-    {
+  {
       position = strchr (position, '\n') + 1;
-
       while (position[bl->k_mer - 1] != '\n')
-	{
-	  memcpy (key, position, sizeof (char) * bl->k_mer);
+      {
+          memcpy (key, position, sizeof (char) * bl->k_mer);
 	  key[bl->k_mer] = '\0';
 	  bloom_add (bl, key);
 	  position++;
-	}
-
+      }
       position += bl->k_mer;
       position = strchr (position, '\n') + 1;
       char *v = strchr (position, '\n');
-
       if (!v)
-	break;
+      	break;
       else
 	position = v + 1;
-
     }
   free (key);
 }
-
 /*-------------------------------------*/
-char *
-fasta_data (bloom * bl_2, char *data)
+char *fasta_data (bloom * bl_2, char *data)
 {
-  char *key = (char *) malloc (bl_2->k_mer * sizeof (char) + 1);
+  char *key = (char *)calloc(1,bl_2->k_mer * sizeof (char) + 1);
   char *p = data;
   int n = 0, m = 0;
-
   while (*p != '>' && *p != '\0')
-    {
+  {
       while (n < bl_2->k_mer)
-	{
+      {
 	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
+	  {
+	  	m--;
+	  	break;
+	  }
 	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
+	  	key[n++] = p[m];
 	  m++;
-	}
-
+      }
       key[n] = '\0';
-
-      if (strlen (key) == bl_2->k_mer)
-	{
 /*
+      if (strlen (key) == bl_2->k_mer)
+      {
 	  if (bloom_add (bl_2, key))
 	    hit++;
 	  else
 	    un_hit++;
+      }
 */
-	}
-
       bloom_add (bl_2, key);
       p += 1;
       n = 0;
       m = 0;
-    }
+  }
   free (key);
   return p;
 }
-
 /*-------------------------------------*/
-void
-ref_add (bloom * bl, char *position)
+void ref_add (bloom * bl, char *position)
 {
   if (*position == '>')
-    fasta_add (bl, position);
+  	fasta_add (bl, position);
   else if (*position == '@')
-    fastq_add (bl, position);
+  	fastq_add (bl, position);
   else
-    {
-      perror ("wrong format\n");
-      exit (-1);
-    }
+  {
+  	perror ("wrong format\n");
+  	exit (-1);
+  }
 }

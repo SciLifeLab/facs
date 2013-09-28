@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+/*---------------------------*/
 #include <libgen.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -13,20 +13,19 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-
+/*---------------------------*/
 #include "tool.h"
 #include "prob.h"
 #include "check.h"
 #include "bloom.h"
 #include "file_dir.h"
-
+/*---------------------------*/
 #ifndef __clang__ 
 #include <omp.h>
 #endif
+/*---------------------------*/
 char *clean, *contam, *clean2, *contam2;
-
 /*save it for the possible advanced version*/
-
 void init_string(int chunk)
 {
 	clean = (char *) calloc (chunk, sizeof (char));
@@ -34,22 +33,23 @@ void init_string(int chunk)
 	clean2 = clean;
 	contam2 = contam;
 }
-
+/*---------------------------*/
 char *re_clean()
 {
 	return clean2;
 }
-
+/*---------------------------*/
 char *re_contam()
 {
 	return contam2;
 }
-
+/*---------------------------*/
 void reset_string()
 {
 	memset(clean2,0,strlen(clean2));
 	memset(contam2,0,strlen(contam2));
 }
+/*---------------------------*/
 void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
 {
 	char *start_point = info->location;
@@ -130,10 +130,13 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
   static char timestamp[40] = {0};
   float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
   double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
-  if(!fmt){
+  if(!fmt)
+  {
       fprintf(stderr, "Output format not specified\n");
       exit(EXIT_FAILURE);
-  } else if(!strcmp(fmt, "json")) {
+  } 
+  else if(!strcmp(fmt, "json"))
+  {
       isodate(timestamp);
       snprintf(buffer, sizeof(buffer),
 "{\n"
@@ -148,33 +151,36 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
 "}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         contamination_rate,p_value);
-
   // TSV output format
-  } else if (!strcmp(fmt, "tsv")) {
-      sprintf(buffer,
+  }
+  else if (!strcmp(fmt, "tsv"))
+  {
+  	sprintf(buffer,
 "sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
-"%s\t%s\t%lld\t%lld\t%f\n", query, File_head->filename,
+"%s\t%s\t%lld\t%lld\t%f\t%e\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
                             contamination_rate,p_value);
   }
   return buffer;
 }
-
+/*-------------------------------------*/
 char *statistic_save (char *filename, char *prefix)
 {
   char *save_file = NULL;
   int length = 0;
-  //printf ("prefix->%s\n",prefix);
-  if (prefix!=NULL && prefix[0]=='.'){
+  if (prefix!=NULL && prefix[0]=='.')
+  {
       prefix+=2;
       length = strrchr(prefix,'/')-prefix+1;
-      if(length != 0 && strrchr(prefix,'/')!=NULL){
-         save_file =(char *) calloc (length, sizeof (char));
+      if(length != 0 && strrchr(prefix,'/')!=NULL)
+      {
+      	 save_file =(char *) calloc (length, sizeof (char));
          memcpy(save_file,prefix,length);
          prefix = save_file;
          save_file = NULL;
       }
-      else{              
+      else
+      {              
          prefix = NULL;
       } 
   }
