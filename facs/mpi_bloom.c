@@ -40,7 +40,6 @@ static int mpicheck_usage (void)
   fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
            query file\n");
   fprintf (stderr, "\n");
-  MPI_Finalize ();
   exit(1);
 }
 /*-------------------------------------*/
@@ -48,8 +47,8 @@ main (int argc, char **argv)
 {
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
-  char *bloom_filter = NULL, *list = NULL, *target_path = NULL, *position = NULL,  *query = NULL, *report_fmt = "json";
-  int opt, ntask = 0, mytask = 0, exit_sign = 0;
+  char *bloom_filter = NULL, *list = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
+  int opt=0, ntask = 0, mytask = 0, exit_sign = 0;
   BIGCAST share=0, offset=0;
   char type = '@';
   gzFile zip = NULL;
@@ -59,14 +58,17 @@ main (int argc, char **argv)
   head->next = tail;
   /*----------MPI initialize------------*/
   MPI_Init (&argc, &argv);
-  MPI_Comm_size (MPI_COMM_WORLD, &ntask);
-  MPI_Comm_rank (MPI_COMM_WORLD, &mytask);
+  MPI_Comm_rank (MPI_COMM_WORLD, &ntask);
+  MPI_Comm_size (MPI_COMM_WORLD, &mytask);
 /*------------get opt------------------*/
   
   if (argc<3)
   {
-        return mpicheck_usage();
-  }  
+	if (ntask == 0)
+	{
+        	return mpicheck_usage();
+	}
+  }
   while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1)
   {
       switch (opt)
@@ -102,16 +104,18 @@ main (int argc, char **argv)
 	  	return mpicheck_usage();
           break;
       }
-  } if (!bloom_filter && !query)
+  }
+  if (!bloom_filter && !query)
   {
-  	fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
+	if (ntask==0)
+  		fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
 	MPI_Finalize ();
 	exit (EXIT_FAILURE);
   }
   if (target_path == NULL)
   {
         target_path = argv[0];
-  } 
+  }
   if ((zip = gzopen (query, "rb")) < 0)
   {
 	if (ntask==0)
@@ -143,10 +147,11 @@ main (int argc, char **argv)
   {
 	if ((share-offset)<2*ONEG)
 		exit_sign = 1;
+	//printf ("offset->%lld left->%lld\n",offset+share*ntask,share-offset);
         offset+= gz_mpi (zip, offset+share*ntask, share-offset, position, type);
 	// put offset += ntask* share inside
 	get_parainfo (position, head, type);
-        head = head->next;
+        //head = head->next;
 #pragma omp parallel
   	{
 #pragma omp single nowait
@@ -185,21 +190,12 @@ BIGCAST struc_init (char *filename, int ntask, int mytask)
   
   BIGCAST total_size = get_size(filename);
   BIGCAST share = 0;
-  if (total_size<=2*ONEG)
+  share = total_size / ntask;	//every task gets an euqal piece
+  if (total_size%mytask!=0 && ntask==(mytask-1))
   {
-	if (mytask==0)
-	{
-		share = total_size;
-  	}
+  	share += (total_size % mytask);	//last node takes extra job
   }
-  else
-  {
-  	share = total_size / ntask;	//every task gets an euqal piece
-  	if (total_size%ntask!=0 && mytask==(ntask-1))
-  	{
-  		share += (total_size % ntask);	//last node takes extra job
-  	}
-  }
+  printf("share->%lld\n",share);
   return share;
 }
 /*-------------------------------------*/
@@ -302,13 +298,15 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
 	gzread (zip, data, left);
   	complete = left;
   }
+  printf("here\n");
   if (type == '@')
   {
 	if (offset!=0)
 	{
 		start = strstr (data,"\n+");
 		start = strchr (strchr(start+1,'\n')+1,'\n')+1;
-        } 
+        }
+	printf("dick\n"); 
 	end = strrstr (data, "\n+");
         end = bac_2_n (end - 1);
   }

@@ -27,7 +27,7 @@ valgrind: python
 
 mpi:
 	@echo Make sure you have MPI support on your cluster hint: module load openmpi
-	#mpicc -c *.c ${CFLAGS}
+	#mpicc -c *.c ${CFLAGS} ${LIBS}
 	#mpicc -c mpi_decon.c -O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE 
 	#mpicc -o mpi_decon mpi_decon.o bloom.o suggestions.o lookup8.o  -lm ${CFLAGS}
 	mpicc -c mpi_bloom.c ${CFLAGS}
