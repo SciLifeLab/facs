@@ -50,11 +50,13 @@ void isodate(char* buf) {
 /*sub function for quick pass*/
 int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, int read_length, int true_length, float tole_rate, char mode, char type)
 {
+	
 	if (mode == 'n')
 	{
 		#pragma omp atomic
 		File_head->all_k += (true_length);
 	}
+	
 	int result = 0;
 	while (read_length > 0)
         {

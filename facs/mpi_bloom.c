@@ -129,10 +129,11 @@ mpi_main (int argc, char **argv)
   {
   	tole_rate = mco_suggestion (bl_2->k_mer);
   }
-  while (share>0)
+  while (offset<share)
   {
-        
-   	get_parainfo (position, head, type);
+        offset+= gz_read_mu();
+	// put offset += ntask* share inside
+	get_parainfo (position, head, type);
         head = head->next;
 #pragma omp parallel
   	{
@@ -154,7 +155,6 @@ mpi_main (int argc, char **argv)
 	}
      		memset (position, 0, strlen(position));
       		share -= buffer;
-      		offset += buffer;
   }
   printf ("finish processing...\n");
   MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
