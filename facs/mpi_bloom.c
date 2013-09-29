@@ -48,7 +48,7 @@ main (int argc, char **argv)
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
   char *bloom_filter = NULL, *list = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
-  int opt=0, ntask = 0, mytask = 0, exit_sign = 0;
+  int opt=0, proc_num = 0, total_proc = 0, exit_sign = 0;
   BIGCAST share=0, offset=0;
   char type = '@';
   gzFile zip = NULL;
@@ -58,13 +58,13 @@ main (int argc, char **argv)
   head->next = tail;
   /*----------MPI initialize------------*/
   MPI_Init (&argc, &argv);
-  MPI_Comm_rank (MPI_COMM_WORLD, &ntask);
-  MPI_Comm_size (MPI_COMM_WORLD, &mytask);
+  MPI_Comm_rank (MPI_COMM_WORLD, &proc_num);
+  MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
 /*------------get opt------------------*/
   
   if (argc<3)
   {
-	if (ntask == 0)
+	if (proc_num == 0)
 	{
         	return mpicheck_usage();
 	}
@@ -95,19 +95,19 @@ main (int argc, char **argv)
           (optarg) && (report_fmt = optarg, 1);
           break;
         case 'h':
-	  if (ntask==0)
+	  if (proc_num==0)
           	return mpicheck_usage();
           break;
         case '?':
           printf ("Unknown option: -%c\n", (char) optopt);
-          if (ntask==0)
+          if (proc_num==0)
 	  	return mpicheck_usage();
           break;
       }
   }
   if (!bloom_filter && !query)
   {
-	if (ntask==0)
+	if (proc_num==0)
   		fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
 	MPI_Finalize ();
 	exit (EXIT_FAILURE);
@@ -118,7 +118,7 @@ main (int argc, char **argv)
   }
   if ((zip = gzopen (query, "rb")) < 0)
   {
-	if (ntask==0)
+	if (proc_num==0)
 	{
         	fprintf(stderr, "%s\n", strerror(errno));
 	}
@@ -131,7 +131,7 @@ main (int argc, char **argv)
         type = '>';
   /*initialize emtpy string for query*/
   position = (char *) calloc ((2*ONEG + 1), sizeof (char));
-  share = struc_init (query,ntask,mytask);
+  share = struc_init (query,proc_num,total_proc);
   F_set *File_head = make_list (bloom_filter, list);
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
@@ -147,9 +147,9 @@ main (int argc, char **argv)
   {
 	if ((share-offset)<2*ONEG)
 		exit_sign = 1;
-	//printf ("offset->%lld left->%lld\n",offset+share*ntask,share-offset);
-        offset+= gz_mpi (zip, offset+share*ntask, share-offset, position, type);
-	// put offset += ntask* share inside
+	//printf ("offset->%lld left->%lld\n",offset+share*proc_num,share-offset);
+        offset+= gz_mpi (zip, offset+share*proc_num, share-offset, position, type);
+	// put offset += proc_num* share inside
 	get_parainfo (position, head, type);
         //head = head->next;
 #pragma omp parallel
@@ -175,8 +175,8 @@ main (int argc, char **argv)
   }
   printf ("finish processing...\n");
   MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
-  gather (File_head,mytask,ntask);			//gather info from all nodes
-  if (mytask == 0)		
+  gather (File_head,total_proc,proc_num);			//gather info from all nodes
+  if (total_proc == 0)		
   {
   	char *result =  report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
   	printf("%s\n",result);
@@ -185,15 +185,15 @@ main (int argc, char **argv)
   return 0;
 }
 /*-------------------------------------*/
-BIGCAST struc_init (char *filename, int ntask, int mytask)
+BIGCAST struc_init (char *filename, int proc_num, int total_proc)
 {
   
   BIGCAST total_size = get_size(filename);
   BIGCAST share = 0;
-  share = total_size / ntask;	//every task gets an euqal piece
-  if (total_size%mytask!=0 && ntask==(mytask-1))
+  share = total_size / total_proc;	//every task gets an euqal piece
+  if (total_size%total_proc!=0 && proc_num==(total_proc-1))
   {
-  	share += (total_size % mytask);	//last node takes extra job
+  	share += (total_size % total_proc);	//last node takes extra job
   }
   printf("share->%lld\n",share);
   return share;
@@ -226,12 +226,12 @@ char *ammaping (char *source)
     buffer = share;
   printf ("total pieces->%d\n", total_piece);
   printf ("PAGE->%d\n", PAGE);
-  printf ("node %d chunk size %d buffer size %d offset %d\n", mytask, CHUNK,
+  printf ("node %d chunk size %d buffer size %d offset %d\n", total_proc, CHUNK,
 	  buffer, offset);
 
   sm = mmap (0, buffer * PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE, src, offset * PAGE);	//everytime we process a chunk of data
 
-  //sm = mmap (0,share*PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE,src, offsetmytask*share*PAGE); //last time we process the rest
+  //sm = mmap (0,share*PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE,src, offsettotal_proc*share*PAGE); //last time we process the rest
 
   if (MAP_FAILED == sm)
     {
@@ -243,10 +243,10 @@ char *ammaping (char *source)
 }
 */
 /*-------------------------------------*/
-int gather (F_set *File_head, int mytask, int ntask)
+int gather (F_set *File_head, int total_proc, int proc_num)
 {
   printf ("gathering...\n");
-  if (mytask == 0)
+  if (proc_num == 0)
   {
         // The master thread will need to receive all computations from all other threads.
   	MPI_Status status;
@@ -254,7 +254,7 @@ int gather (F_set *File_head, int mytask, int ntask)
         // We need to go and receive the data from all other threads.
         // The arbitrary tag we choose is 1, for now.
   	int i = 0;
-     	for (i = 1; i < ntask; i++)
+     	for (i = 1; i < total_proc; i++)
       	{
 		BIGCAST temp, temp2, temp3, temp4;
 		MPI_Recv (&temp, 1, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
@@ -298,7 +298,6 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
 	gzread (zip, data, left);
   	complete = left;
   }
-  printf("here\n");
   if (type == '@')
   {
 	if (offset!=0)
@@ -306,7 +305,6 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
 		start = strstr (data,"\n+");
 		start = strchr (strchr(start+1,'\n')+1,'\n')+1;
         }
-	printf("dick\n"); 
 	end = strrstr (data, "\n+");
         end = bac_2_n (end - 1);
   }
