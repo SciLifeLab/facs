@@ -4,7 +4,7 @@ PROG=facs
 all:$(PROG)
 	cd facs; make
 mpi: 
-
+	cd facs; make; make mpi
 tests: python
 	cd tests && nosetests -v -s -P --with-timer -a standard
 
