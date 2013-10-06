@@ -1,10 +1,20 @@
 function(doc) {
   if (doc.sample && doc.contamination_rate) {
     // only check organisms screened against ecoli for now
-    var bloom_file = doc.bloom_filter.replace(/^.*[\\\/]/, '')
-    var sample_file = doc.sample.replace(/^.*[\\\/]/, '')
-    if (bloom_file === 'eschColi_K12.bloom') {
-       emit([sample_file, bloom_file], doc.contamination_rate);
+    var bloom_file = doc.bloom_filter.replace(/^.*[\\\/]/, '');
+    var sample_file = doc.sample.replace(/^.*[\\\/]/, '');
+    if (bloom_file === 'eschColi_K12.bloom'){
+       if (sample_file.substring(0,6) === 'simngs') {
+           if (doc.timestamp) {
+               // Javascript Date object does not support subsecond error format
+               var timestamp = doc.timestamp.replace(/\+0200/, '');
+               var d1 = Date.parse(timestamp);
+
+               //var diff = end_run - begin_run;
+
+               emit([sample_file, bloom_file], [d1, doc.contamination_rate]);
+           }
+       }
     }
   }
 }
