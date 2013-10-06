@@ -6,8 +6,8 @@ function(doc) {
     if (bloom_file === 'eschColi_K12.bloom'){
        if (sample_file.substring(0,6) === 'simngs') {
            if (doc.timestamp) {
-               // Javascript Date object does not support subsecond error format
-               var timestamp = doc.timestamp.replace(/\+0200/, '');
+               // Javascript Date.parse() does not support subsecond error format
+               var timestamp = doc.timestamp.replace(/\+\d{4}/, '');
                var d1 = Date.parse(timestamp);
 
                //var diff = end_run - begin_run;
