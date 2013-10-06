@@ -11,5 +11,7 @@ core.*
 vgcore.*
 *.egg-info
 tests/data
+tests/simNGS
+tests/simNGS.*
 build/
 dist/
