@@ -11,7 +11,7 @@ import datetime
 from collections import defaultdict
 
 import facs
-from facs.utils import helpers, galaxy
+from facs.utils import helpers, galaxy, config
 
 class FastqScreenTest(unittest.TestCase):
     """Tests against Fastq Screen, to compare performance metrics.
@@ -35,6 +35,17 @@ class FastqScreenTest(unittest.TestCase):
             galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
         self.databases = []
+        self.results = []
+
+    def tearDown(self):
+        """ Report collated results of the tests to a remote CouchDB database.
+        """
+        try:
+            for res in self.results:
+                if config.SERVER:
+                    helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME, config.PASSWORD, res)
+        except:
+            pass
 
     def test_1_fetch_fastqscreen(self):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
@@ -85,7 +96,8 @@ class FastqScreenTest(unittest.TestCase):
 
             if os.path.exists(fastq_screen_resfile):
                 with open(fastq_screen_resfile, 'rU') as fh:
-                    print self._fastq_screen_metrics_to_json(fh, fastq_name)
+                    self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name))
+
 
     ## Aux methods for the test
     def _is_bowtie_present(self):
