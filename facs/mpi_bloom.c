@@ -53,7 +53,7 @@ main (int argc, char **argv)
   char type = '@';
   gzFile zip = NULL;
   bloom *bl_2 = NEW (bloom);
-  Queue *head = NEW (Queue), *tail = NEW (Queue);
+  Queue *head = NEW (Queue), *tail = NEW (Queue), *head2 = head;
   head->location = NULL;
   head->next = tail;
   /*----------MPI initialize------------*/
@@ -150,8 +150,9 @@ main (int argc, char **argv)
 	//printf ("offset->%lld left->%lld\n",offset+share*proc_num,share-offset);
         offset+= gz_mpi (zip, offset+share*proc_num, share-offset, position, type);
 	// put offset += proc_num* share inside
+	head = head2;
+	head->next = tail;
 	get_parainfo (position, head, type);
-        //head = head->next;
 #pragma omp parallel
   	{
 #pragma omp single nowait
@@ -175,8 +176,8 @@ main (int argc, char **argv)
   }
   printf ("finish processing...\n");
   MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
-  gather (File_head,total_proc,proc_num);			//gather info from all nodes
-  if (total_proc == 0)		
+  gather (File_head, total_proc, proc_num);			//gather info from all nodes
+  if (proc_num == 0)		
   {
   	char *result =  report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
   	printf("%s\n",result);
@@ -190,12 +191,11 @@ BIGCAST struc_init (char *filename, int proc_num, int total_proc)
   
   BIGCAST total_size = get_size(filename);
   BIGCAST share = 0;
-  share = total_size / total_proc;	//every task gets an euqal piece
+  share = total_size / (BIGCAST)total_proc;	//every task gets an euqal piece
   if (total_size%total_proc!=0 && proc_num==(total_proc-1))
   {
   	share += (total_size % total_proc);	//last node takes extra job
   }
-  printf("share->%lld\n",share);
   return share;
 }
 /*-------------------------------------*/
@@ -291,7 +291,7 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   if (left>2*ONEG)
   {
   	gzread (zip, data, 2*ONEG);
-  	complete = 2*ONEG;
+  	//complete = 2*ONEG;
   }
   else
   {
@@ -302,8 +302,10 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   {
 	if (offset!=0)
 	{
+		//printf ("start->%0.10s\n",start);
 		start = strstr (data,"\n+");
 		start = strchr (strchr(start+1,'\n')+1,'\n')+1;
+		data = start;
         }
 	end = strrstr (data, "\n+");
         end = bac_2_n (end - 1);
