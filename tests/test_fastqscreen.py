@@ -1,4 +1,5 @@
 import os
+import stat
 import csv
 import json
 import glob
@@ -35,22 +36,12 @@ class FastqScreenTest(unittest.TestCase):
 
         self.databases = []
 
-    def tearDown(self):
-        # cleanup .tar.gz, decompressed folder and tmp
-        fname, dirname, _ = helpers._get_expected_file(self.fscreen_url)
-        try:
-            shutil.rmtree(dirname)
-            os.remove(fname)
-            shutil.rmtree(self.tmp)
-        except:
-            pass
-
     def test_1_fetch_fastqscreen(self):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
-        #self.assertTrue(self._is_bowtie_present())
         # Does not work @UPPMAX, maybe some env var tweaked by the module system?
         # ... works elsewhere.
+        #self.assertTrue(self._is_bowtie_present())
 
         dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
@@ -59,7 +50,17 @@ class FastqScreenTest(unittest.TestCase):
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
 
         if not os.path.exists(fscreen_dst):
-            shutil.move(fscreen_path, self.progs)
+            shutil.copy(fscreen_src, self.progs)
+            shutil.copy(fscreen_src + '.conf', self.progs)
+
+        # Install VirtualEnv Perl equivalent: cpanm
+        subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
+        os.chmod('cpanm', 0700)
+        subprocess.check_call(['./cpanm', 'local::lib'])
+        subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
+#        subprocess.check_call('wget', 'https://bitbucket.org/jtopjian/penv/raw/20bcd9049/penv.pl')
+#        subprocess.check_call('penv.pl', 'fscr')
+#        subprocess.check_call('source', 'fscr/bin/activate')
 
         # truncates config file if present, depending on present reference genomes
         cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'w')
@@ -74,7 +75,7 @@ class FastqScreenTest(unittest.TestCase):
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = [fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+            cl = ['perl', '-Mlocal::lib', fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
 
             # Process fastq_screen results format and report it in JSON
