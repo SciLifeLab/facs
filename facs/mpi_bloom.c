@@ -25,6 +25,8 @@
 #include "mpi_bloom.h"
 #include<omp.h>
 #include<mpi.h>
+
+char *temp = NULL;
 /*-------------------------------------*/
 static int mpicheck_usage (void)
 {
@@ -152,6 +154,8 @@ main (int argc, char **argv)
 	// put offset += proc_num* share inside
 	head = head2;
 	head->next = tail;
+	if (temp)
+		position = temp;
 	get_parainfo (position, head, type);
 #pragma omp parallel
   	{
@@ -305,7 +309,7 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
 		//printf ("start->%0.10s\n",start);
 		start = strstr (data,"\n+");
 		start = strchr (strchr(start+1,'\n')+1,'\n')+1;
-		data = start;
+		temp = start;
         }
 	end = strrstr (data, "\n+");
         end = bac_2_n (end - 1);
