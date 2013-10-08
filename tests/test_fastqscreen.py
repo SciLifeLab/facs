@@ -70,7 +70,7 @@ class FastqScreenTest(unittest.TestCase):
         subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
         os.chmod('cpanm', 0700)
         subprocess.check_call(['./cpanm', '--local-lib=~/perl5', 'local::lib'])
-        subprocess.check_call(['eval', '$(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)'])
+#        subprocess.check_call(['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib'])
 #        subprocess.check_call(['./cpanm', 'local::lib'])
         subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
 #        subprocess.check_call('wget', 'https://bitbucket.org/jtopjian/penv/raw/20bcd9049/penv.pl')
@@ -90,7 +90,7 @@ class FastqScreenTest(unittest.TestCase):
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = ['perl', '-Mlocal::lib', fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+            cl = ['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib', fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
 
             # Process fastq_screen results format and report it in JSON
