@@ -12,6 +12,9 @@ from collections import defaultdict
 
 import facs
 from facs.utils import helpers, galaxy, config
+from nose.plugins.attrib import attr
+
+@attr('standard')
 
 class FastqScreenTest(unittest.TestCase):
     """Tests against Fastq Screen, to compare performance metrics.
