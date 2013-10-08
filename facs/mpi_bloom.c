@@ -155,8 +155,9 @@ main (int argc, char **argv)
 	head = head2;
 	head->next = tail;
 	if (temp)
-		position = temp;
+	position = temp;
 	get_parainfo (position, head, type);
+	printf ("pos->%0.20s\n",position);
 #pragma omp parallel
   	{
 #pragma omp single nowait
@@ -167,6 +168,7 @@ main (int argc, char **argv)
 		{
 	      		if (head->location != NULL)
                 	{
+				printf ("location->%0.15s\n",head->location);
                         	read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, 'c', type);
 			}
 		}
@@ -325,6 +327,7 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   if (start)
   {
 	complete -= (start - data);
+	//*data = start;
   }
   if (end)
   {
