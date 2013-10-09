@@ -69,7 +69,7 @@ class FastqScreenTest(unittest.TestCase):
         # Install VirtualEnv Perl equivalent: cpanm
         subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
         os.chmod('cpanm', 0700)
-        subprocess.check_call(['./cpanm', '--local-lib=~/perl5', 'local::lib'])
+        subprocess.check_call(['./cpanm', '-f', '--local-lib=~/perl5', 'local::lib'])
 #        subprocess.check_call(['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib'])
 #        subprocess.check_call(['./cpanm', 'local::lib'])
         subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
