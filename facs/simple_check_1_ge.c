@@ -123,7 +123,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	}	// outside while
 }
 /*-------------------------------------*/
-char *report(F_set *File_head, char *query, char *fmt, char *prefix)
+char *report(F_set *File_head, char *query, char *fmt, char *prefix, char* start_timestamp)
 {
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
@@ -136,14 +136,15 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix)
       isodate(timestamp);
       snprintf(buffer, sizeof(buffer),
 "{\n"
-"\t\"timestamp\": \"%s\",\n"
+"\t\"begin_timestamp\": \"%s\",\n"
+"\t\"end_timestamp\": \"%s\",\n"
 "\t\"sample\": \"%s\",\n"
 "\t\"bloom_filter\": \"%s\",\n"
 "\t\"total_read_count\": %lld,\n"
 "\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
 "\t\"contamination_rate\": %f\n"
-"}",  timestamp, query, File_head->filename,
+"}",  start_timestamp, timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         _contamination_rate);
 
