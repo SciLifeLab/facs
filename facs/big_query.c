@@ -113,6 +113,10 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   int normal = 0;
   BIGCAST offset = 0;
   char *position = NULL;
+  static char timestamp[40] = {0};
+
+  // Get current timestamp, for benchmarking purposes (begin of run timestamp)
+  isodate(timestamp);
 
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
@@ -223,7 +227,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
   } 
-  return report(File_head, query, report_fmt, target_path);
+  return report(File_head, query, report_fmt, target_path, timestamp);
 }
 
 char *strrstr (char *s, char *str)
