@@ -70,12 +70,7 @@ class FastqScreenTest(unittest.TestCase):
         subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
         os.chmod('cpanm', 0700)
         subprocess.check_call(['./cpanm', '-f', '--local-lib=~/perl5', 'local::lib'])
-#        subprocess.check_call(['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib'])
-#        subprocess.check_call(['./cpanm', 'local::lib'])
         subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
-#        subprocess.check_call('wget', 'https://bitbucket.org/jtopjian/penv/raw/20bcd9049/penv.pl')
-#        subprocess.check_call('penv.pl', 'fscr')
-#        subprocess.check_call('source', 'fscr/bin/activate')
 
         # truncates config file if present, depending on present reference genomes
         cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'w')

@@ -2,7 +2,7 @@ language: python
 
 before_install:
     - sudo add-apt-repository -y ppa:scilifelab/scilifelab
-    - sudo apt-get install -y build-essential zlib1g-dev zlib1g libgomp1 bowtie libgd2-xpm-dev
+    - sudo apt-get install -y build-essential zlib1g-dev zlib1g libgomp1 bowtie bowtie2 libgd2-xpm-dev
 # Hacky fix for libssl on UCSC twobitfa converter: //hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/twoBitToFa
     - sudo apt-get install -y libssl-dev
     - sudo ln -sf /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libssl.so.10
@@ -14,5 +14,6 @@ python:
 script:
     - make python
     - cd tests && nosetests -v -s -P --with-timer -a standard
+    - ls -alr ~/perl5/lib/perl5
 notifications:
     email: false
