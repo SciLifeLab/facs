@@ -15,6 +15,5 @@ python:
 script:
     - make python
     - cd tests && nosetests -v -s -P --with-timer -a standard
-    - ls -alr ~/perl5/lib/perl5
 notifications:
     email: false
