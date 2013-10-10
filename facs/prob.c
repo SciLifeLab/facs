@@ -4,6 +4,9 @@
 //double erf(double x);
 //double pdf(double x, double mu, double sigma);
 //extern double cdf(double x, double mu, double sigma);
+
+// cumulative distribution function
+// parameters are fixed
 double erf (double x) 
 {
   double y = 1.0 / (1.0 + 0.3275911*x);
