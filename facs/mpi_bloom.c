@@ -6,7 +6,6 @@
 #include <time.h>
 #include <errno.h>
 #include <stdio.h>
-//#include <zlib.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,10 +23,17 @@
 #include "check.h"
 #include "hashes.h"
 #include "mpi_bloom.h"
+
+/*parallel libraries*/
 #include<omp.h>
 #include<mpi.h>
 
-char *temp = NULL;
+/*since the read scanning process is fast enough, a parallel file reading
+approach needs to be applied otherwise file reading will become bottleneck.
+Back to file mapping approach with multiple access to query file. Zlib has
+atomic process with multiple threads reading from a file. So the speed of 
+multiple threads reading will be exactly the same as single thread reading
+*/
 /*-------------------------------------*/
 static int mpicheck_usage (void)
 {
@@ -35,8 +41,6 @@ static int mpicheck_usage (void)
   fprintf (stderr, "Options:\n");
   fprintf (stderr, "\t-r reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
-  fprintf (stderr, "\t-l input list containing all Bloom filters,\
-           one per line\n");
   fprintf (stderr, "\t-t threshold value\n");
   fprintf (stderr, "\t-f report output format, valid values are:\
            'json' and 'tsv'\n");
@@ -55,7 +59,7 @@ main (int argc, char **argv)
   MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
-  char *bloom_filter = NULL, *list = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
+  char *bloom_filter = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
   int opt=0,  exit_sign = 0;
   BIGCAST share=0, offset=0;
   char type = '@';
@@ -73,7 +77,7 @@ main (int argc, char **argv)
         	return mpicheck_usage();
 	}
   }
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1)
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:f:h")) != -1)
   {
       switch (opt)
       {
@@ -91,9 +95,6 @@ main (int argc, char **argv)
           break;
         case 'r':
           bloom_filter = optarg;
-          break;
-        case 'l':
-          list = optarg;
           break;
         case 'f': // "json", "tsv" or none
           (optarg) && (report_fmt = optarg, 1);
@@ -136,7 +137,7 @@ main (int argc, char **argv)
   /*initialize emtpy string for query*/
   position = (char *) calloc ((ONEG + 1), sizeof (char));
   share = struc_init (query,proc_num,total_proc);
-  F_set *File_head = make_list (bloom_filter, list);
+  F_set *File_head = make_list (bloom_filter, NULL);
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->hits = 0;
