@@ -1,6 +1,7 @@
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
+
 #include <math.h>
 #include <time.h>
 #include <errno.h>
@@ -47,10 +48,15 @@ static int mpicheck_usage (void)
 /*-------------------------------------*/
 main (int argc, char **argv)
 {
+  int proc_num = 0, total_proc = 0;
+/*----------MPI initialize------------*/
+  MPI_Init (&argc, &argv);
+  MPI_Comm_rank (MPI_COMM_WORLD, &proc_num);
+  MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
   char *bloom_filter = NULL, *list = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
-  int opt=0, proc_num = 0, total_proc = 0, exit_sign = 0;
+  int opt=0,  exit_sign = 0;
   BIGCAST share=0, offset=0;
   char type = '@';
   gzFile zip = NULL;
@@ -58,10 +64,6 @@ main (int argc, char **argv)
   Queue *head = NEW (Queue), *tail = NEW (Queue), *head2 = head;
   head->location = NULL;
   head->next = tail;
-  /*----------MPI initialize------------*/
-  MPI_Init (&argc, &argv);
-  MPI_Comm_rank (MPI_COMM_WORLD, &proc_num);
-  MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
 /*------------get opt------------------*/
   
   if (argc<3)
@@ -132,7 +134,7 @@ main (int argc, char **argv)
   else
         type = '>';
   /*initialize emtpy string for query*/
-  position = (char *) calloc ((2*ONEG + 1), sizeof (char));
+  position = (char *) calloc ((ONEG + 1), sizeof (char));
   share = struc_init (query,proc_num,total_proc);
   F_set *File_head = make_list (bloom_filter, list);
   File_head->reads_num = 0;
@@ -145,19 +147,18 @@ main (int argc, char **argv)
   {
   	tole_rate = mco_suggestion (bl_2->k_mer);
   }
+  
   while (offset<share)
   {
 	if ((share-offset)<2*ONEG)
 		exit_sign = 1;
-	//printf ("offset->%lld left->%lld\n",offset+share*proc_num,share-offset);
         offset+= gz_mpi (zip, offset+share*proc_num, share-offset, position, type);
-	// put offset += proc_num* share inside
+/*
 	head = head2;
 	head->next = tail;
 	if (temp)
 	position = temp;
 	get_parainfo (position, head, type);
-	printf ("pos->%0.20s\n",position);
 #pragma omp parallel
   	{
 #pragma omp single nowait
@@ -168,7 +169,6 @@ main (int argc, char **argv)
 		{
 	      		if (head->location != NULL)
                 	{
-				printf ("location->%0.15s\n",head->location);
                         	read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, 'c', type);
 			}
 		}
@@ -176,10 +176,12 @@ main (int argc, char **argv)
 		}
       	}	
 	}
+*/
      		memset (position, 0, strlen(position));
       		if (exit_sign==1)
 			break;
   }
+  
   printf ("finish processing...\n");
   MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
   gather (File_head, total_proc, proc_num);			//gather info from all nodes
@@ -252,6 +254,7 @@ char *ammaping (char *source)
 int gather (F_set *File_head, int total_proc, int proc_num)
 {
   printf ("gathering...\n");
+  BIGCAST temp, temp2, temp3, temp4;
   if (proc_num == 0)
   {
         // The master thread will need to receive all computations from all other threads.
@@ -262,7 +265,6 @@ int gather (F_set *File_head, int total_proc, int proc_num)
   	int i = 0;
      	for (i = 1; i < total_proc; i++)
       	{
-		BIGCAST temp, temp2, temp3, temp4;
 		MPI_Recv (&temp, 1, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
 	  	MPI_Recv (&temp2, 2, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
 	  	MPI_Recv (&temp3, 3, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
@@ -277,13 +279,23 @@ int gather (F_set *File_head, int total_proc, int proc_num)
   }
   else
   {
+	temp = File_head->reads_num;
+	temp2 = File_head->reads_contam;
+	temp3 = File_head->hits;
+	temp4 = File_head->all_k;
       	// We are finished with the results in this thread, and need to send the data to thread 1.
       	// MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
       	// The destination is thread 0, and the arbitrary tag we choose for now is 1.
-      	MPI_Send (File_head->reads_num, 1, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-      	MPI_Send (File_head->reads_contam, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-      	MPI_Send (File_head->hits, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-        MPI_Send (File_head->all_k, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp, 1, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp2, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp3, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp4, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+	/*  
+    	MPI_Send (File_head->reads_num, 1, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+      	MPI_Send (&File_head->reads_contam, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+      	MPI_Send (&File_head->hits, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&File_head->all_k, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+  	*/
   }
   return 1;
 }
@@ -294,9 +306,9 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   char *start=NULL, *end = NULL;
   BIGCAST complete = 0;
   gzseek (zip, offset, SEEK_SET);
-  if (left>2*ONEG)
+  if (left>ONEG)
   {
-  	gzread (zip, data, 2*ONEG);
+  	gzread (zip, data, ONEG);
   	//complete = 2*ONEG;
   }
   else
@@ -336,3 +348,4 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   }
   return complete;
 }
+/*-------------------------------------*/

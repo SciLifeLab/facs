@@ -146,8 +146,8 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
 "\t\"total_read_count\": %lld,\n"
 "\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"contamination_rate\": %f\n"
-"\t\"p_value\": %e\n"
+"\t\"contamination_rate\": %f,\n"
+"\t\"p_value\": %e,\n"
 "}",  timestamp, query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         contamination_rate,p_value);
