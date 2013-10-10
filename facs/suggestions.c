@@ -12,10 +12,11 @@
 #include <sys/types.h>
 #include "prob.h"
 #define MB 1048576
+
+/*suggestion for probability of random hits*/
 double prob_suggestion (int k_mer)
 {
 double prob = 0;
-/* average prob */
 if (k_mer<=12)
 	prob = 0.51038;
 else if (k_mer<=15)
@@ -24,43 +25,25 @@ else if (k_mer<=18)
 	prob = 0.00636;
 else 
 	prob = 0.001057;
-/*maximum prob
-if (k_mer<=12)
-        prob = 0.756533;
-else if (k_mer<=15)
-        prob = 0.188584; 
-else if (k_mer<=18) 
-        prob = 0.02548;
-else  
-        prob = 0.00129;
-*/ 
 return prob;
 }
-
+/*suggestion for kmer*/
 int kmer_suggestion (BIGCAST size)
 {
   if (size < 10 * MB)
     {
-      //bl->k_mer = 15;
-      //bl->mcf = 0.4;
       return 15;
     }
   else if (size < 20 * MB)
     {
-      //bl->k_mer = 17;
-      //bl->mcf = 0.4;
       return 16;
     }
   else if (size < 50 * MB)
     {
-      //bl->k_mer = 17;
-      //bl->mcf = 0.4;
       return 17;
     }
   else if (size < 100 * MB)
     {
-      //bl->k_mer = 18;
-      //bl->mcf = 0.3;
       return 18;
     }
   else if (size < 500 * MB)
@@ -69,12 +52,10 @@ int kmer_suggestion (BIGCAST size)
     }
   else
     {
-      //bl->k_mer = 20;
-      //bl->mcf = 0.3;
       return 20;
     }
 }
-
+/*suggestion for match cutoff*/
 float mco_suggestion (int k_mer)
 {
   switch (k_mer)
@@ -95,7 +76,7 @@ float mco_suggestion (int k_mer)
       return 0.4;
     }
 }
-
+/*suggestion for size of bloom filter*/
 int get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
 {
   stats->capacity = n;

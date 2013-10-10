@@ -6,7 +6,7 @@
 #include <time.h>
 #include <errno.h>
 #include <stdio.h>
-#include <zlib.h>
+//#include <zlib.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -349,3 +349,33 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   return complete;
 }
 /*-------------------------------------*/
+char *ammaping (char* source, long long offset, long long chunk, long long page)
+{
+  struct stat statbuf;
+
+  int fd = 0;
+  char *sm = NULL;
+
+  if ((fd = open (source, O_RDONLY | O_LARGEFILE)) < 0) {
+      fprintf (stderr, "%s: %s\n", source, strerror (errno));
+      exit (EXIT_FAILURE);
+  }
+  if (fstat (fd, &statbuf) < 0) {
+      fprintf (stderr, "%s: %s\n", source, strerror (errno));
+      exit (EXIT_FAILURE);
+  } else if (statbuf.st_size == 0) {
+      fprintf (stderr, "%s: %s\n", source, "File is empty");
+      exit (-1);
+  }
+
+  sm = mmap (0, chunk*page, PROT_READ, MAP_SHARED | MAP_NORESERVE, fd, offset*page);                       
+
+  if (MAP_FAILED == sm)
+    {
+      perror (" mmap source ");
+      printf("here\n");
+      exit (1);
+    }
+  close (fd);
+  return sm;
+}
