@@ -47,11 +47,14 @@ static int mpicheck_usage (void)
   fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
            query file\n");
   fprintf (stderr, "\n");
+/*finalize mpi process before each exit*/
+  MPI_Finalize ();
   exit(1);
 }
 /*-------------------------------------*/
 main (int argc, char **argv)
 {
+/*get MPI thead number and thread IDs*/
   int proc_num = 0, total_proc = 0;
 /*----------MPI initialize------------*/
   MPI_Init (&argc, &argv);
@@ -59,7 +62,7 @@ main (int argc, char **argv)
   MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
-  char *bloom_filter = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
+  char *map_chunk = NULL, *bloom_filter = NULL, *target_path = NULL, *position = NULL, *position2 = NULL, *query = NULL, *report_fmt = "json";
   int opt=0,  exit_sign = 0;
   BIGCAST share=0, offset=0;
   char type = '@';
@@ -128,38 +131,70 @@ main (int argc, char **argv)
         	fprintf(stderr, "%s\n", strerror(errno));
 	}
 		MPI_Finalize ();
-        	exit(EXIT_FAILURE);
+        	exit(-1);
   }
+  /*file type identification*/
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
         type = '@';
   else
         type = '>';
   /*initialize emtpy string for query*/
   position = (char *) calloc ((ONEG + 1), sizeof (char));
-  share = struc_init (query,proc_num,total_proc);
+  position2 = position;
+  /*make structor for omp parallization*/
   F_set *File_head = make_list (bloom_filter, NULL);
+  /*necessary initialization for python interface*/
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->hits = 0;
   File_head->all_k = 0;
   File_head->filename = bloom_filter;
-  load_bloom (File_head->filename, bl_2);	//load a bloom filter
+  /*load a bloom filter*/
+  load_bloom (File_head->filename, bl_2);
+  /*load a default match cutoff according to k-mer*/
   if (tole_rate == 0)
   {
   	tole_rate = mco_suggestion (bl_2->k_mer);
   }
-  
-  while (offset<share)
+  /*pagelize chunk*/
+  int page = getpagesize(); 
+  int chunk = ONEG/page;
+  /*get task share for each mpi thread*/
+  share = struc_init (query,proc_num,total_proc,page);
+  /*distribute task*/
+  offset += share * proc_num;
+  //printf ("share->%lld\n",share);
+  //printf ("offset->%lld\n",offset);
+  //printf ("chunk->%d\n",chunk);
+  /*start processing*/
+  while (share>0)
   {
-	if ((share-offset)<2*ONEG)
-		exit_sign = 1;
-        offset+= gz_mpi (zip, offset+share*proc_num, share-offset, position, type);
-/*
+	/*last piece must no bigger than chunk size*/
+	if (share<=chunk)
+	{
+		chunk = share;
+	}
+	//printf ("share->%lld\n",share);
+	//printf ("offset->%lld\n",offset);
+	/*copy data from mapping area since standard read_process*/
+	map_chunk = ammaping(query, offset, chunk, page);
+	
+	memcpy(position,map_chunk,chunk*page);
+	/*remove fragments*/
+	
+	if (offset!=0)
+	{
+		position = remove_frag_head(position,type);
+	}
+	
+	//if (proc_num!=total_proc || chunk<=ONEG)
+	remove_frag_tail(position,type);
+	//printf("reads num->%d\n",count_characters(position, '\n')/4);
+	//printf ("real length->%d\n",strlen(position2));
 	head = head2;
 	head->next = tail;
-	if (temp)
-	position = temp;
 	get_parainfo (position, head, type);
+
 #pragma omp parallel
   	{
 #pragma omp single nowait
@@ -170,6 +205,8 @@ main (int argc, char **argv)
 		{
 	      		if (head->location != NULL)
                 	{
+				//printf("head->%0.25s\n",position);
+				//printf ("position->%0.25s\n",head->location);
                         	read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, 'c', type);
 			}
 		}
@@ -177,12 +214,15 @@ main (int argc, char **argv)
 		}
       	}	
 	}
-*/
-     		memset (position, 0, strlen(position));
-      		if (exit_sign==1)
-			break;
+	offset+=chunk;
+  	share-=chunk;
+	position = position2;
+  	munmap (map_chunk,chunk*page);
+	if (share<chunk)
+	{
+     		memset (position,0,chunk*page);
+	}
   }
-  
   printf ("finish processing...\n");
   MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
   gather (File_head, total_proc, proc_num);			//gather info from all nodes
@@ -194,64 +234,7 @@ main (int argc, char **argv)
   MPI_Finalize ();
   return 0;
 }
-/*-------------------------------------*/
-BIGCAST struc_init (char *filename, int proc_num, int total_proc)
-{
-  
-  BIGCAST total_size = get_size(filename);
-  BIGCAST share = 0;
-  share = total_size / (BIGCAST)total_proc;	//every task gets an euqal piece
-  if (total_size%total_proc!=0 && proc_num==(total_proc-1))
-  {
-  	share += (total_size % total_proc);	//last node takes extra job
-  }
-  return share;
-}
-/*-------------------------------------*/
-/*current sacrifice file mapping, use gzip instead*/
-/*
-char *ammaping (char *source)
-{
-  int src;
-  char *sm;
-
-  if ((src = open (source, O_RDONLY | O_LARGEFILE)) < 0)
-    {
-      perror (" open source ");
-      exit (EXIT_FAILURE);
-    }
-
-  if (fstat (src, &statbuf) < 0)
-    {
-      perror (" fstat source ");
-      exit (EXIT_FAILURE);
-    }
-
-  printf ("share->%d PAGES per node\n", share);
-
-  if (share >= CHUNK)
-    buffer = CHUNK;
-  else
-    buffer = share;
-  printf ("total pieces->%d\n", total_piece);
-  printf ("PAGE->%d\n", PAGE);
-  printf ("node %d chunk size %d buffer size %d offset %d\n", total_proc, CHUNK,
-	  buffer, offset);
-
-  sm = mmap (0, buffer * PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE, src, offset * PAGE);	//everytime we process a chunk of data
-
-  //sm = mmap (0,share*PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE,src, offsettotal_proc*share*PAGE); //last time we process the rest
-
-  if (MAP_FAILED == sm)
-    {
-      perror (" mmap source ");
-      exit (EXIT_FAILURE);
-    }
-
-  return sm;
-}
-*/
-/*-------------------------------------*/
+/*gather info from MPI thread*/
 int gather (F_set *File_head, int total_proc, int proc_num)
 {
   printf ("gathering...\n");
@@ -291,66 +274,30 @@ int gather (F_set *File_head, int total_proc, int proc_num)
         MPI_Send (&temp2, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
         MPI_Send (&temp3, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
         MPI_Send (&temp4, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-	/*  
-    	MPI_Send (File_head->reads_num, 1, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-      	MPI_Send (&File_head->reads_contam, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-      	MPI_Send (&File_head->hits, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-        MPI_Send (&File_head->all_k, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-  	*/
   }
   return 1;
 }
-
-/*-------------------------------------*/
-BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
+/*distribute data by page*/
+BIGCAST struc_init (char *filename, int proc_num, int total_proc, int page)
 {
-  char *start=NULL, *end = NULL;
-  BIGCAST complete = 0;
-  gzseek (zip, offset, SEEK_SET);
-  if (left>ONEG)
+  BIGCAST total_size = get_size (filename);
+  BIGCAST total_piece = total_size/page;
+  BIGCAST share = 0;
+  share = total_piece / total_proc;
+  if (total_piece%total_proc!=0 && proc_num==(total_proc-1))
   {
-  	gzread (zip, data, ONEG);
-  	//complete = 2*ONEG;
-  }
-  else
-  {
-	gzread (zip, data, left);
-  	complete = left;
-  }
-  if (type == '@')
-  {
-	if (offset!=0)
+        share += (total_piece % total_proc);
+	/*
+	if (total_size%page!=0)
 	{
-		//printf ("start->%0.10s\n",start);
-		start = strstr (data,"\n+");
-		start = strchr (strchr(start+1,'\n')+1,'\n')+1;
-		temp = start;
-        }
-	end = strrstr (data, "\n+");
-        end = bac_2_n (end - 1);
-  }
-  else
-  {
-	if (offset!=0)
-	{
-		start = strchr (data, '>');
+		share++;
 	}
-        end = strrchr (data, '>') - 1;
-  }
-  if (start)
-  {
-	complete -= (start - data);
-	//*data = start;
-  }
-  if (end)
-  {
-        complete += (end - data);
-        memset (end, 0, strlen (end));
-  }
-  return complete;
-}
-/*-------------------------------------*/
-char *ammaping (char* source, long long offset, long long chunk, long long page)
+	*/
+  } 
+  return share; 
+} 
+/*partial mapping scheme*/
+char *ammaping (char* source, BIGCAST offset, BIGCAST chunk, int page)
 {
   struct stat statbuf;
 
@@ -359,24 +306,69 @@ char *ammaping (char* source, long long offset, long long chunk, long long page)
 
   if ((fd = open (source, O_RDONLY | O_LARGEFILE)) < 0) {
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
-      exit (EXIT_FAILURE);
+      MPI_Finalize ();
+      exit (-1);
   }
   if (fstat (fd, &statbuf) < 0) {
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
-      exit (EXIT_FAILURE);
+      MPI_Finalize ();
+      exit (-1);
   } else if (statbuf.st_size == 0) {
       fprintf (stderr, "%s: %s\n", source, "File is empty");
+      MPI_Finalize ();
       exit (-1);
   }
-
+  /*offset by page*/
   sm = mmap (0, chunk*page, PROT_READ, MAP_SHARED | MAP_NORESERVE, fd, offset*page);                       
 
   if (MAP_FAILED == sm)
     {
-      perror (" mmap source ");
-      printf("here\n");
-      exit (1);
+      fprintf (stderr, "%s: %s\n", source, "Mapping error");
+      MPI_Finalize ();
+      exit (-1);
     }
   close (fd);
   return sm;
+}
+/*remove fragment in head area*/
+char *remove_frag_head(char *position, char type)
+{
+	if (type == '@')
+	{
+		position = strstr (position,"\n+");
+		position = strchr (strchr(position+1,'\n')+1,'\n')+1;
+	}
+	else
+	{
+		position = strchr (position, '>');
+	}
+return position;
+}
+/*remove fragment in tail area*/
+void remove_frag_tail(char *position, char type)
+{
+	char *end = NULL;
+	if (type == '@')
+	{
+		end = strrstr (position, "\n+");
+        	end = bac_2_n (end - 1);
+	}
+	else
+	{
+		end = strrchr (end, '>') - 1;	
+	}
+	memset(end,0,strlen(end));
+}
+
+int count_characters(const char *str, char character)
+{
+    const char *p = str;
+    int count = 0;
+
+    do {
+        if (*p == character)
+            count++;
+    } while (*(p++));
+
+    return count;
 }

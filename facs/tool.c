@@ -217,9 +217,12 @@ get_parainfo (char *full, Queue * head, char type)
               for (add = 0; add < cores; add++)
               {
                   Queue *x = NEW (Queue);
+		  
                   if (add == 0 && *full != '>')
+			{
                   	temp = strchr (full, '>');	//drop the possible fragment
-                  if (add != 0)
+			}                
+		  if (add != 0)
                   	temp = strchr (full + offset * add, '>');
                   x->location = temp;
                   x->number = &add;
@@ -236,8 +239,11 @@ get_parainfo (char *full, Queue * head, char type)
               	length = strchr(tx+1,'\n')-(tx+1);
 	      	Queue *x = NEW (Queue);
               	x->location = NULL;
-              	if (add != 0)
-                	temp = fastq_relocate(full, offset*add, length);          
+		if (add != 0)
+			{
+                	temp = fastq_relocate(full, offset*add, length);   
+			//printf ("temp->%0.20s\n",temp);
+			}    
               	if (previous!=temp)
 		{
                 	previous = temp;
@@ -280,8 +286,7 @@ jump (char *target, char type, float sampling_rate)
   return target;
 }
 /*relocate the starting points (correct @ positions) for fastq files*/
-char *
-fastq_relocate (char *data, int offset, int length)
+char *fastq_relocate (char *data, int offset, int length)
 {
   char *target = NULL;
   int current_length = 0, read_length = 0;
@@ -305,8 +310,7 @@ fastq_relocate (char *data, int offset, int length)
 
 
 /*scoring system scheme*/
-int
-dx_add (int k_mer)
+int dx_add (int k_mer)
 {
   int x;
   int y = 0;
@@ -315,8 +319,7 @@ dx_add (int k_mer)
   return y;
 }
 /*get read length for fastq file*/
-int
-fq_read_length (char *data)
+int fq_read_length (char *data)
 {
 	char *origin = data;
 	while (*data != '\n')
