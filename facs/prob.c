@@ -9,6 +9,8 @@
 // parameters are fixed
 double erf (double x) 
 {
+  //constants in A&S fomular 7.1.26 from:
+  //Handbook of Mathematical Functions: with Formulas, Graphs, and Mathematical Tables (Dover Books on Mathematics)
   double y = 1.0 / (1.0 + 0.3275911*x);
   return 1 - (((((+1.061405429*y-1.453152027)*y+1.421413741)*y-0.284496736)*y+0.254829592)*y)*exp(-x*x);
 }
