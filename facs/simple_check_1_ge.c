@@ -149,7 +149,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\t\"total_hits\": %lld,\n"
 "\t\"contamination_rate\": %f,\n"
 "\t\"p_value\": %e,\n"
-"}",  timestamp, query, File_head->filename,
+"}",  start_timestamp, timestamp,query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         contamination_rate,p_value);
   // TSV output format
