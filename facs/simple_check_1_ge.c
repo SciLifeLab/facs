@@ -24,30 +24,30 @@
 #include <omp.h>
 #endif
 /*---------------------------*/
-char *clean, *contam, *clean2, *contam2;
+char *_clean, *_contam, *_clean2, *_contam2;
 /*save it for the possible advanced version*/
 void init_string(int chunk)
 {
-	clean = (char *) calloc (chunk, sizeof (char));
-	contam = (char *) calloc (chunk, sizeof (char));
-	clean2 = clean;
-	contam2 = contam;
+	_clean = (char *) calloc (chunk, sizeof (char));
+	_contam = (char *) calloc (chunk, sizeof (char));
+	_clean2 = _clean;
+	_contam2 = _contam;
 }
 /*---------------------------*/
 char *re_clean()
 {
-	return clean2;
+	return _clean2;
 }
 /*---------------------------*/
 char *re_contam()
 {
-	return contam2;
+	return _contam2;
 }
 /*---------------------------*/
 void reset_string()
 {
-	memset(clean2,0,strlen(clean2));
-	memset(contam2,0,strlen(contam2));
+	memset(_clean2,0,strlen(_clean2));
+	memset(_contam2,0,strlen(_contam2));
 }
 /*---------------------------*/
 void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
