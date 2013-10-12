@@ -63,7 +63,7 @@ main (int argc, char **argv)
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
   char *map_chunk = NULL, *bloom_filter = NULL, *target_path = NULL, *position = NULL, *position2 = NULL, *query = NULL, *report_fmt = "json";
-  int opt=0,  exit_sign = 0;
+  int opt=0;
   BIGCAST share=0, offset=0;
   char type = '@';
   gzFile zip = NULL;
