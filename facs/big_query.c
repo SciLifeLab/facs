@@ -221,7 +221,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
   }
-  return report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
+  return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
 }
 
 char *strrstr (char *s, char *str)

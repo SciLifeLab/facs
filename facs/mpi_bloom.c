@@ -149,6 +149,9 @@ main (int argc, char **argv)
   File_head->hits = 0;
   File_head->all_k = 0;
   File_head->filename = bloom_filter;
+  static char timestamp[40] = {0};
+  // Get current timestamp, for benchmarking purposes (begin of run timestamp)
+  isodate(timestamp);
   /*load a bloom filter*/
   load_bloom (File_head->filename, bl_2);
   /*load a default match cutoff according to k-mer*/
@@ -228,7 +231,7 @@ main (int argc, char **argv)
   gather (File_head, total_proc, proc_num);			//gather info from all nodes
   if (proc_num == 0)		
   {
-  	char *result =  report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
+  	char *result =  report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
   	printf("%s\n",result);
   }
   MPI_Finalize ();
