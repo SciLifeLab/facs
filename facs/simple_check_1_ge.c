@@ -140,7 +140,8 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, double prob
       isodate(timestamp);
       snprintf(buffer, sizeof(buffer),
 "{\n"
-"\t\"timestamp\": \"%s\",\n"
+"\t\"begin_timestamp\": \"%s\",\n"
+"\t\"end_timestamp\": \"%s\",\n"
 "\t\"sample\": \"%s\",\n"
 "\t\"bloom_filter\": \"%s\",\n"
 "\t\"total_read_count\": %lld,\n"

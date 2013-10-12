@@ -106,6 +106,10 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   int normal = 0;
   BIGCAST offset = 0;
   char *position = NULL;
+  static char timestamp[40] = {0};
+
+  // Get current timestamp, for benchmarking purposes (begin of run timestamp)
+  isodate(timestamp);
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
   /*initialize for python*/
@@ -216,8 +220,13 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   if (normal == 0)
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
+<<<<<<< HEAD
   }
   return report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
+=======
+  } 
+  return report(File_head, query, report_fmt, target_path, timestamp);
+>>>>>>> 509e88a2cc15e5f4e240e7385cc58dc97d109427
 }
 
 char *strrstr (char *s, char *str)
