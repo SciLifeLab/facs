@@ -24,7 +24,7 @@
 #include <omp.h>
 #endif
 /*---------------------------*/
-char *clean, *contam, *clean2, *contam2;
+char *_clean, *_contam, *_clean2, *_contam2;
 /*save it for the possible advanced version*/
 void init_string(int chunk)
 {
