@@ -71,7 +71,7 @@ class FastqScreenTest(unittest.TestCase):
         if not os.path.exists('cpanm'):
             subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
             os.chmod('cpanm', 0700)
-            subprocess.check_call(['./cpanm', '-f', '--local-lib=~/perl5', 'local::lib'])
+            subprocess.check_call(['./cpanm', '-f', '--local-lib=', os.path.join(os.environ['HOME'], 'perl5'), 'local::lib'])
             subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
 
 
@@ -90,7 +90,8 @@ class FastqScreenTest(unittest.TestCase):
                     break
 
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = ['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib', fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+            cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
+                  "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
 
             # Process fastq_screen results format and report it in JSON
@@ -145,8 +146,8 @@ class FastqScreenTest(unittest.TestCase):
 
         self.config = """
 BOWTIE\t\t{bowtie}
-THREADS\t\t8\n
-""".format(bowtie="bowtie")
+THREADS\t\t{threads}\n
+""".format(bowtie="bowtie", threads=self.fastq_threads)
 
         for db in range(len(self.databases)):
             self.config_dbs = """
