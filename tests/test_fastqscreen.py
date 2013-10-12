@@ -1,4 +1,5 @@
 import os
+import stat
 import csv
 import json
 import glob
@@ -10,8 +11,10 @@ import datetime
 from collections import defaultdict
 
 import facs
-from facs.utils import helpers, galaxy
+from facs.utils import helpers, galaxy, config
+from nose.plugins.attrib import attr
 
+@attr('standard')
 class FastqScreenTest(unittest.TestCase):
     """Tests against Fastq Screen, to compare performance metrics.
     """
@@ -33,24 +36,26 @@ class FastqScreenTest(unittest.TestCase):
         if not os.path.exists(twobit_fa_path):
             galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
+        self.fastq_threads = 1
         self.databases = []
+        self.results = []
 
     def tearDown(self):
-        # cleanup .tar.gz, decompressed folder and tmp
-        fname, dirname, _ = helpers._get_expected_file(self.fscreen_url)
+        """ Report collated results of the tests to a remote CouchDB database.
+        """
         try:
-            shutil.rmtree(dirname)
-            os.remove(fname)
-            shutil.rmtree(self.tmp)
+            for res in self.results:
+                if config.SERVER:
+                    helpers.send_couchdb(config.SERVER, config.FASTQ_SCREEN_DB, config.USERNAME, config.PASSWORD, res)
         except:
             pass
 
     def test_1_fetch_fastqscreen(self):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
-        #self.assertTrue(self._is_bowtie_present())
         # Does not work @UPPMAX, maybe some env var tweaked by the module system?
         # ... works elsewhere.
+        #self.assertTrue(self._is_bowtie_present())
 
         dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
@@ -59,22 +64,33 @@ class FastqScreenTest(unittest.TestCase):
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
 
         if not os.path.exists(fscreen_dst):
-            shutil.move(fscreen_path, self.progs)
+            shutil.copy(fscreen_src, self.progs)
+            shutil.copy(fscreen_src + '.conf', self.progs)
 
-        # truncates config file if present, depending on present reference genomes
-        cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'w')
-        cfg.write(self._genconf())
-        cfg.close()
+        # Install VirtualEnv Perl equivalent: cpanm
+        if not os.path.exists('cpanm'):
+            subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
+            os.chmod('cpanm', 0700)
+            subprocess.check_call(['./cpanm', '-f', '--local-lib=~/perl5', 'local::lib'])
+            subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
+
 
     def test_2_run_fastq_screen(self):
-        """Runs fastq_screen tests against synthetically generated fastq files folder
+        """ Runs fastq_screen tests against synthetically generated fastq files folder.
+            It runs generates single threaded config files, to measure performance per-sample.
         """
-        cfg = open(os.path.join(self.progs, "fastq_screen.conf"), 'rU')
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
+        references = glob.glob(os.path.join(self.reference, '*'))
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
+            with open(os.path.join(self.progs, "fastq_screen.conf"), 'w') as cfg:
+                try:
+                    cfg.write(self._genconf(fastq, references.pop().split(os.path.sep)[-1], self.fastq_threads))
+                except IndexError:
+                    break
+
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = [fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+            cl = ['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib', fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
 
             # Process fastq_screen results format and report it in JSON
@@ -84,14 +100,8 @@ class FastqScreenTest(unittest.TestCase):
 
             if os.path.exists(fastq_screen_resfile):
                 with open(fastq_screen_resfile, 'rU') as fh:
-                    print self._fastq_screen_metrics_to_json(fh, fastq_name)
+                    self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name))
 
-    ## Aux methods for the test
-    def _is_bowtie_present(self):
-        bowtie = subprocess.Popen(['which','bowtie'], shell=True, env=env,
-                                  stdout=subprocess.PIPE).communicate()[0]
-        # XXX: Figure out why this does behave in shell but not here
-        return os.path.basename(bowtie) == "bowtie"
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name):
         reader = csv.reader(in_handle, delimiter="\t")
@@ -125,12 +135,13 @@ class FastqScreenTest(unittest.TestCase):
         for ref in os.listdir(self.reference):
             # Downloads bowtie indexes genome(s)
             genomes.append(ref)
+            #XXX: parametrize for bowtie2, although it is possible that bowtie2 indices are
+            # not still properly generated in the Galaxy rsync :_(
             galaxy.rsync_genomes(self.reference, genomes, ["bowtie"])
 
-    def _genconf(self):
-        for ref in os.listdir(self.reference):
-            bwt_index = os.path.abspath(os.path.join(self.reference, ref, "bowtie_index", ref))
-            self.databases.append(("DATABASE", ref, bwt_index))
+    def _genconf(self, query, reference, threads):
+        bwt_index = os.path.abspath(os.path.join(self.reference, reference, "bowtie_index", reference))
+        self.databases.append(("DATABASE", reference, bwt_index))
 
         self.config = """
 BOWTIE\t\t{bowtie}
@@ -144,7 +155,7 @@ THREADS\t\t8\n
            full_path=self.databases[db][2])
 
             self.config=self.config+self.config_dbs
+        # reset databases list, we don't want to accumulate them for
+        # multithreading like before
+        self.databases = []
         return self.config
-
-    def prepare_local_perl():
-        pass

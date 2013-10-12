@@ -25,26 +25,37 @@ It supports large genome files (>4GB), human genome, for instance.
 Quickstart
 ----------
 
-In order to fetch the source code and compile, run:
+In order to fetch the source code run:
 
 ```
-$ git clone https://github.com/SciLifeLab/facs && cd facs && make -j8
+$ git clone https://github.com/SciLifeLab/facs
 ```
 
-Please note that python's <a href="https://github.com/brainsik/virtualenv-burrito">virtualenv</a>
-is needed to run the tests.
+For the python interface, it is highly recommended to install and run FACS under
+a python virtual environment. Python virtual environments provide and isolated
+environment to run your python code, solving dependency and version problems, and 
+indirectly permissions. Read more about virtualenv [here](https://pypi.python.org/pypi/virtualenv).
 
-If you are compiling on MacOSX or with <a href='http://clang.llvm.org/'>LLVM's clang</a>, please note that FACS it'll run
-in single core mode since <a href="http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU">OpenMP is still not ported to clang</a>.
+To easily install a virtual environment you can use [virtualenv-burrito](https://github.com/brainsik/virtualenv-burrito).
+Follow the instructions in the link provided in order to create a new virtual 
+environment. 
 
-Also, `wget` is required to run the testsuite, so please run:
+Installing
+----------
+----------
+Just type ```make python``` after creating and activating the virtual environment.
 
-```
-brew install wget
-```
 
-Or use <a href="http://fink.sf.net/">whatever</a> <a href="http://www.macports.org/">packaging</a>
-<a href='http://mxcl.github.com/homebrew/'>means</a> you have in MacOSX.
+Citation
+--------
+
+Henrik Stranneheim, Max Käller, Tobias Allander, Björn Andersson, Lars Arvestad, Joakim Lundeberg: Classification of DNA sequences using Bloom filters. Bioinformatics 26(13): 1595-1600 (2010)
+
+
+License
+-------
+
+The code is freely available under MIT license as well as the hashing algorithm 'lookup8', which is developed by Bob Jenkins and used under MIT license.
 
 Usage
 ------
@@ -94,6 +105,7 @@ be contaminated with ecoli in that particular sample:
     "contaminated_reads": 1,
     "total_hits": 36,
     "contamination_rate": 0.004975,
+    "p_value": 1.522929e-01
 }
 ```
 
@@ -127,6 +139,22 @@ If output_path '-o' is specified, two output files will be generated:
 `contaminated_sample_ecoli_contam.fastq`
 `contaminated_sample_ecoli_clean.fastq`
 
+MPI facs2.0 version
+-------------------
+
+MPI facs2.0 version can be used in multi-cpu system, for instance, a cluster, in order to take advantage 
+of both multiple cores and multiple cpus at the same time.   
+
+Usage:
+
+First download facs package and 'make', then 'make mpi'. A unique binary file 'facs_mpi' will be generated.
+
+```
+$mpirun -np number_of_cpu ./facs_mpi -r reference_bloom_filter -q query_sequence
+```
+Be advised, besides openmp library, MPI facs2.0 requires MPI library (OpenMpi or Mpich, etc.)  
+
+
 Python interface
 ----------------
 
@@ -142,4 +170,25 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> facs.build("ecoli.fasta", "ecoli.bloom")
 >>> facs.query("contaminated_sample.fastq.gz", "ecoli.bloom")
 >>> facs.remove("contaminated_sample.fastq", "ecoli.bloom")
+```
+
+Update results to a database
+----------------------------
+
+FACS provides results in [JSON](http://www.json.org/) format, which eases the
+storage of these results in a CouchDB instance. To do so, you need to create a
+configuration file with the information for your CouchDB instance. 
+
+The file should be named either .facsrc or .facs.cnf and should be located in 
+your home directory. For system wide installations it can also be located at
+/etc/facs.conf.
+
+The format should be like this:
+
+```
+[facs]
+SERVER: <your server address>
+DB: <DB name>
+USER: <username>
+PASSWORD: <password>
 ```

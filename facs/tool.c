@@ -48,8 +48,15 @@ void isodate(char* buf) {
     sprintf(buf, "%s", timestamp);
 }
 /*sub function for quick pass*/
-int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, int read_length, int true_length, float tole_rate, char mode)
+int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, int read_length, int true_length, float tole_rate, char mode, char type)
 {
+	
+	if (mode == 'n')
+	{
+		#pragma omp atomic
+		File_head->all_k += (true_length);
+	}
+	
 	int result = 0;
 	while (read_length > 0)
         {
@@ -83,8 +90,11 @@ int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, 
         }
         else
         {
-                return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
-        }
+		if (type=='q')
+                	return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
+        	else
+			return fasta_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
+	}
 }
 /*quick pass for fastq reads using k-mer and 0 overlap*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
@@ -104,43 +114,7 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	{
 		normal_lower(start_point,length); //normalize the whole read tddo the lower case
 	}
-	/*
-        while (read_length > 0) 
-        { 
-                if (read_length >= bl->k_mer)
-                {
-                        read_length -= bl->k_mer;
-                }
-                else
-                {
-                        start_point -= (bl->k_mer-read_length);
-                        read_length = 0;
-                }
-                if (bloom_check (bl, start_point))
-                {
-                        result = total_full_check (bl, begin, length, tole_rate, File_head);
-                        if (result > 0)
-                        {
-                                if (mode == 'r')
-                                        free(begin);
-                                return result;
-                        }
-                        else if (mode == 'n')
-                                break;
-                }
-                start_point+=bl->k_mer;
-        }
-        if (mode == 'r')
-        {
-                free(begin);
-                return 0;
-        }
-        else
-        {
-                return fastq_read_check (begin, length, 'r', bl, tole_rate, File_head);
-        }
-	*/	
-	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode);
+	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode, 'q');
 }
 /*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
 int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
@@ -183,8 +157,6 @@ int total_full_check (bloom * bl, char *start_point, int length, float tole_rate
 	result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
 	#pragma omp atomic
 	File_head->hits += match_time;
-	#pragma omp atomic
-	File_head->all_k += (length - bl->k_mer);
 	if (result >= tole_rate)
 		return match_s;
 	else
@@ -214,47 +186,8 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	// reverse compliment process
 	if (mode == 'n')
 		begin = start_point;
-	//printf("mode->%c----dick%s\n",mode,start_point);
         normal_lower(start_point,true_length); 
-	//printf("mode->%c----dick%s\n",mode,start_point);
-	//normalize the whole read tddo the lower case
-	/*
-	while (read_length > 0) 
-        { 
-                if (read_length >= bl->k_mer)
-                {
-                        read_length -= bl->k_mer;
-                }
-                else
-                {
-                        start_point -= (bl->k_mer-read_length);
-                        read_length = 0;
-                }
-                if (bloom_check (bl, start_point))
-                {
-                        result = total_full_check (bl, begin, true_length, tole_rate, File_head);
-                        if (result > 0)
-                        {
-                                if (mode == 'r')
-                                        free(begin);
-                                return result;
-                        }
-                        else if (mode == 'n')
-                                break;
-                }
-                start_point+=bl->k_mer;
-        }
-        if (mode == 'r')
-        {
-                free(begin);
-                return 0;
-        }
-        else
-        {
-                return fastq_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
-        }
-	*/
-	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode);
+	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode, 'a');
 }
 /*Parallel job distribution*/
 int
@@ -284,9 +217,12 @@ get_parainfo (char *full, Queue * head, char type)
               for (add = 0; add < cores; add++)
               {
                   Queue *x = NEW (Queue);
+		  
                   if (add == 0 && *full != '>')
+			{
                   	temp = strchr (full, '>');	//drop the possible fragment
-                  if (add != 0)
+			}                
+		  if (add != 0)
                   	temp = strchr (full + offset * add, '>');
                   x->location = temp;
                   x->number = &add;
@@ -303,8 +239,11 @@ get_parainfo (char *full, Queue * head, char type)
               	length = strchr(tx+1,'\n')-(tx+1);
 	      	Queue *x = NEW (Queue);
               	x->location = NULL;
-              	if (add != 0)
-                	temp = fastq_relocate(full, offset*add, length);          
+		if (add != 0)
+			{
+                	temp = fastq_relocate(full, offset*add, length);   
+			//printf ("temp->%0.20s\n",temp);
+			}    
               	if (previous!=temp)
 		{
                 	previous = temp;
@@ -347,8 +286,7 @@ jump (char *target, char type, float sampling_rate)
   return target;
 }
 /*relocate the starting points (correct @ positions) for fastq files*/
-char *
-fastq_relocate (char *data, int offset, int length)
+char *fastq_relocate (char *data, int offset, int length)
 {
   char *target = NULL;
   int current_length = 0, read_length = 0;
@@ -372,8 +310,7 @@ fastq_relocate (char *data, int offset, int length)
 
 
 /*scoring system scheme*/
-int
-dx_add (int k_mer)
+int dx_add (int k_mer)
 {
   int x;
   int y = 0;
@@ -382,8 +319,7 @@ dx_add (int k_mer)
   return y;
 }
 /*get read length for fastq file*/
-int
-fq_read_length (char *data)
+int fq_read_length (char *data)
 {
 	char *origin = data;
 	while (*data != '\n')
@@ -421,8 +357,8 @@ char *get_right_sp (char *start_point ,char type)
 /*count useful characters for fasta reads*/
 char *fa_count (char *start, int length)
 {
-	char *tequila_is_my_lady = (char *) calloc (length+1, sizeof(char));
-	char *p = tequila_is_my_lady;
+	char *reads = (char *) calloc (length+1, sizeof(char));
+	char *p = reads;
 	// conservatively allocate memory
 	while (length>0)
 	{
@@ -435,5 +371,5 @@ char *fa_count (char *start, int length)
 		length--;
 	} 
 	p[0] = '\0';
-	return tequila_is_my_lady;
+	return reads;
 }

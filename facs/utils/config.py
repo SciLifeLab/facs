@@ -5,15 +5,15 @@ import warnings
 import ConfigParser
 
 config = ConfigParser.SafeConfigParser()
-#try:
 conf_file = config.read([os.path.expanduser('~/.facsrc'), '.facsrc',
             'facs.conf', 'facs.cfg', '/etc/facs.conf'])
 try:
-# First config file found wins
+    # First config file found wins
     config.readfp(open(conf_file[0]))
 
     SERVER = config.get('facs', 'SERVER').rstrip()
-    DB = config.get('facs', 'DB').rstrip()
+    FACS_DB = config.get('facs', 'FACS_DB').rstrip()
+    FASTQ_SCREEN_DB = config.get('facs', 'FASTQ_SCREEN_DB').rstrip()
     USERNAME = config.get('facs', 'USERNAME').rstrip()
     PASSWORD = config.get('facs', 'PASSWORD').rstrip()
 except:
