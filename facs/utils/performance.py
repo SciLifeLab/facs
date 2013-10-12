@@ -16,7 +16,8 @@ def _fetch_results(couch, database):
     """
     log.info("Fetching all documents from database %s" % database)
     docs = []
-    [docs.append(couch[database].get(doc)) for doc in couch[database]]
+    db = couch[database]
+    [docs.append(db.get(doc)) for doc in db]
     log.info("Fetched %s documents" % str(len(docs)))
     return docs
 
