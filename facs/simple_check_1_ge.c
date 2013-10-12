@@ -128,7 +128,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 {
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
-  float contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
+  float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
   double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
   if(!fmt)
   {
@@ -145,22 +145,22 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\t\"sample\": \"%s\",\n"
 "\t\"bloom_filter\": \"%s\",\n"
 "\t\"total_read_count\": %lld,\n"
-"\t\"contaminated_reads\": %lld,\n"
+"\t\"_contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"contamination_rate\": %f,\n"
+"\t\"_contamination_rate\": %f,\n"
 "\t\"p_value\": %e,\n"
 "}",  start_timestamp, timestamp,query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
-        contamination_rate,p_value);
+        _contamination_rate,p_value);
   // TSV output format
   }
   else if (!strcmp(fmt, "tsv"))
   {
   	sprintf(buffer,
-"sample\tbloom_filter\ttotal_read_count\tcontaminated_reads\tcontamination_rate\n"
+"sample\tbloom_filter\ttotal_read_count\t_contaminated_reads\t_contamination_rate\n"
 "%s\t%s\t%lld\t%lld\t%f\t%e\n", query, File_head->filename,
                             File_head->reads_num, File_head->reads_contam,
-                            contamination_rate,p_value);
+                            _contamination_rate,p_value);
   }
   return buffer;
 }
