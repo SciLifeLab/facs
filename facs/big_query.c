@@ -220,13 +220,8 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   if (normal == 0)
   {
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
-<<<<<<< HEAD
   }
   return report(File_head, query, report_fmt, target_path, prob_suggestion(bl_2->k_mer));
-=======
-  } 
-  return report(File_head, query, report_fmt, target_path, timestamp);
->>>>>>> 509e88a2cc15e5f4e240e7385cc58dc97d109427
 }
 
 char *strrstr (char *s, char *str)
