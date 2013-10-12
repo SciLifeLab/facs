@@ -46,7 +46,7 @@ class FastqScreenTest(unittest.TestCase):
         try:
             for res in self.results:
                 if config.SERVER:
-                    helpers.send_couchdb(config.SERVER, config.DB, config.USERNAME, config.PASSWORD, res)
+                    helpers.send_couchdb(config.SERVER, config.FASTQ_SCREEN_DB, config.USERNAME, config.PASSWORD, res)
         except:
             pass
 
