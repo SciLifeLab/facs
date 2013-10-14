@@ -60,7 +60,7 @@ class FastqScreenTest(unittest.TestCase):
         dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
 
-        fscreen_src = os.path.join(dirname, "fastq_screen")
+        fscreen_src = os.path.join(dirname, "fastq_screen_v0.4")
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
 
         if not os.path.exists(fscreen_dst):
