@@ -1,6 +1,7 @@
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
+
 #include <math.h>
 #include <time.h>
 #include <errno.h>
@@ -15,1033 +16,362 @@
 #include<sys/mman.h>
 #include<sys/types.h>
 
+#include "tool.h"
+#include "prob.h"
 #include "bloom.h"
+#include "big_query.h"
+#include "check.h"
 #include "hashes.h"
+#include "mpi_bloom.h"
 
+/*parallel libraries*/
 #include<omp.h>
 #include<mpi.h>
 
-int ntask = 0, mytask = 0;
-long long total_piece, PAGE, buffer, share, offset, reads_num =
-  0, reads_contam = 0, checky = 0, CHUNK, total_size = 0;
-float error_rate, sampling_rate, contamination_rate, tole_rate;
-
-int k_mer = 21, mode, mytask, ntask, type = 2, excel1, excel2, last_piece =
-  0, extra_piece = 0;
-int last = 0;
-
-char *source, *all_ref, *position, *prefix;
-
-Queue *head, *head2, *tail;
-
-bloom *bl_2;
-
-struct stat statbuf;
-
-void list_init ();
-void struc_init ();
-void get_parainfo (char *full);
-void get_size (char *strFileName);
-void init (int argc, char **argv);
-void fasta_process (bloom * bl, Queue * info);
-void fastq_process (bloom * bl, Queue * info);
-void evaluate (char *detail, char *filename);
-void statistic_save (char *detail, char *filename);
+/*since the read scanning process is fast enough, a parallel file reading
+approach needs to be applied otherwise file reading will become bottleneck.
+Back to file mapping approach with multiple access to query file. Zlib has
+atomic process with multiple threads reading from a file. So the speed of 
+multiple threads reading will be exactly the same as single thread reading
+*/
 /*-------------------------------------*/
-int gather ();
-int fastq_full_check (bloom * bl, char *p, int distance);
-int fasta_full_check (bloom * bl, char *begin, char *next, char *model);
-int fastq_read_check (char *begin, int length, char *model, bloom * bl);
-int fasta_read_check (char *begin, char *next, char *model, bloom * bl);
-/*-------------------------------------*/
-char *jump (char *target);
-char *ammaping (char *source);
-//char* reallocate(Queue *info);
+static int mpicheck_usage (void)
+{
+  fprintf (stderr, "\nUsage: mpirun -n Nr_of_nodes ./facs [options]\n");
+  fprintf (stderr, "Options:\n");
+  fprintf (stderr, "\t-r reference Bloom filter to query against\n");
+  fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
+  fprintf (stderr, "\t-t threshold value\n");
+  fprintf (stderr, "\t-f report output format, valid values are:\
+           'json' and 'tsv'\n");
+  fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
+           query file\n");
+  fprintf (stderr, "\n");
+/*finalize mpi process before each exit*/
+  MPI_Finalize ();
+  exit(1);
+}
 /*-------------------------------------*/
 main (int argc, char **argv)
 {
-
+/*get MPI thead number and thread IDs*/
+  int proc_num = 0, total_proc = 0;
+/*----------MPI initialize------------*/
   MPI_Init (&argc, &argv);
-
-  MPI_Comm_size (MPI_COMM_WORLD, &ntask);
-
-  MPI_Comm_rank (MPI_COMM_WORLD, &mytask);
-
-  long sec, usec, i;
-
-  struct timezone tz;
-
-  struct timeval tv, tv2;
-
-  if (mytask == 0)		//starting time
-    {
-      gettimeofday (&tv, &tz);
-    }
-
-  init (argc, argv);		//initialize 
-
-  if (mode != 1 && mode != 2)
-    {
-      perror ("Mode select error.");
-      return -1;
-    }
-
-  char *detail = (char *) malloc (1000 * 1000 * sizeof (char));
-
-  memset (detail, 0, 1000 * 1000);
-
-  strcat (detail, "query-->");
-  strcat (detail, source);
-
-  struc_init ();		//structure init
-
-  load_bloom (all_ref, bl_2);
-
-  k_mer = bl_2->k_mer;
-
-  while (share > 0)
-    {
-      position = ammaping (source);
-
-      list_init ();
-
-      get_parainfo (position);
-
-      head = head->next;
+  MPI_Comm_rank (MPI_COMM_WORLD, &proc_num);
+  MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
+/*------------variables----------------*/
+  double tole_rate = 0, sampling_rate = 1;
+  char *map_chunk = NULL, *bloom_filter = NULL, *target_path = NULL, *position = NULL, *position2 = NULL, *query = NULL, *report_fmt = "json";
+  int opt=0;
+  BIGCAST share=0, offset=0;
+  char type = '@';
+  gzFile zip = NULL;
+  bloom *bl_2 = NEW (bloom);
+  Queue *head = NEW (Queue), *tail = NEW (Queue), *head2 = head;
+  head->location = NULL;
+  head->next = tail;
+/*------------get opt------------------*/
+  
+  if (argc<3)
+  {
+	if (proc_num == 0)
+	{
+        	return mpicheck_usage();
+	}
+  }
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:f:h")) != -1)
+  {
+      switch (opt)
+      {
+        case 't':
+          tole_rate = atof(optarg);
+          break;
+        case 's':
+          sampling_rate = atof(optarg);
+          break;
+        case 'o':
+          target_path = optarg;
+          break;
+        case 'q':
+          query = optarg;
+          break;
+        case 'r':
+          bloom_filter = optarg;
+          break;
+        case 'f': // "json", "tsv" or none
+          (optarg) && (report_fmt = optarg, 1);
+          break;
+        case 'h':
+	  if (proc_num==0)
+          	return mpicheck_usage();
+          break;
+        case '?':
+          printf ("Unknown option: -%c\n", (char) optopt);
+          if (proc_num==0)
+	  	return mpicheck_usage();
+          break;
+      }
+  }
+  if (!bloom_filter && !query)
+  {
+	if (proc_num==0)
+  		fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
+	MPI_Finalize ();
+	exit (EXIT_FAILURE);
+  }
+  if (target_path == NULL)
+  {
+        target_path = argv[0];
+  }
+  if ((zip = gzopen (query, "rb")) < 0)
+  {
+	if (proc_num==0)
+	{
+        	fprintf(stderr, "%s\n", strerror(errno));
+	}
+		MPI_Finalize ();
+        	exit(-1);
+  }
+  /*file type identification*/
+  if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
+        type = '@';
+  else
+        type = '>';
+  /*initialize emtpy string for query*/
+  position = (char *) calloc ((ONEG + 1), sizeof (char));
+  position2 = position;
+  /*make structor for omp parallization*/
+  F_set *File_head = make_list (bloom_filter, NULL);
+  /*necessary initialization for python interface*/
+  File_head->reads_num = 0;
+  File_head->reads_contam = 0;
+  File_head->hits = 0;
+  File_head->all_k = 0;
+  File_head->filename = bloom_filter;
+  static char timestamp[40] = {0};
+  // Get current timestamp, for benchmarking purposes (begin of run timestamp)
+  isodate(timestamp);
+  /*load a bloom filter*/
+  load_bloom (File_head->filename, bl_2);
+  /*load a default match cutoff according to k-mer*/
+  if (tole_rate == 0)
+  {
+  	tole_rate = mco_suggestion (bl_2->k_mer);
+  }
+  /*pagelize chunk*/
+  int page = getpagesize(); 
+  int chunk = ONEG/page;
+  /*get task share for each mpi thread*/
+  share = struc_init (query,proc_num,total_proc,page);
+  /*distribute task*/
+  offset += share * proc_num;
+  //printf ("share->%lld\n",share);
+  //printf ("offset->%lld\n",offset);
+  //printf ("chunk->%d\n",chunk);
+  /*start processing*/
+  while (share>0)
+  {
+	/*last piece must no bigger than chunk size*/
+	if (share<=chunk)
+	{
+		chunk = share;
+	}
+	//printf ("share->%lld\n",share);
+	//printf ("offset->%lld\n",offset);
+	/*copy data from mapping area since standard read_process*/
+	map_chunk = ammaping(query, offset, chunk, page);
+	
+	memcpy(position,map_chunk,chunk*page);
+	/*remove fragments*/
+	
+	if (offset!=0)
+	{
+		position = remove_frag_head(position,type);
+	}
+	
+	//if (proc_num!=total_proc || chunk<=ONEG)
+	remove_frag_tail(position,type);
+	//printf("reads num->%d\n",count_characters(position, '\n')/4);
+	//printf ("real length->%d\n",strlen(position2));
+	head = head2;
+	head->next = tail;
+	get_parainfo (position, head, type);
 
 #pragma omp parallel
-      {
+  	{
 #pragma omp single nowait
 	{
-	  while (head != tail)
-	    {
-
+	  	while (head != tail)
+		{
 #pragma omp task firstprivate(head)
-	      {
-		printf ("position->%0.10s\n", head->location);
-
-		if (type == 1)
-		  fasta_process (bl_2, head);
-		else
-		  fastq_process (bl_2, head);
-
-	      }
-	      head = head->next;
-
-	    }
+		{
+	      		if (head->location != NULL)
+                	{
+				//printf("head->%0.25s\n",position);
+				//printf ("position->%0.25s\n",head->location);
+                        	read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, 'c', type);
+			}
+		}
+	      	head = head->next;
+		}
+      	}	
 	}
-      }
-      munmap (position, buffer * PAGE);
-
-      share -= buffer;
-
-      offset += buffer;
-
-      //head = head2;
-    }
+	offset+=chunk;
+  	share-=chunk;
+	position = position2;
+  	munmap (map_chunk,chunk*page);
+	if (share<chunk)
+	{
+     		memset (position,0,chunk*page);
+	}
+  }
   printf ("finish processing...\n");
-
-  MPI_Barrier (MPI_COMM_WORLD);	//wait until all threads finish jobs
-
-  gather ();			//gather all matched and missed info
-
-  if (mytask == 0)		//finishing time
-    {
-      gettimeofday (&tv2, &tz);
-
-      sec = tv2.tv_sec - tv.tv_sec;
-
-      usec = tv2.tv_usec - tv.tv_usec;
-
-      printf ("total=%ld sec\n", sec);
-
-      printf ("all->%d\n", excel1);
-
-      printf ("excecuted->%d\n", excel2);
-
-      evaluate (detail, all_ref);
-
-      statistic_save (detail, source);
-    }
-
+  MPI_Barrier (MPI_COMM_WORLD);	//wait until all nodes finish
+  gather (File_head, total_proc, proc_num);			//gather info from all nodes
+  if (proc_num == 0)		
+  {
+  	char *result =  report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  	printf("%s\n",result);
+  }
   MPI_Finalize ();
-
   return 0;
 }
-
-/*-------------------------------------*/
-void
-init (int argc, char **argv)
+/*gather info from MPI thread*/
+int gather (F_set *File_head, int total_proc, int proc_num)
 {
-  if (argc == 1 || !strcmp (argv[1], "-h") || !strcmp (argv[1], "-help"))
-    {
-      help ();
-      check_help ();
-    }
-/*-------default-------*/
-  mode = 1;
-  k_mer = 21;
-  tole_rate = 0.8;
-  error_rate = 0.0005;
-  sampling_rate = 1;
-  prefix = NULL;
-
-  int x;
-  while ((x = getopt (argc, argv, "e:k:m:t:o:r:q:s:")) != -1)
-    {
-      //printf("optind: %d\n", optind);
-      switch (x)
-	{
-	case 'e':
-	  printf ("Error rate: \nThe argument of -e is %s\n", optarg);
-	  (optarg) && ((error_rate = atof (optarg)), 1);
-	  break;
-	case 'k':
-	  printf ("K_mer size: \nThe argument of -k is %s\n", optarg);
-	  (optarg) && ((k_mer = atoi (optarg)), 1);
-	  break;
-	case 'm':
-	  printf ("Mode : \nThe argument of -m is %s\n", optarg);
-	  (optarg) && ((mode = atoi (optarg)), 1);
-	  break;
-	case 't':
-	  printf ("Tolerant rate: \nThe argument of -t is %s\n", optarg);
-	  (optarg) && ((tole_rate = atof (optarg)), 1);
-	  break;
-	case 's':
-	  printf ("Sampling rate: \nThe argument of -s is %s\n", optarg);
-	  (optarg) && ((sampling_rate = atof (optarg)), 1);
-	  break;
-	case 'o':
-	  printf ("Output : \nThe argument of -o is %s\n", optarg);
-	  (optarg) && ((prefix = optarg), 1);
-	  break;
-	case 'r':
-	  printf ("Bloom list : \nThe argument of -r is %s\n", optarg);
-	  (optarg) && (all_ref = optarg, 1);
-	  break;
-	case 'q':
-	  printf ("Query : \nThe argument of -q is %s\n", optarg);
-	  (optarg) && (source = optarg, 1);
-	  break;
-	case '?':
-	  printf ("Unknown option: -%c\n", (char) optopt);
-	  exit (0);
-	}
-
-    }
-
-  if (strstr (source, ".fasta") || strstr (source, ".fna"))
-    type = 1;
-
-  if ((!all_ref) || (!source))
-    exit (0);
-
-  if (mode != 1 && mode != 2)
-    {
-      perror ("Mode select error.");
-      exit (0);
-    }
-
-}
-
-/*-------------------------------------*/
-void
-struc_init ()
-{
-
-  bl_2 = NEW (bloom);
-
-  //head2 = head;
-
-  get_size (source);		//get total size of file
-
-  share = total_piece / ntask;	//every task gets an euqal piece
-
-  if (total_piece % ntask != 0 && mytask == (ntask - 1))
-
-    share += (total_piece % ntask);	//last node tasks extra job
-
-  offset = share * mytask;	//distribute the task
-
-}
-
-/*-------------------------------------*/
-char *
-ammaping (char *source)
-{
-  int src;
-  char *sm;
-
-  if ((src = open (source, O_RDONLY | O_LARGEFILE)) < 0)
-    {
-      perror (" open source ");
-      exit (EXIT_FAILURE);
-    }
-
-  if (fstat (src, &statbuf) < 0)
-    {
-      perror (" fstat source ");
-      exit (EXIT_FAILURE);
-    }
-
-  printf ("share->%d PAGES per node\n", share);
-
-  if (share >= CHUNK)
-    buffer = CHUNK;
+  printf ("gathering...\n");
+  BIGCAST temp, temp2, temp3, temp4;
+  if (proc_num == 0)
+  {
+        // The master thread will need to receive all computations from all other threads.
+  	MPI_Status status;
+        // MPI_Recv(void *buf, int count, MPI_DAtatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
+        // We need to go and receive the data from all other threads.
+        // The arbitrary tag we choose is 1, for now.
+  	int i = 0;
+     	for (i = 1; i < total_proc; i++)
+      	{
+		MPI_Recv (&temp, 1, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
+	  	MPI_Recv (&temp2, 2, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
+	  	MPI_Recv (&temp3, 3, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
+		MPI_Recv (&temp4, 4, MPI_LONG_LONG_INT, i, 1, MPI_COMM_WORLD, &status);
+	  	printf ("RECEIVED %lld from thread %d\n", temp, i);
+	  	File_head->reads_num += temp;
+	  	File_head->reads_contam += temp2;
+	  	File_head->hits += temp3;
+		File_head->all_k+=temp4;
+		
+      	}
+  }
   else
-    buffer = share;
-  printf ("total pieces->%d\n", total_piece);
-  printf ("PAGE->%d\n", PAGE);
-  printf ("node %d chunk size %d buffer size %d offset %d\n", mytask, CHUNK,
-	  buffer, offset);
+  {
+	temp = File_head->reads_num;
+	temp2 = File_head->reads_contam;
+	temp3 = File_head->hits;
+	temp4 = File_head->all_k;
+      	// We are finished with the results in this thread, and need to send the data to thread 1.
+      	// MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+      	// The destination is thread 0, and the arbitrary tag we choose for now is 1.
+        MPI_Send (&temp, 1, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp2, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp3, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send (&temp4, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
+  }
+  return 1;
+}
+/*distribute data by page*/
+BIGCAST struc_init (char *filename, int proc_num, int total_proc, int page)
+{
+  BIGCAST total_size = get_size (filename);
+  BIGCAST total_piece = total_size/page;
+  BIGCAST share = 0;
+  share = total_piece / total_proc;
+  if (total_piece%total_proc!=0 && proc_num==(total_proc-1))
+  {
+        share += (total_piece % total_proc);
+	/*
+	if (total_size%page!=0)
+	{
+		share++;
+	}
+	*/
+  } 
+  return share; 
+} 
+/*partial mapping scheme*/
+char *ammaping (char* source, BIGCAST offset, BIGCAST chunk, int page)
+{
+  struct stat statbuf;
 
-  sm = mmap (0, buffer * PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE, src, offset * PAGE);	//everytime we process a chunk of data
+  int fd = 0;
+  char *sm = NULL;
 
-  //sm = mmap (0,share*PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE,src, offsetmytask*share*PAGE); //last time we process the rest
+  if ((fd = open (source, O_RDONLY | O_LARGEFILE)) < 0) {
+      fprintf (stderr, "%s: %s\n", source, strerror (errno));
+      MPI_Finalize ();
+      exit (-1);
+  }
+  if (fstat (fd, &statbuf) < 0) {
+      fprintf (stderr, "%s: %s\n", source, strerror (errno));
+      MPI_Finalize ();
+      exit (-1);
+  } else if (statbuf.st_size == 0) {
+      fprintf (stderr, "%s: %s\n", source, "File is empty");
+      MPI_Finalize ();
+      exit (-1);
+  }
+  /*offset by page*/
+  sm = mmap (0, chunk*page, PROT_READ, MAP_SHARED | MAP_NORESERVE, fd, offset*page);                       
 
   if (MAP_FAILED == sm)
     {
-      perror (" mmap source ");
-      exit (EXIT_FAILURE);
+      fprintf (stderr, "%s: %s\n", source, "Mapping error");
+      MPI_Finalize ();
+      exit (-1);
     }
-
+  close (fd);
   return sm;
 }
-
-/*-------------------------------------*/
-void
-get_size (char *strFileName)
+/*remove fragment in head area*/
+char *remove_frag_head(char *position, char type)
 {
-  stat (strFileName, &statbuf);
-  PAGE = getpagesize ();	//get memory PAGE definition 
-  total_piece = statbuf.st_size / PAGE;
-  total_size = statbuf.st_size;
-  CHUNK = 1000 * 1000 * 1000 * 1 / PAGE;	//1GB
-
-
-  //if (statbuf.st_size % PAGE != 0)    //need one more page if total data is not a time number of a memory PAGE
-  //extra_piece = statbuf.st_size % PAGE;
-  //printf ("extra_piece->%d\n", extra_piece);
-}
-
-/*-------------------------------------*/
-void
-get_parainfo (char *full)
-{
-  printf ("distributing...\n");
-
-  char *temp = full;
-
-  int cores = omp_get_num_procs ();
-
-  int offsett = buffer * PAGE / cores;
-
-  last_piece = buffer * PAGE - (cores - 1) * offsett;
-
-  int add = 0;
-
-  printf ("last piece->%d\n", last_piece);
-
-  Queue *pos = head;
-
-  if (type == 1)
-    {
-      for (add = 0; add < cores; add++)
+	if (type == '@')
 	{
-	  Queue *x = NEW (Queue);
-	  temp = strchr (full, '>');	//drop the possible fragment
-	  if (add != 0)
-	    temp = strchr (full + offsett * add, '>');
-	  x->location = temp;
-	  x->number = add;
-	  x->next = pos->next;
-	  pos->next = x;
-	  pos = pos->next;
+		position = strstr (position,"\n+");
+		position = strchr (strchr(position+1,'\n')+1,'\n')+1;
 	}
-    }				// end if
-
-  else
-    {
-      for (add = 0; add < cores; add++)
-	{
-	  Queue *x = NEW (Queue);
-	  if (add == 0 && *full != '@')
-	    temp = strstr (full, "\n@") + 1;	//drop the fragment
-	  if (add != 0)
-	    temp = strstr (full + offsett * add, "\n@") + 1;
-	  x->location = temp;
-	  x->number = add;
-	  x->next = pos->next;
-	  pos->next = x;
-	  pos = pos->next;
-	}			//end else  
-    }
-
-}
-
-/*-------------------------------------*/
-int
-gather ()
-{
-  printf ("gathering...\n");
-  if (mytask == 0)
-    {
-      // The master thread will need to receive all computations from all other threads.
-      MPI_Status status;
-      // MPI_Recv(void *buf, int count, MPI_DAtatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
-      // We need to go and receive the data from all other threads.
-      // The arbitrary tag we choose is 1, for now.
-      int i = 0;
-      for (i = 1; i < ntask; i++)
-	{
-	  long long temp, temp2, temp3;
-	  MPI_Recv (&temp, 1, MPI_INT, i, 1, MPI_COMM_WORLD, &status);
-	  MPI_Recv (&temp2, 5, MPI_INT, i, 1, MPI_COMM_WORLD, &status);
-	  MPI_Recv (&temp3, 7, MPI_INT, i, 1, MPI_COMM_WORLD, &status);
-	  printf ("RECEIVED %lld from thread %d\n", temp, i);
-	  reads_num += temp;
-	  reads_contam += temp2;
-	  checky += temp3;
-	}
-    }
-  else
-    {
-      // We are finished with the results in this thread, and need to send the data to thread 1.
-      // MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
-      // The destination is thread 0, and the arbitrary tag we choose for now is 1.
-      MPI_Send (&reads_num, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
-      MPI_Send (&reads_contam, 5, MPI_INT, 0, 1, MPI_COMM_WORLD);
-      MPI_Send (&checky, 7, MPI_INT, 0, 1, MPI_COMM_WORLD);
-    }
-  return 1;
-}
-
-/*-------------------------------------*/
-void
-fastq_process (bloom * bl, Queue * info)
-{
-  printf ("fastq processing...\n");
-  char *p = info->location;
-  char *next, *temp, *temp_piece = NULL;
-
-  if (info->next != tail)
-    next = info->next->location;
-
-  else
-    {
-      printf ("last_piece  %d\n", last_piece);
-      temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
-      memset (temp_piece, 0, last_piece + 1);
-      memcpy (temp_piece, info->location, last_piece - PAGE);
-      temp_piece[last_piece] = '\0';
-
-      temp = temp_piece;
-      while ((temp = strstr (temp, "\n@")))
-	{
-	  next = temp + 1;
-	  temp++;
-	}
-      p = temp_piece;
-    }
-
-  while (p != next)
-    {
-
-      temp = jump (p);		//generate random number and judge if need to scan this read
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
-      if (p == '\0' || p == NULL)
-	break;
-#pragma omp atomic
-      reads_num++;
-      p = strchr (p, '\n') + 1;
-      int distance = strchr (p, '\n') - p;
-
-      if (!fastq_read_check (p, distance, "normal", bl))
-#pragma omp atomic
-	reads_contam++;
-//printf("p->%s\n",p);
-      p = strchr (p, '\n') + 1;
-      p = strchr (p, '\n') + 1;
-      p = strchr (p, '\n') + 1;
-    }				// outside while
-  printf ("finish process...\n");
-  if (temp_piece)
-    free (temp_piece);
-}
-
-/*-------------------------------------*/
-int
-fastq_read_check (char *begin, int length, char *model, bloom * bl)
-{
-
-//printf("fastq read check...\n");
-
-  char *p = begin;
-  int distance = length;
-  int signal = 0, pre_kmer = 10, count_mis = 0;
-  char *previous, *key = (char *) malloc (k_mer * sizeof (char) + 1);
-  // int x = bloom_check(bl,"aaaaaaaaaaccccc");
-  // printf("xxxxx->%d\n",x);
-  while (distance > 0)
-    {
-      //printf("distance->%d\n",distance);
-      if (signal == 1)
-	break;
-
-      if (distance >= k_mer)
-	{
-	  memcpy (key, p, sizeof (char) * k_mer);	//need to be tested
-	  key[k_mer] = '\0';
-	  previous = p;
-	  p += k_mer;
-	  distance -= k_mer;
-	}
-
-      else
-	{
-	  memcpy (key, previous + distance, sizeof (char) * k_mer);
-	  p += (k_mer - distance);
-	  signal = 1;
-	}
-
-      if (model == "reverse")
-	rev_trans (key);
-
-      //printf("key->%s\n",key);          
-      if (mode == 1)
-	{
-	  if (bloom_check (bl, key))
-	    {
-	      //printf("hit\n");
-	      return fastq_full_check (bl, begin, length);
-	      //return 0;
-	    }
-	  //else
-	  //printf("unhit\n");
-	}
-
-      else
-	{
-	  if (!bloom_check (bl, key))
-	    {
-	      //printf("unhit\n");
-	      return fastq_full_check (bl, begin, length);
-	      //return 0;
-	    }
-	  //else
-	  //printf("hit\n");
-	}
-    }				// inner while
-
-  free (key);
-
-  if (model == "normal")	//use recursion to check the sequence forward and backward
-    return fastq_read_check (begin, length, "reverse", bl);
-  else
-    return 1;
-}
-
-/*-------------------------------------*/
-int
-fastq_full_check (bloom * bl, char *p, int distance)
-{
-
-//printf("fastq full check...\n");
-
-  int signal = 0, pre_kmer = -1;
-
-  int count_mis = 0, label_m = 0, label_mis = 0, count = 0, match_s = 0;
-
-  char *previous, *key = (char *) malloc (k_mer * sizeof (char) + 1);
-
-//printf("k_mer->%din",k_mer);
-  int length = distance;
-#pragma omp atomic
-  checky++;
-
-  while (distance >= k_mer)
-    {
-      memcpy (key, p, sizeof (char) * k_mer);
-      key[k_mer] = '\0';
-      previous = p;
-      p += 1;
-      if (bloom_check (bl, key))
-	{
-	  count++;
-	  if (pre_kmer == 1)
-	    {
-	      label_m++;
-	      if (count < (k_mer - 1))
-		match_s++;
-	      else
-		{
-		  match_s += count;
-		  count = 0;
-		}
-	    }
-	  else
-	    {
-	      label_m += k_mer;
-	      match_s += k_mer - 1;
-	    }
-	  pre_kmer = 1;
-	  //printf("%d----%d\n",label_m,label_mis);
-	}
-      else
-	{
-	  count = 0;
-	  pre_kmer = 0;
-	}
-      distance--;
-    }				// end while
-  free (key);
-
-  label_mis = length - label_m;
-
-  if (((float) match_s / (float) (length)) >= tole_rate)
-    return 0;
-  else
-    return 1;
-}
-
-/*-------------------------------------*/
-void
-fasta_process (bloom * bl, Queue * info)
-{
-  printf ("fasta processing...\n");
-  char *p = info->location;
-  char *next, *temp, *temp_next, *temp_piece = NULL;
-
-  if (info->next != tail)
-    next = info->next->location;
-
-  else
-    {
-      last = 1;
-
-      printf ("last_piece %d\n", last_piece);
-
-      temp_piece = (char *) malloc ((last_piece + 1) * sizeof (char));
-
-      memset (temp_piece, 0, last_piece + 1);
-
-      memcpy (temp_piece, info->location, last_piece - PAGE);
-
-
-      temp_piece[last_piece] = '\0';
-
-      next = strrchr (temp_piece, '>');
-
-      printf ("temp_piece->%0.30s\n", temp_piece);
-      printf ("next->%0.30s\n", next);
-      printf ("length->%d\n", strlen (temp_piece));
-      printf ("test->%d\n", next - temp_piece);
-      p = temp_piece;
-      //printf ("p->%0.20s\n", p);
-    }
-
-  while (p != next)
-    {
-/*      
-      if (last == 1){
-         //printf ("p->%0.20s\n",p);
-         printf("loop\n");
-      }
-*/
-      //printf("here\n");
-      temp = jump (p);		//generate random number and judge if need to scan this read
-      if (p != temp)
-	{
-	  p = temp;
-	  continue;
-	}
-#pragma omp atomic
-      reads_num++;
-      //if (last == 1)
-      //printf("before\n");
-
-      temp_next = strchr (p + 1, '>');
-
-      //if (last == 1)
-      //if (temp_next)
-      //printf("temp_next->%0.20s\n",temp_next);
-      //else
-      //printf("boom\n");
-
-      if (!temp_next)
-	temp_next = next;
-
-      if (!fasta_read_check (p, temp_next, "normal", bl))
-	{
-#pragma omp atomic
-	  reads_contam++;
-	}
-
-      p = temp_next;
-      /*
-         if (last == 1)
-         {
-         printf ("p->%0.20s\n", p);
-         printf ("temp_next->%0.20s\n",temp_next);
-         if (p == next)
-         printf("ja\n");
-         }
-       */
-    }
-  if (temp_piece)
-    free (temp_piece);
-}
-
-/*-------------------------------------*/
-int
-fasta_read_check (char *begin, char *next, char *model, bloom * bl)
-{
-  //if (last == 1)
-  //printf("fasta read check...\n");
-
-//begin = strchr(begin+1,'\n')+1;
-
-//printf("read_check->%0.10s\n",begin);
-
-  char *p = strchr (begin + 1, '\n') + 1;
-
-  char *start = p;
-
-  char *key = (char *) malloc ((k_mer + 1) * sizeof (char));
-
-  char *pre_key = (char *) malloc ((k_mer + 1) * sizeof (char));
-
-  int n = 0, m = 0, count_enter = 0, result = 0;
-
-  //int label_m = 0, label_mis = 0;
-
-  key[k_mer] = '\0';
-
-
-  while (p != next)
-    {
-
-      //if (last == 1)
-      //{
-      //printf("p->%0.30s\n",p);
-      //printf("next->%0.30s\n",next);
-      /*
-         printf("next->%0.30s\n",next);
-         char *mov=p;
-         while (mov != next)
-         {
-         printf("(((->%0.30s\n",mov);
-         mov = strchr(mov,'>')+1;
-         }
-       */
-      //}
-
-      while (n < k_mer)
-	{
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-	  else
-	    count_enter++;
-	  m++;
-	}			//inner while
-
-      if (m == 0)
-	break;
-
-      if (strlen (key) == k_mer)
-	memcpy (pre_key, key, sizeof (char) * (k_mer + 1));
-
-      else
-	{
-	  char *temp_key = (char *) malloc (k_mer * sizeof (char));
-
-	  memcpy (temp_key, pre_key + strlen (key), k_mer - strlen (key));
-	  memcpy (temp_key + k_mer - strlen (key), key,
-		  sizeof (char) * (strlen (key) + 1));
-	  free (key);
-	  key = temp_key;
-
-	}
-
-      p += m;
-
-      n = 0;
-
-      m = 0;
-
-      //if (last == 1)
-      //printf("key->%s\n",key);
-
-      if (model == "reverse")
-	rev_trans (key);
-
-      if (mode == 1)
-	{
-	  //printf("in\n");
-	  if (bloom_check (bl, key))
-	    {
-	      //printf("in\n");
-	      return fasta_full_check (bl, begin, next, model);
-	      //return 0;
-	    }
-	  //else
-	}			//outside if
-
-      else
-	{
-	  if (!bloom_check (bl, key))
-	    {
-	      //printf("unhit\n");
-	      return fasta_full_check (bl, begin, next, model);
-	      //return 0;
-	    }
-	  //else
-	  //printf("hit\n");
-	}			//outside else
-      memset (key, 0, k_mer);
-    }				//outside while
-
-  free (pre_key);
-  free (key);
-
-  if (model == "normal")	//use recursion to check the sequence forward and backward
-    return fasta_read_check (begin, next, "reverse", bl);
-  else
-    {
-//printf("in\n");
-/*
-if (mode==1)
-label_mis+=(next-start-count_enter+1);
-else
-label_m+=(next-start-count_enter+1);
-*/
-//printf("one read finish...\n");
-      return 1;
-    }
-}
-
-/*-------------------------------------*/
-int
-fasta_full_check (bloom * bl, char *begin, char *next, char *model)
-{
-
-#pragma omp atomic
-  checky++;
-
-  int label_m = 0, label_mis = 0, match_s = 0, count = 0;
-
-  //printf ("fasta full check...\n");
-
-  int n = 0, m = 0, count_enter = 0, pre_kmer = -1;
-
-  char *key = (char *) malloc ((k_mer + 1) * sizeof (char));
-
-  //printf("%0.10s\n",begin);
-
-  begin = strchr (begin + 1, '\n') + 1;
-
-  char *p = begin;
-
-  while (p != next)
-    {
-      if (*p == '\n')
-	count_enter++;
-      p++;
-    }
-
-  p = begin;
-
-  while (*p != '>' && *p != '\0')
-    {
-      while (n < k_mer)
-	{
-	  //printf("k_mer...\n");
-	  if (p[m] == '>' || p[m] == '\0')
-	    {
-	      m--;
-	      break;
-	    }
-
-	  if (p[m] != '\r' && p[m] != '\n')
-	    key[n++] = p[m];
-
-	  m++;
-	}
-      key[n] = '\0';
-
-      if (model == "reverse")
-	rev_trans (key);
-
-      if (strlen (key) == k_mer)
-	if (bloom_check (bl, key))
-	  {
-	    count++;
-	    if (pre_kmer == 1)
-	      {
-		label_m++;
-		if (count < (k_mer - 1))
-		  match_s++;
-		else
-		  {
-		    match_s += count;
-		    count = 0;
-		  }
-	      }
-	    else
-	      {
-		label_m += k_mer;
-		match_s += k_mer - 1;
-	      }
-	    pre_kmer = 1;
-	    //printf("%d----%d\n",label_m,label_mis);
-	  }
 	else
-	  {
-	    count = 0;
-	    pre_kmer = 0;
-	  }
-
-      p++;
-      if (p[0] == '\n')
-	p++;
-      n = 0;
-      m = 0;
-    }				// end of while
-
-  if (((float) (match_s) / (float) (next - begin - count_enter)) >= (tole_rate))	//match >tole_rate considered as contaminated
-    return 0;
-  else
-    return 1;
+	{
+		position = strchr (position, '>');
+	}
+return position;
 }
-
-/*-------------------------------------*/
-void
-evaluate (char *detail, char *filename)
+/*remove fragment in tail area*/
+void remove_frag_tail(char *position, char type)
 {
-  char buffer[100] = { 0 };
-  printf ("all->%d\n", reads_num);
-  printf ("contam->%d\n", reads_contam);
-  printf ("possbile->%d\n", checky);
-  contamination_rate = (double) (reads_contam) / (double) (reads_num);
-  if ((mode == 1 && contamination_rate == 0)
-      || (mode == 2 && contamination_rate == 1))
-    printf ("clean data...\n");
-  else if (mode == 1)
-    printf ("contamination rate->%f\n", contamination_rate);
-  else
-    printf ("contamination rate->%f\n", 1 - contamination_rate);
-
-  strcat (detail, "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
-  strcat (detail, "bloom->");
-  strcat (detail, filename);
-  strcat (detail, "   \n");
-  sprintf (buffer, "all->%d\n", reads_num);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  sprintf (buffer, "contam->%d\n", reads_contam);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  sprintf (buffer, "possbile->%d\n", checky);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  sprintf (buffer, "contamination rate->%f", contamination_rate);
-  strcat (detail, buffer);
-  memset (buffer, 0, 100);
-  reads_num = 0;
-  reads_contam = 0;
-  contamination_rate = 0;
+	char *end = NULL;
+	if (type == '@')
+	{
+		end = strrstr (position, "\n+");
+        	end = bac_2_n (end - 1);
+	}
+	else
+	{
+		end = strrchr (end, '>') - 1;	
+	}
+	memset(end,0,strlen(end));
 }
 
-/*-------------------------------------*/
-char *
-jump (char *target)
+int count_characters(const char *str, char character)
 {
-  //printf("here\n");
-  float seed = rand () % 10;
+    const char *p = str;
+    int count = 0;
 
-  if (seed >= (float) sampling_rate * 10)
-    {
+    do {
+        if (*p == character)
+            count++;
+    } while (*(p++));
 
-      char *point;
-
-      if (type == 1)
-	point = strchr (target + 1, '>');	//point to >
-      else
-	point = strstr (target + 1, "\n@") + 1;	//point to @
-
-      if (point)
-	target = point;
-    }
-  return target;
+    return count;
 }
-
-/*-------------------------------------*/
-void
-statistic_save (char *detail, char *filename)
-{
-  char *position1,
-    *save_file = (char *) malloc (200 * sizeof (char)),
-    *possible_prefix = (char *) malloc (100 * sizeof (char));
-
-  memset (save_file, 0, 200);
-  memset (possible_prefix, 0, 100);
-
-  position1 = strrchr (filename, '/');
-
-  printf ("filename->%s\n", filename);
-
-  if (!prefix)
-    {
-      if (position1)
-	strncat (possible_prefix, filename, position1 + 1 - filename);
-    }
-  else
-    strcat (possible_prefix, prefix);
-
-  strcat (save_file, possible_prefix);
-
-  if (position1)
-    strncat (save_file, position1 + 1, strrchr (filename, '.') - position1);
-  else
-    strncat (save_file, filename, strrchr (filename, '.') - filename + 1);
-
-  strcat (save_file, "info");
-
-  printf ("bloom name->%s\n", save_file);
-
-  write_result (save_file, detail);
-}
-
-void
-list_init ()
-{
-  head = NEW (Queue);
-
-  tail = NEW (Queue);
-
-  head->next = tail;
-}
-
-/*
-
-char* reallocate(Queue *info)
-{
-  char *temp_piece = (char *) malloc (last_piece*sizeof(char)+1);
-  memcpy (temp_piece,info->location,last_piece);
-  //rintf("here\n");
-  temp_piece[last_piece]='\0';
-  return temp_piece;
-}
-
-*/
