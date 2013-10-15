@@ -47,6 +47,10 @@ class FastqScreenTest(unittest.TestCase):
             for res in self.results:
                 if config.SERVER:
                     helpers.send_couchdb(config.SERVER, config.FASTQ_SCREEN_DB, config.USERNAME, config.PASSWORD, res)
+
+            # remove fastq_screen files from old test runs
+            shutil.rmtree(self.tmp)
+            os.mkdir(self.tmp)
         except:
             pass
 

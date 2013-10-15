@@ -30,11 +30,6 @@ class DeconSeqTest(unittest.TestCase):
 
         helpers._mkdir_p(self.tmp)
 
-        # Check if 2bit decompressor is available
-        twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
-        if not os.path.exists(twobit_fa_path):
-            galaxy.download_twoBitToFa_bin(twobit_fa_path)
-
         self.databases = []
         self.results = []
 
@@ -44,7 +39,7 @@ class DeconSeqTest(unittest.TestCase):
 #        try:
 #            for res in self.results:
 #                if config.SERVER:
-#                    helpers.send_couchdb(config.SERVER, config.FASTQ_SCREEN_DB, config.USERNAME, config.PASSWORD, res)
+#                    helpers.send_couchdb(config.SERVER, config.DECONSEQ_DB, config.USERNAME, config.PASSWORD, res)
 #        except:
 #            pass
 
@@ -57,8 +52,8 @@ class DeconSeqTest(unittest.TestCase):
         deconseq_src = os.path.join(dirname, "deconseq.pl")
         deconseq_bin = os.path.join(self.progs, "deconseq.pl")
 
-        if not os.path.exists(deconseq_bin):
-            shutil.copy(deconseq_src, self.progs)
+#        if not os.path.exists(deconseq_bin):
+#            shutil.copy(deconseq_src, self.progs)
 
         # Install VirtualEnv Perl equivalent: cpanm
 #        if not os.path.exists('cpanm'):
@@ -71,18 +66,31 @@ class DeconSeqTest(unittest.TestCase):
         """ Runs deconseq tests against synthetically generated fastq files folder.
             It runs generates single threaded config files, to measure performance per-sample.
         """
-        deconseq_bin = os.path.join(self.progs, "deconseq")
+        deconseq_bin = os.path.join(self.progs, "deconseq.pl")
         references = glob.glob(os.path.join(self.reference, '*'))
+
+        platform = os.uname()[0]
+
+        # Use deconseq's bwa compiled in the tarball
+        if platform == 'Darwin':
+            bwa_bin = 'bwaMAC'
+        else:
+            bwa_bin = 'bwa'
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
                 try:
-                    cfg.write(self._genconf(fastq, references.pop().split(os.path.sep)[-1], self.fastq_threads))
+                    cur_ref_path = references.pop()
+                    cur_ref = cur_ref_path.split(os.path.sep)[-1]
+
+                    cfg.write(self._genconf(cur_ref_path, cur_ref, self.tmp, self.tmp, bwa_bin))
                 except IndexError:
                     break
 
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = ['perl', deconseq_bin, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+
+            cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
+                 # "-dbs_retain", cur_ref]
             subprocess.call(cl)
 
 
@@ -101,7 +109,11 @@ class DeconSeqTest(unittest.TestCase):
             #XXX: Should only accept bwa 0.5.x, not 0.6.x indices
             galaxy.rsync_genomes(self.reference, genomes, ["bwa"])
 
-    def _genconf(self, dbdir):
+    def _genconf(self, dbdir, ref, tmpdir, outputdir, bwa_bin):
+        """Generates DeconSeq config file
+        """
+        dbdir = os.path.join(dbdir, "bwa_index", ref+".fa")
+
         self.config = """
 package DeconSeqConfig;
 
@@ -114,15 +126,16 @@ use constant VERSION_INFO => 'DeconSeq version '.VERSION;
 
 use constant ALPHABET => 'ACGTN';
 
-use constant DB_DIR => '{dbdir}';
-use constant TMP_DIR => '{tmpdir}';
-use constant OUTPUT_DIR => '{output}';
+use constant DB_DIR => '';
+use constant TMP_DIR => '%s';
+use constant OUTPUT_DIR => '%s';
 
-use constant PROG_NAME => '{bwa_bin}';  # should be either bwa64 or bwaMAC (based on your system architecture)
+use constant PROG_NAME => '%s';  # should be either bwa64 or bwaMAC (based on your system architecture)
 use constant PROG_DIR => './';      # should be the location of the PROG_NAME file (use './' if in the same location at the perl script)
 
-use constant DBS => { testdb => {name => 'Currently testing this database in the testsuite',
-                             db => '{dbdir}'\}\};
+use constant DBS => { %s => {name => 'Currently testing this database in the testsuite',
+                      db => '%s'}};
+
 use constant DB_DEFAULT => 'testdb';
 
 #######################################################################
@@ -147,6 +160,5 @@ use vars qw(@EXPORT);
              );
 
 1;
-""".format(dbdir, tmpdir, output, bwa_bin)
-
+""" % (tmpdir, outputdir, bwa_bin, ref, dbdir)
         return self.config
