@@ -58,7 +58,7 @@ class FacsBasicTest(unittest.TestCase):
     def test_1_build_ref(self):
         """ Build bloom filters out of the reference genomes directory.
         """
-        for ref in os.listdir(self.reference):
+	for ref in os.listdir(self.reference):
             org = os.path.join(self.reference, ref, "seq", ref+".fa")
             bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
             print(org, bf)
