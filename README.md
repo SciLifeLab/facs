@@ -105,6 +105,7 @@ be contaminated with ecoli in that particular sample:
     "contaminated_reads": 1,
     "total_hits": 36,
     "contamination_rate": 0.004975,
+    "p_value": 1.522929e-01
 }
 ```
 
@@ -137,6 +138,22 @@ If output_path '-o' is specified, two output files will be generated:
 
 `contaminated_sample_ecoli_contam.fastq`
 `contaminated_sample_ecoli_clean.fastq`
+
+MPI facs2.0 version
+-------------------
+
+MPI facs2.0 version can be used in multi-cpu system, for instance, a cluster, in order to take advantage 
+of both multiple cores and multiple cpus at the same time.   
+
+Usage:
+
+First download facs package and 'make', then 'make mpi'. A unique binary file 'facs_mpi' will be generated.
+
+```
+$mpirun -np number_of_cpu ./facs_mpi -r reference_bloom_filter -q query_sequence
+```
+Be advised, besides openmp library, MPI facs2.0 requires MPI library (OpenMpi or Mpich, etc.)  
+
 
 Python interface
 ----------------
