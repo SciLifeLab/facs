@@ -55,7 +55,7 @@ main (int argc, char **argv)
   MPI_Comm_size (MPI_COMM_WORLD, &total_proc);
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
-  char *bloom_filter = NULL, *list = NULL, *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
+  char *bloom_filter = NULL,  *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
   int opt=0,  exit_sign = 0;
   BIGCAST share=0, offset=0;
   char type = '@';
@@ -77,7 +77,7 @@ main (int argc, char **argv)
         	return mpicheck_usage();
 	}
   }
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1)
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:f:h")) != -1)
   {
       switch (opt)
       {
@@ -95,9 +95,6 @@ main (int argc, char **argv)
           break;
         case 'r':
           bloom_filter = optarg;
-          break;
-        case 'l':
-          list = optarg;
           break;
         case 'f': // "json", "tsv" or none
           (optarg) && (report_fmt = optarg, 1);
@@ -140,7 +137,7 @@ main (int argc, char **argv)
   /*initialize emtpy string for query*/
   position = (char *) calloc ((ONEG + 1), sizeof (char));
   share = struc_init (query,proc_num,total_proc);
-  F_set *File_head = make_list (bloom_filter, list);
+  F_set *File_head = make_list (bloom_filter, NULL);
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->hits = 0;
@@ -154,8 +151,6 @@ main (int argc, char **argv)
   
   while (offset<share)
   {
-	//if ((share-offset)<2*ONEG)
-	//	exit_sign = 1;
         offset+= gz_mpi (zip, offset+share*proc_num, share-offset, position, type);
 
 	head = head2;
@@ -182,8 +177,6 @@ main (int argc, char **argv)
 	}
 
      		memset (position, 0, strlen(position));
-      		if (exit_sign==1)
-			break;
   }
   
   printf ("finish processing...\n");
@@ -210,50 +203,6 @@ BIGCAST struc_init (char *filename, int proc_num, int total_proc)
   }
   return share;
 }
-/*-------------------------------------*/
-/*current sacrifice file mapping, use gzip instead*/
-/*
-char *ammaping (char *source)
-{
-  int src;
-  char *sm;
-
-  if ((src = open (source, O_RDONLY | O_LARGEFILE)) < 0)
-    {
-      perror (" open source ");
-      exit (EXIT_FAILURE);
-    }
-
-  if (fstat (src, &statbuf) < 0)
-    {
-      perror (" fstat source ");
-      exit (EXIT_FAILURE);
-    }
-
-  printf ("share->%d PAGES per node\n", share);
-
-  if (share >= CHUNK)
-    buffer = CHUNK;
-  else
-    buffer = share;
-  printf ("total pieces->%d\n", total_piece);
-  printf ("PAGE->%d\n", PAGE);
-  printf ("node %d chunk size %d buffer size %d offset %d\n", total_proc, CHUNK,
-	  buffer, offset);
-
-  sm = mmap (0, buffer * PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE, src, offset * PAGE);	//everytime we process a chunk of data
-
-  //sm = mmap (0,share*PAGE, PROT_READ, MAP_SHARED | MAP_NORESERVE,src, offsettotal_proc*share*PAGE); //last time we process the rest
-
-  if (MAP_FAILED == sm)
-    {
-      perror (" mmap source ");
-      exit (EXIT_FAILURE);
-    }
-
-  return sm;
-}
-*/
 /*-------------------------------------*/
 int gather (F_set *File_head, int total_proc, int proc_num)
 {
@@ -294,12 +243,6 @@ int gather (F_set *File_head, int total_proc, int proc_num)
         MPI_Send (&temp2, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
         MPI_Send (&temp3, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
         MPI_Send (&temp4, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-	/*  
-    	MPI_Send (File_head->reads_num, 1, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-      	MPI_Send (&File_head->reads_contam, 2, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-      	MPI_Send (&File_head->hits, 3, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-        MPI_Send (&File_head->all_k, 4, MPI_LONG_LONG_INT, 0, 1, MPI_COMM_WORLD);
-  	*/
   }
   return 1;
 }
