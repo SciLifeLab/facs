@@ -33,27 +33,27 @@ class DeconSeqTest(unittest.TestCase):
         self.databases = []
         self.results = []
 
-#    def tearDown(self):
-#        """ Report collated results of the tests to a remote CouchDB database.
-#        """
-#        try:
-#            for res in self.results:
-#                if config.SERVER:
-#                    helpers.send_couchdb(config.SERVER, config.DECONSEQ_DB, config.USERNAME, config.PASSWORD, res)
-#        except:
-#            pass
+    def tearDown(self):
+        """ Report collated results of the tests to a remote CouchDB database.
+        """
+        try:
+            for res in self.results:
+                if config.SERVER:
+                    helpers.send_couchdb(config.SERVER, config.DECONSEQ_DB, config.USERNAME, config.PASSWORD, res)
+        except:
+            pass
 
     def test_1_fetch_deconseq(self):
         """Downloads and installs deconseq locally, generates deconseq.conf file
         """
-        #dirname, fname = helpers._fetch_and_unpack(self.deconseq_url)
-        #self._fetch_bwa_indices()
+        dirname, fname = helpers._fetch_and_unpack(self.deconseq_url)
+        self._fetch_bwa_indices()
 
-        #deconseq_src = os.path.join(dirname, "deconseq.pl")
+        deconseq_src = os.path.join(dirname, "deconseq.pl")
         deconseq_bin = os.path.join(self.progs, "deconseq.pl")
 
-#        if not os.path.exists(deconseq_bin):
-#            shutil.copy(deconseq_src, self.progs)
+        if not os.path.exists(deconseq_bin):
+            shutil.copy(deconseq_src, self.progs)
 
         # Install VirtualEnv Perl equivalent: cpanm
 #        if not os.path.exists('cpanm'):
@@ -90,7 +90,6 @@ class DeconSeqTest(unittest.TestCase):
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
 
             cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
-                 # "-dbs_retain", cur_ref]
             subprocess.call(cl)
 
 
@@ -164,5 +163,4 @@ use vars qw(@EXPORT);
 
 1;
 """ % (dbdir, tmpdir, outputdir, bwa_bin, ref, db)
-#% (tmpdir, outputdir, bwa_bin, ref, dbdir)
         return self.config
