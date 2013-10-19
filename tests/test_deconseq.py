@@ -77,6 +77,9 @@ class DeconSeqTest(unittest.TestCase):
         else:
             bwa_bin = 'bwa64'
 
+        # Exec perms not preserved in the tarball
+        os.chmod(os.path.join('deconseq-standalone-0.4.3', bwa_bin), 0700)
+
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
                 try:
