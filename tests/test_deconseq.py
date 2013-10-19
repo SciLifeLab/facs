@@ -46,10 +46,10 @@ class DeconSeqTest(unittest.TestCase):
     def test_1_fetch_deconseq(self):
         """Downloads and installs deconseq locally, generates deconseq.conf file
         """
-        dirname, fname = helpers._fetch_and_unpack(self.deconseq_url)
-        self._fetch_bwa_indices()
+        #dirname, fname = helpers._fetch_and_unpack(self.deconseq_url)
+        #self._fetch_bwa_indices()
 
-        deconseq_src = os.path.join(dirname, "deconseq.pl")
+        #deconseq_src = os.path.join(dirname, "deconseq.pl")
         deconseq_bin = os.path.join(self.progs, "deconseq.pl")
 
 #        if not os.path.exists(deconseq_bin):
@@ -75,7 +75,7 @@ class DeconSeqTest(unittest.TestCase):
         if platform == 'Darwin':
             bwa_bin = 'bwaMAC'
         else:
-            bwa_bin = 'bwa'
+            bwa_bin = 'bwa64'
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
             with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
@@ -112,7 +112,8 @@ class DeconSeqTest(unittest.TestCase):
     def _genconf(self, dbdir, ref, tmpdir, outputdir, bwa_bin):
         """Generates DeconSeq config file
         """
-        dbdir = os.path.join(dbdir, "bwa_index", ref+".fa")
+        dbdir = os.path.join(dbdir, "bwa_index/")
+        db = os.path.basename(os.path.join(dbdir, ref+".fa"))
 
         self.config = """
 package DeconSeqConfig;
@@ -126,17 +127,19 @@ use constant VERSION_INFO => 'DeconSeq version '.VERSION;
 
 use constant ALPHABET => 'ACGTN';
 
-use constant DB_DIR => '';
+use constant DB_DIR => '%s';
 use constant TMP_DIR => '%s';
 use constant OUTPUT_DIR => '%s';
 
 use constant PROG_NAME => '%s';  # should be either bwa64 or bwaMAC (based on your system architecture)
-use constant PROG_DIR => './';      # should be the location of the PROG_NAME file (use './' if in the same location at the perl script)
+use constant PROG_DIR => 'deconseq-standalone-0.4.3/';      # should be the location of the PROG_NAME file (use './' if in the same location at the perl script)
 
-use constant DBS => { %s => {name => 'Currently testing this database in the testsuite',
-                      db => '%s'}};
+use constant DBS => {
+                      %s => {name => 'Currently testing this database in the testsuite',
+                      db => '%s'}
+                    };
 
-use constant DB_DEFAULT => 'testdb';
+#use constant DB_DEFAULT => '';
 
 #######################################################################
 
@@ -160,5 +163,6 @@ use vars qw(@EXPORT);
              );
 
 1;
-""" % (tmpdir, outputdir, bwa_bin, ref, dbdir)
+""" % (dbdir, tmpdir, outputdir, bwa_bin, ref, db)
+#% (tmpdir, outputdir, bwa_bin, ref, dbdir)
         return self.config
