@@ -88,8 +88,8 @@ class deconseqTest(unittest.TestCase):
 
     def _deconseq_metrics_to_json(self, in_handle, fastq_name):
 	
-        //reader = csv.reader(in_handle, delimiter="\t")
-	contam_file = "*_cont.*
+        #reader = csv.reader(in_handle, delimiter="\t")
+	contam_file = "*_cont.*"
 	clean_file = "*_clean.*"
 	contam_reads = countlines("*_cont.*"); 
 	clean_reads = countlines("*_clean.*");
@@ -168,7 +168,7 @@ use vars qw(@EXPORT);\n
              );\n
 1;\n
 """
-            self.config=self.config+self.config_dbs+self.config_end
+        self.config=self.config+self.config_dbs+self.config_end
         return self.config
 
     def prepare_local_perl():

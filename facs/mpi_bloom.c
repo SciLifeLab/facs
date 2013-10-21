@@ -253,7 +253,7 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
   char *start=NULL, *end = NULL;
   BIGCAST complete = 0;
   gzseek (zip, offset, SEEK_SET);
-  if (left>ONEG)
+  if (left>(ONEG))
   {
   	gzread (zip, data, ONEG);
   	//complete = 2*ONEG;
