@@ -1,7 +1,6 @@
 #include "check.h"
 #include "build.h"
 #include "remove.h"
-#include "remove_l.h"
 #include "big_query.h"
 
 #include <stdio.h>
@@ -46,8 +45,6 @@ main (int argc, char **argv)
     ret = bq_main (argc-1, argv+1);
   } else if (strcmp (argv[1], "remove") == 0)
     ret = remove_main (argc-1, argv+1);
-  //else if (strcmp (argv[1], "classify") == 0)
-  //  ret = remove_l_main (argc-1, argv+1);
   else
     usage();
 
