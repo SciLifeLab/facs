@@ -6,7 +6,7 @@ all:$(PROG)
 mpi: 
 	cd facs; make; make mpi
 tests: python
-	cd tests && nosetests -v -s -P --with-timer -a standard
+	cd tests && nosetests -v -s -P --with-timer
 
 valgrind: python
 	valgrind --tool=memcheck --suppressions=facs/utils/valgrind-python.supp nosetests -P -v -s
