@@ -188,7 +188,9 @@ The format should be like this:
 ```
 [facs]
 SERVER: <your server address>
-DB: <DB name>
+FACS_DB: <DB name>
+FASTQ_SCREEN_DB: <DB name>
+DECONSEQ_DB: <DB name>
 USER: <username>
 PASSWORD: <password>
 ```
