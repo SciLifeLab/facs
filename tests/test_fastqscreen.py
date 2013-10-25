@@ -99,6 +99,7 @@ class FastqScreenTest(unittest.TestCase):
             cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
                   "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
+
             end_time = str(datetime.datetime.utcnow())+'Z'
 
             # Process fastq_screen results format and report it in JSON

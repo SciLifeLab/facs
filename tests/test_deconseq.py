@@ -92,16 +92,50 @@ class DeconSeqTest(unittest.TestCase):
 
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
 
+            start_time = str(datetime.datetime.utcnow())+'Z'
+
             cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
             subprocess.call(cl)
 
+            end_time = str(datetime.datetime.utcnow())+'Z'
 
-    def _deconseq_metrics_to_json(self, in_handle, fastq_name):
-        """ XXX: We should be able to find an intermediate representation/stats
-            that we could use to fetch stats
+            clean = glob.glob('*_clean.fq')[0]
+            contam = glob.glob('*_cont.fq')[0]
+            print clean, contam
+
+            self.results.append(self._deconseq_metrics_to_json(fastq_path, clean, contam,
+                                    start_time, end_time))
+
+
+    def _deconseq_metrics_to_json(self, sample, clean, contam, start_time, end_time):
+        """ Counts contaminated and clean reads from resulting deconseq files
         """
-        pass
 
+        data = defaultdict(lambda: defaultdict(list))
+
+        num_clean = self._count_lines(clean)
+        num_contam = self._count_lines(contam)
+
+        # FastQ format, therefore 4 lines per read
+        reads_clean = int(num_clean)/4
+        reads_contam = int(num_contam)/4
+
+        contamination_rate = reads_contam / reads_clean
+
+        data['contamination_rate'] = contamination_rate
+        data['total_reads'] = reads_clean + reads_contam
+
+        data['start_timestamp'] = start_time
+        data['end_timestamp'] = end_time
+        data['sample'] = sample
+
+        return json.dumps(data)
+
+    def _count_lines(self, fname):
+        with open(fname) as fh:
+            lines = sum(1 for line in fh)
+
+        return lines
 
     def _fetch_bwa_indices(self):
         genomes = []
