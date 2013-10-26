@@ -72,11 +72,19 @@ class FastqScreenTest(unittest.TestCase):
             shutil.copy(fscreen_src + '.conf', self.progs)
 
         # Install VirtualEnv Perl equivalent: cpanm
-        if not os.path.exists('cpanm'):
-            subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
-            os.chmod('cpanm', 0700)
-            subprocess.check_call(['./cpanm', '-f', '--local-lib=', os.path.join(os.environ['HOME'], 'perl5'), 'local::lib'])
-            subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
+        try:
+            subprocess.check_call(['which', 'cpanm'])
+        except:
+            # Try to install fastq_screen dependencies locally, not needed in Travis
+            try:
+                subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
+                os.chmod('cpanm', 0700)
+
+                perl5_local = os.path.join(os.environ['HOME'], '/perl5', 'lib', 'perl5')
+                subprocess.check_call(['./cpanm', '-f', '--local-lib=', perl5_local, 'local::lib'])
+                subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
+            except:
+                pass
 
 
     def test_2_run_fastq_screen(self):
