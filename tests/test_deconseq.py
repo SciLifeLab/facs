@@ -120,7 +120,10 @@ class DeconSeqTest(unittest.TestCase):
         reads_clean = int(num_clean)/4
         reads_contam = int(num_contam)/4
 
-        contamination_rate = reads_contam / reads_clean
+        if int(reads_clean) != 0:
+            contamination_rate = reads_contam / reads_clean
+        else: # XXX: no clean reads, 100% contaminated?
+            contamination_rate = 100
 
         data['contamination_rate'] = contamination_rate
         data['total_reads'] = reads_clean + reads_contam
