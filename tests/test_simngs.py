@@ -69,8 +69,8 @@ class SimNGSTest(unittest.TestCase):
 
             with open(dst, 'w') as fh:
                 # Spikes a single ecoli read into all synthetically generated reads
-                cl1 = [simlib, "-o", "casava", "-n", str(reads), org]
-                cl2 = [simngs, "-o", "casava", "-p", "paired", runfile]
+                cl1 = [simlib, "-n", str(reads), org]
+                cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
                 # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
                 p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
