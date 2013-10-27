@@ -86,6 +86,7 @@ class DeconSeqTest(unittest.TestCase):
                     cfg.write(self._genconf(cur_ref_path, cur_ref, self.tmp, self.tmp, bwa_bin))
                 except IndexError:
                     break
+<<<<<<< HEAD
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
             cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
 	    subprocess.call(cl)

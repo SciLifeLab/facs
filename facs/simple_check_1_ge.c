@@ -145,9 +145,9 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\t\"sample\": \"%s\",\n"
 "\t\"bloom_filter\": \"%s\",\n"
 "\t\"total_read_count\": %lld,\n"
-"\t\"_contaminated_reads\": %lld,\n"
+"\t\"contaminated_reads\": %lld,\n"
 "\t\"total_hits\": %lld,\n"
-"\t\"_contamination_rate\": %f,\n"
+"\t\"contamination_rate\": %f,\n"
 "\t\"p_value\": %e,\n"
 "}",  start_timestamp, timestamp,query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,

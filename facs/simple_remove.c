@@ -82,7 +82,7 @@ int remove_main (int argc, char **argv)
   }
   if (!target_path && !source)
   {
-  	fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
+  	fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
   	exit (-1);
   }
   char *result = query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
@@ -150,6 +150,7 @@ void save_result (char *source, char *obj_file, char type, char *prefix, char *c
   write_result (mismatch, clean2);
   memset(contam2,0,strlen(contam2));
   memset(clean2,0,strlen(clean2));
+
   free (match);
   free (mismatch);
   free (so_name);
