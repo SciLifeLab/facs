@@ -14,7 +14,6 @@ import facs
 from facs.utils import helpers, galaxy, config
 from nose.plugins.attrib import attr
 
-@attr('standard')
 class FastqScreenTest(unittest.TestCase):
     """Tests against Fastq Screen, to compare performance metrics.
     """
@@ -47,6 +46,10 @@ class FastqScreenTest(unittest.TestCase):
             for res in self.results:
                 if config.SERVER:
                     helpers.send_couchdb(config.SERVER, config.FASTQ_SCREEN_DB, config.USERNAME, config.PASSWORD, res)
+
+            # remove fastq_screen files from old test runs
+            shutil.rmtree(self.tmp)
+            os.mkdir(self.tmp)
         except:
             pass
 
@@ -68,11 +71,19 @@ class FastqScreenTest(unittest.TestCase):
             shutil.copy(fscreen_src + '.conf', self.progs)
 
         # Install VirtualEnv Perl equivalent: cpanm
-        if not os.path.exists('cpanm'):
-            subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
-            os.chmod('cpanm', 0700)
-            subprocess.check_call(['./cpanm', '-f', '--local-lib=~/perl5', 'local::lib'])
-            subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
+        try:
+            subprocess.check_call(['which', 'cpanm'])
+        except:
+            # Try to install fastq_screen dependencies locally, not needed in Travis
+            try:
+                subprocess.check_call(['wget', 'cpanmin.us', '-O', 'cpanm'])
+                os.chmod('cpanm', 0700)
+
+                perl5_local = os.path.join(os.environ['HOME'], '/perl5', 'lib', 'perl5')
+                subprocess.check_call(['./cpanm', '-f', '--local-lib=', perl5_local, 'local::lib'])
+                subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
+            except:
+                pass
 
 
     def test_2_run_fastq_screen(self):
@@ -89,9 +100,14 @@ class FastqScreenTest(unittest.TestCase):
                 except IndexError:
                     break
 
+            start_time = str(datetime.datetime.utcnow())+'Z'
+
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = ['perl', '-I', '~/perl5/lib/perl5/', '-Mlocal::lib', fscreen_dst, "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+            cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
+                  "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
             subprocess.call(cl)
+
+            end_time = str(datetime.datetime.utcnow())+'Z'
 
             # Process fastq_screen results format and report it in JSON
             fastq_name = os.path.basename(fastq)
@@ -100,10 +116,10 @@ class FastqScreenTest(unittest.TestCase):
 
             if os.path.exists(fastq_screen_resfile):
                 with open(fastq_screen_resfile, 'rU') as fh:
-                    self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name))
+                    self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, start_time, end_time))
 
 
-    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name):
+    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, start_time, end_time):
         reader = csv.reader(in_handle, delimiter="\t")
         data = defaultdict(lambda: defaultdict(list))
 
@@ -113,8 +129,9 @@ class FastqScreenTest(unittest.TestCase):
         #  '%One_hit_multiple_libraries', '%Multiple_hits_multiple_libraries']
         header = reader.next()
 
-        data['sample'] = fastq_name
-        data['timestamp'] = str(datetime.datetime.utcnow())+'Z'
+        data['sample'] = os.path.join(os.path.dirname(fastq_name), fastq_name)
+        data['begin_timestamp'] = start_time
+        data['end_timestamp'] = end_time
         data['organisms'] = []
 
         for row in reader:
@@ -127,6 +144,12 @@ class FastqScreenTest(unittest.TestCase):
                 organism[header[i]] = float(row[i])
 
             data['organisms'].append(organism)
+
+            # Useful to compare with other programs such as FACS or Deconseq
+            print data['organisms']
+            data['contamination_rate'] = data['organisms'][0]['%One_hit_one_library']
+            data['fastq_screen_index'] = data['organisms'][0]['Library']
+
 
         return json.dumps(data)
 
@@ -145,8 +168,8 @@ class FastqScreenTest(unittest.TestCase):
 
         self.config = """
 BOWTIE\t\t{bowtie}
-THREADS\t\t8\n
-""".format(bowtie="bowtie")
+THREADS\t\t{threads}\n
+""".format(bowtie="bowtie", threads=self.fastq_threads)
 
         for db in range(len(self.databases)):
             self.config_dbs = """
