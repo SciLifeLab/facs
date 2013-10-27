@@ -180,6 +180,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	      {
 		if (head->location != NULL)
 		{
+			printf("location->%0.20s\n",head->location);
 			read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode, type);
 		}
 	      }
@@ -202,7 +203,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   }
   clean_list (head2, tail);
   if (mode == 'r')
-  {	
+  {	/*
 	if (target_path!=NULL)
 	{
       		save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
@@ -211,6 +212,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	{
 		write_default(re_clean(), re_contam(), offset);
 	}
+	*/
 	if (offset == -1)
 	{
 		reset_string();
