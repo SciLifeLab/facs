@@ -180,6 +180,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	      {
 		if (head->location != NULL)
 		{
+			printf ("location->%0.20s\n",head->location);
 			read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode, type);
 		}
 	      }
@@ -202,7 +203,8 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   }
   clean_list (head2, tail);
   if (mode == 'r')
-  {	/*
+  {
+	
 	if (target_path!=NULL)
 	{
       		save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
@@ -211,7 +213,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	{
 		write_default(re_clean(), re_contam(), offset);
 	}
-	*/
+	
 	if (offset == -1)
 	{
 		reset_string();
@@ -224,7 +226,15 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   	gzclose(zip);
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
   }
-  return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  if (target_path!=NULL)
+  {
+  	return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  }
+  else
+  {
+	char *s = "";
+	return s;
+  }
 }
 
 char *strrstr (char *s, char *str)

@@ -28,8 +28,8 @@ char *_clean, *_contam, *_clean2, *_contam2;
 /*save it for the possible advanced version*/
 void init_string(int chunk)
 {
-	_clean = (char *) calloc (chunk, sizeof (char));
-	_contam = (char *) calloc (chunk, sizeof (char));
+	_clean = (char *) calloc (1,chunk*sizeof (char));
+	_contam = (char *) calloc (1,chunk*sizeof (char));
 	_clean2 = _clean;
 	_contam2 = _contam;
 }
