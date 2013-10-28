@@ -180,7 +180,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	      {
 		if (head->location != NULL)
 		{
-			printf ("location->%0.20s\n",head->location);
+			//printf ("location->%0.20s\n",head->location);
 			read_process (bl_2, head, tail, File_head, sampling_rate, tole_rate, mode, type);
 		}
 	      }
