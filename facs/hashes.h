@@ -5,6 +5,6 @@ extern BIGNUM hash1 (char *str, int seed);
 extern BIGNUM hash2 (char *str, int seed);
 extern BIGNUM hash3 (char *str, int seed);
 extern BIGNUM hash4 (char *str, int seed);
-extern BIGNUM hash5 (char *str, int seed, int length);
+extern BIGNUM hash5 (const char *key, int seed, int length);
 
 #endif

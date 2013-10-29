@@ -103,7 +103,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
                          File_head->reads_contam++;
 			 if (mode == 'r')
 			 	{
-				#pragma omp critical
+					#pragma omp critical
 					{
 						//fprintf(stderr,"%.*s",start_point-previous_point,previous_point);
 						memcpy(_contam,previous_point,start_point-previous_point);
@@ -115,7 +115,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 		{
 			if (mode == 'r')
 				{
-				#pragma omp critical
+					#pragma omp critical
 					{
 						//fprintf(stdout,"%.*s",start_point-previous_point,previous_point);
                                         	memcpy(_clean,previous_point,start_point-previous_point);

@@ -161,6 +161,8 @@ BIGNUM bloom_hash (bloom * bloom, char *str, int i, int length)
 {
 	BIGNUM ret = 0;
 	ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
+	printf ("%.*s\n",length,str);
+        printf ("%lld\n",ret);
 	return ret;
 }
 

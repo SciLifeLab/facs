@@ -14,8 +14,8 @@ endif
 .PHONY: tests clean valgrind
 .SUFFIXES:.c .o
 PROG=facs
-LOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o
-AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o
+LOBJS= big_query.o bloom.o file_dir.o good_build.o lookup3.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o
+AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup3.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o
 
 all:$(PROG)
 
@@ -29,7 +29,7 @@ mpi:
 	@echo Make sure you have MPI support on your cluster hint: module load openmpi
 	#mpicc -c *.c ${CFLAGS} ${LIBS}
 	#mpicc -c mpi_decon.c -O3 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE 
-	#mpicc -o mpi_decon mpi_decon.o bloom.o suggestions.o lookup8.o  -lm ${CFLAGS}
+	#mpicc -o mpi_decon mpi_decon.o bloom.o suggestions.o lookup3.o  -lm ${CFLAGS}
 	mpicc -c mpi_bloom.c ${CFLAGS}
 	mpicc -o facs_mpi tool.o big_query.o simple_check_1_ge.o simple_remove.o mpi_bloom.o bloom.o suggestions.o lookup8.o file_dir.o prob.o ${LIBS} ${CFLAGS}
 
