@@ -1,5 +1,4 @@
 import os
-import re
 import stat
 import csv
 import json
@@ -49,8 +48,10 @@ class DeconSeqTest(unittest.TestCase):
         """
         dirname, fname = helpers._fetch_and_unpack(self.deconseq_url)
         self._fetch_bwa_indices()
+
         deconseq_src = os.path.join(dirname, "deconseq.pl")
         deconseq_bin = os.path.join(self.progs, "deconseq.pl")
+
         if not os.path.exists(deconseq_bin):
             shutil.copy(deconseq_src, self.progs)
 
@@ -60,10 +61,11 @@ class DeconSeqTest(unittest.TestCase):
 #            os.chmod('cpanm', 0700)
 #            subprocess.check_call(['./cpanm', '-f', '--local-lib=', os.path.join(os.environ['HOME'], 'perl5'), 'local::lib'])
 
+
     def test_2_run_deconseq(self):
-        #""" Runs deconseq tests against synthetically generated fastq files folder.
-        #    It runs generates single threaded config files, to measure performance per-sample.
-        #"""
+        """ Runs deconseq tests against synthetically generated fastq files folder.
+            It runs generates single threaded config files, to measure performance per-sample.
+        """
         deconseq_bin = os.path.join(self.progs, "deconseq.pl")
         references = glob.glob(os.path.join(self.reference, '*'))
 
@@ -74,6 +76,7 @@ class DeconSeqTest(unittest.TestCase):
             bwa_bin = 'bwaMAC'
         else:
             bwa_bin = 'bwa64'
+
         # Exec perms not preserved in the tarball
         os.chmod(os.path.join('deconseq-standalone-0.4.3', bwa_bin), 0700)
 
@@ -86,53 +89,57 @@ class DeconSeqTest(unittest.TestCase):
                     cfg.write(self._genconf(cur_ref_path, cur_ref, self.tmp, self.tmp, bwa_bin))
                 except IndexError:
                     break
+
             fastq_path = os.path.join(self.synthetic_fastq, fastq)
+
+            start_time = str(datetime.datetime.utcnow())+'Z'
+
             cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
-	    subprocess.call(cl)
-	    fastq_name = os.path.basename(fastq)
-            fastq_screen_resfile = os.path.join(self.tmp, fastq_name)+'.txt'
-            #if os.path.exists(fastq_screen_resfile):
-            with open(fastq_screen_resfile, 'w') as fh:
-                 self.results.append(self._deconseq_metrics_to_json(fh, cur_ref, fastq_name))
-    
-    def _deconseq_metrics_to_json(self, in_handle, cur_ref, fastq_name):
-        """ XXX: We should be able to find an intermediate representation/stats
-            that we could use to fetch stats
+            subprocess.call(cl)
+
+            end_time = str(datetime.datetime.utcnow())+'Z'
+
+            clean = glob.glob('*_clean.fq')[0]
+            contam = glob.glob('*_cont.fq')[0]
+            print clean, contam
+
+            self.results.append(self._deconseq_metrics_to_json(fastq_path, clean, contam,
+                                    start_time, end_time))
+
+
+    def _deconseq_metrics_to_json(self, sample, clean, contam, start_time, end_time):
+        """ Counts contaminated and clean reads from resulting deconseq files
         """
+
         data = defaultdict(lambda: defaultdict(list))
-        # ['Library', '%Unmapped', '%One_hit_one_library', '%Multiple_hits_one_library',
-        #  '%One_hit_multiple_libraries', '%Multiple_hits_multiple_libraries']
-        #header = reader.next()
-	print self._get_right_file(os.getcwd(),'cont.fq')
-        data['sample'] = fastq_name
-        data['timestamp'] = str(datetime.datetime.utcnow())+'Z'
-	data['organisms'] = []
-	organisms = {}
-	contam = self._linecount_3(self._get_right_file(os.getcwd(),'cont.fq'))
-	total = self._linecount_3(self._get_right_file(os.getcwd(),'clean.fq'))+contam
-	organisms[cur_ref]=cur_ref
-	organisms[fastq_name]=fastq_name
-	organisms[total]=total
-	organisms['ratio']= contam/total
-	os.system("rm *cont.fq *clean.fq");
-	data['organisms'].append(organisms)
-	return json.dumps(data)
 
-    def _linecount_3(self, filename):          
-        count = 0
-        thefile = open(filename)
-        while 1:
-          buffer = thefile.read(65536)
-          if not buffer: break
-          count += buffer.count('\n')
-        return count
+        num_clean = self._count_lines(clean)
+        num_contam = self._count_lines(contam)
 
-    def _get_right_file(self,tgt_dir,type): 
-    	list_dirs = os.walk(tgt_dir) 
-    	for root, dirs, files in list_dirs: 
-        	for f in files: 
-			if (f.find(type)>=0):
-				return f
+        # FastQ format, therefore 4 lines per read
+        reads_clean = int(num_clean)/4
+        reads_contam = int(num_contam)/4
+
+        if int(reads_clean) != 0:
+            contamination_rate = reads_contam / reads_clean
+        else: # XXX: no clean reads, 100% contaminated?
+            contamination_rate = 100
+
+        data['contamination_rate'] = contamination_rate
+        data['total_reads'] = reads_clean + reads_contam
+
+        data['start_timestamp'] = start_time
+        data['end_timestamp'] = end_time
+        data['sample'] = sample
+
+        return json.dumps(data)
+
+    def _count_lines(self, fname):
+        with open(fname) as fh:
+            lines = sum(1 for line in fh)
+
+        return lines
+
     def _fetch_bwa_indices(self):
         genomes = []
         for ref in os.listdir(self.reference):
