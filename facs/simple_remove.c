@@ -17,7 +17,6 @@
 #include "check.h"
 #include "bloom.h"
 #include "remove.h"
-#include "remove_l.h"
 #include "big_query.h"
 #include "file_dir.h"
 #include "big_query.h"

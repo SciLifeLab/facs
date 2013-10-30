@@ -113,7 +113,6 @@ class FastqScreenTest(unittest.TestCase):
             fastq_name = os.path.basename(fastq)
             fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
             fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
-
             if os.path.exists(fastq_screen_resfile):
                 with open(fastq_screen_resfile, 'rU') as fh:
                     self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, start_time, end_time))
@@ -142,7 +141,6 @@ class FastqScreenTest(unittest.TestCase):
             organism[header[0]] = row[0]
             for i in range(1,5):
                 organism[header[i]] = float(row[i])
-
             data['organisms'].append(organism)
 
             # Useful to compare with other programs such as FACS or Deconseq

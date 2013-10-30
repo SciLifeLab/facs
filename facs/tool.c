@@ -205,8 +205,7 @@ get_parainfo (char *full, Queue * head, char type)
 #endif
       short add = 0;
       int offset = 0;
-	  Queue *pos = head;
-       //   Queue *x = NEW (Queue);
+      Queue *pos = head;
       int length = 0;
       if (full != NULL)
       {

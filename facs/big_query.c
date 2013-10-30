@@ -112,7 +112,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   isodate(timestamp);
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
-  /*initialize for python*/
+  /*initialize for python interface*/
   File_head->hits = 0;
   File_head->all_k = 0;
   File_head->reads_num = 0;
@@ -202,7 +202,8 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   }
   clean_list (head2, tail);
   if (mode == 'r')
-  {	
+  {
+	
 	if (target_path!=NULL)
 	{
       		save_result (query, File_head->filename, type, target_path, re_clean(), re_contam()); //save results into file if facs remove is called
@@ -211,6 +212,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
 	{
 		write_default(re_clean(), re_contam(), offset);
 	}
+	
 	if (offset == -1)
 	{
 		reset_string();
@@ -219,11 +221,19 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   }				//end while
   if (normal == 0)
   {
-    bloom_destroy(bl_2);
-    gzclose(zip);
+ 	bloom_destroy(bl_2);
+  	gzclose(zip);
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
   }
-  return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  if (target_path!=NULL)
+  {
+  	return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  }
+  else
+  {
+	char *s = "";
+	return s;
+  }
 }
 
 char *strrstr (char *s, char *str)

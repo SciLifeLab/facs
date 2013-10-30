@@ -28,8 +28,8 @@ char *_clean, *_contam, *_clean2, *_contam2;
 /*save it for the possible advanced version*/
 void init_string(int chunk)
 {
-	_clean = (char *) calloc (chunk, sizeof (char));
-	_contam = (char *) calloc (chunk, sizeof (char));
+	_clean = (char *) calloc (1,chunk*sizeof (char));
+	_contam = (char *) calloc (1,chunk*sizeof (char));
 	_clean2 = _clean;
 	_contam2 = _contam;
 }
@@ -105,6 +105,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 			 	{
 				#pragma omp critical
 					{
+						//fprintf(stderr,"%.*s",start_point-previous_point,previous_point);
 						memcpy(_contam,previous_point,start_point-previous_point);
 						_contam+=(start_point-previous_point);
 					}
@@ -116,6 +117,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 				{
 				#pragma omp critical
 					{
+						//fprintf(stdout,"%.*s",start_point-previous_point,previous_point);
                                         	memcpy(_clean,previous_point,start_point-previous_point);
                                         	_clean+=(start_point-previous_point);
 					}
