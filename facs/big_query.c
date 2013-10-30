@@ -25,18 +25,17 @@
 
 static int query_usage (void)
 {
-  fprintf (stderr, "\nUsage: ./facs query [options]\n");
+  fprintf (stderr, "\nUsage: facs query [options]\n");
   fprintf (stderr, "Options:\n");
-  fprintf (stderr, "\t-r reference Bloom filter to query against\n");
-  fprintf (stderr, "\t-q FASTA/FASTQ file containing the query\n");
-  fprintf (stderr, "\t-l input list containing all Bloom filters,\
-           one per line\n");
-  fprintf (stderr, "\t-t threshold value\n");
-  fprintf (stderr, "\t-f report output format, valid values are:\
-           'json' and 'tsv'\n");
-  fprintf (stderr, "\t-s sampling rate, default is 1 so it reads the whole\
-           query file\n");
+  fprintf (stderr, "\t-r <file>    Reference Bloom filter to query against.\n");
+  fprintf (stderr, "\t-q <file>    A file in FASTA/FASTQ format containing query sequences.\n");
+  fprintf (stderr, "\t-l <file>    A file containing a list of Bloom filter files, one per line.\n");
+  fprintf (stderr, "\t-t <float>   A threshold value between 0 and 1.0. Default: depends on word size (k), typically 0.4.\n");
+  fprintf (stderr, "\t-f <string>  Output format for reports. Valid values are: 'json' and 'tsv'\n");
+  fprintf (stderr, "\t-s <float>   Sampling rate. Setting this parameter to less than 1.0 means you only\n\t             consider a sample of reads from the query file.\n");
   fprintf (stderr, "\n");
+  fprintf (stderr, "Example:\n");
+  fprintf (stderr, "\tfacs query -r hs.bloom -q reads.fq\n");
   exit(1);
 }
 

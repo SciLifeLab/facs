@@ -14,8 +14,8 @@ endif
 .PHONY: tests clean valgrind
 .SUFFIXES:.c .o
 PROG=facs
-LOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o
-AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o
+LOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o info.o
+AOBJS= big_query.o bloom.o file_dir.o good_build.o lookup8.o suggestions.o tool.o simple_check_1_ge.o simple_remove.o prob.o info.o
 
 all:$(PROG)
 
@@ -51,4 +51,5 @@ ${PROG}:lib${PROG}.a $(AOBJS) main.o
 lib${PROG}.a:$(LOBJS)
 		$(AR) -csru $@ $(LOBJS)
 
-main.o: big_query.h bloom.h build.h check.h file_dir.h hashes.h tool.h remove.h
+main.o: big_query.h bloom.h build.h check.h file_dir.h hashes.h tool.h remove.h info.h
+
