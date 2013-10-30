@@ -134,7 +134,6 @@ int bloom_test (bloom * bloom, char *str, int mode)
 {
   int i, hit=1;
   BIGNUM ret;
-  //printf("In test\n");
   /* as many times as our ideal hash count dictates, salt our key
    * and hash it into the bit vector */
   for (i = 0; i < bloom->stat.ideal_hashes; i++)

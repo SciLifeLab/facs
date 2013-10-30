@@ -310,11 +310,6 @@ char *fastq_relocate (char *data, int offset, int length)
 }
 
 
-/*scoring system scheme*/
-int dx_add (int k_mer)
-{
-	return k_mer*k_mer;
-}
 /*get read length for fastq file*/
 int fq_read_length (char *data)
 {
