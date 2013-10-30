@@ -12,7 +12,6 @@
 #define NEW(type) (type *) malloc(sizeof(type))
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
-#define TWOG 2000000000
 #define hashsize(n) ((BIGNUM)1<<(n))
 #define hashmask(n) (hashsize(n) - 1)
 
@@ -91,14 +90,11 @@ typedef struct file_list
 #define ONE 100
 
 BIGNUM mkprime (BIGNUM startval);
-extern double get_mu (BIGNUM num_hit, double prob);
-extern double get_sigma (BIGNUM num_hit, double prob);
-extern double get_evalue (BIGNUM number, double mu, double sigma);
+//extern double get_mu (BIGNUM num_hit, double prob);
+//extern double get_sigma (BIGNUM num_hit, double prob);
+//extern double get_evalue (BIGNUM number, double mu, double sigma);
 extern BIGCAST get_size (char *filename);
-
-extern int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity,
-		       double error_rate, int hashes, hash_t hash, int flags);
-
+extern int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity,double error_rate, int hashes, hash_t hash, int flags);
 extern int bloom_check (bloom * bloom, char *str);
 extern int bloom_add (bloom * bloom, char *str);
 extern int bloom_test (bloom * bloom, char *str, int MODE);
@@ -133,5 +129,5 @@ extern void rev_trans (char *s, int length);
 extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
 extern char *prefix_make (char *filename, char *prefix, char *target);
-extern int normal_lower(char *str, int length);
+extern void normal_lower(char *str, int length);
 #endif
