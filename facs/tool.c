@@ -311,11 +311,11 @@ char *fastq_relocate (char *data, int offset, int length)
 /*scoring system scheme*/
 int dx_add (int k_mer)
 {
-  int x;
-  int y = 0;
-  for (x = 1; x < k_mer; x++)
-    y += x;
-  return y;
+	int x;
+	int y = 0;
+	for (x = 1; x < k_mer; x++)
+		y += x;
+	return y;
 }
 /*get read length for fastq file*/
 int fq_read_length (char *data)

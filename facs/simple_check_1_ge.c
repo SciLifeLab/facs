@@ -61,8 +61,8 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 		return;
 	while (start_point != next_job) 
 		{
-		if (mode == 'c')
-		{
+		//if (mode == 'c')
+		//{
 			if (sampling_rate<1)
 				temp = jump (start_point, fmt_type, sampling_rate);
 			else
@@ -73,7 +73,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 				start_point = temp;
 				continue;
 			}
-		}
+		//}
 		// skip to the next read if needed
 		#pragma omp atomic
 		File_head->reads_num++;
