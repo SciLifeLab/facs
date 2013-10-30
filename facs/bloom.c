@@ -161,8 +161,6 @@ BIGNUM bloom_hash (bloom * bloom, char *str, int i, int length)
 {
 	BIGNUM ret = 0;
 	ret = (BIGNUM) hash5 (str, seed[i], length) % (BIGNUM) bloom->stat.elements;
-	printf ("%.*s\n",length,str);
-        printf ("%lld\n",ret);
 	return ret;
 }
 
@@ -205,7 +203,7 @@ BIGNUM report_capacity (bloom * bloom)
 
 char *prefix_make (char *filename, char *prefix, char *target)
 {
-  char *default_path = strrchr (filename, '/');
+  //char *default_path = strrchr (filename, '/');
   char *bloom_file = (char *) calloc (1, 3*ONE * sizeof (char));
   if (target)
   {

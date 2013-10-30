@@ -47,7 +47,6 @@ int build_main (int argc, char **argv)
   float error_rate = 0.0005;
 
   char *list = NULL;
-  char *prefix = NULL;
   char *target_path = NULL;
   char *source = NULL;
   //XXX make -l and -r mutually exclusive
@@ -129,12 +128,11 @@ void init_bloom(bloom *bl, BIGNUM capacity,float error_rate,int k_mer,char *file
   printf ("Real size: %lld\n", bl->stat.elements / 8);
 #endif
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e, bl->stat.ideal_hashes, NULL, flags);
-  //printf ("k_mer->%d\n", k_mer);
   if (k_mer != 0)
   	bl->k_mer = k_mer;
   else
   	bl->k_mer = kmer_suggestion (get_size (filename));
-  bl->dx = dx_add (bl->k_mer);
+  bl->dx = bl->k_mer*bl->k_mer;
 }
 
 int build (char *ref_name, char *target_path, int k_mer, double error_rate, char *prefix)
@@ -146,7 +144,7 @@ int build (char *ref_name, char *target_path, int k_mer, double error_rate, char
   else
   	bl->k_mer = kmer_suggestion (get_size (ref_name));
   bl->stat.e = error_rate;
-  bl->dx = dx_add (bl->k_mer);
+  bl->dx = bl->k_mer*bl->k_mer;
   bl->stat.capacity = strlen (position);
   get_rec (&bl->stat);
   bloom_init (bl, bl->stat.elements, bl->stat.capacity, bl->stat.e, bl->stat.ideal_hashes, NULL, 3);

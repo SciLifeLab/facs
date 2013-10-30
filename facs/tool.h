@@ -4,7 +4,6 @@
 #include "bloom.h"
 int fq_read_length (char *data);
 char *fa_count (char *start, int length);
-extern int dx_add (int k_mer);
 extern int get_parainfo (char *full, Queue *head, char type);
 extern char *fastq_relocate (char *data, int offset, int length);
 extern char *jump (char *target, char type, float sampling_rate);
