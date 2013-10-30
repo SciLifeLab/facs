@@ -26,6 +26,7 @@ class FacsRemoveTest(unittest.TestCase):
         bf = os.path.join(self.bloom_dir, "eschColi_K12.bloom")
         print(qry, bf)
         facs.remove(qry, bf)
-        
+
         assert os.path.exists(os.path.join(self.synthetic_fastq, "test8_eschColi_K12_contam.fastq"))
         assert os.path.exists(os.path.join(self.synthetic_fastq, "test8_eschColi_K12_clean.fastq"))
+

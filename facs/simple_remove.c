@@ -17,7 +17,6 @@
 #include "check.h"
 #include "bloom.h"
 #include "remove.h"
-#include "remove_l.h"
 #include "big_query.h"
 #include "file_dir.h"
 #include "big_query.h"
@@ -26,7 +25,7 @@
 //#include<mpi.h>
 #endif
 
-char *clean, *contam, *clean2, *contam2;
+//char *clean, *contam, *clean2, *contam2;
 
 static int
 remove_usage (void)
@@ -45,20 +44,17 @@ remove_usage (void)
 int remove_main (int argc, char **argv)
 {
   if (argc < 2)
+  {
   	return remove_usage ();
+  }
 /*-------defaults for bloom filter building-------*/
   int opt;
   float tole_rate = 0;
-
-  char *ref = NULL;
-  char *list = NULL;
-  char *target_path = NULL;
-  char *source = NULL;
-  char *report_fmt = "json";
+  char *ref = NULL, *list = NULL, *target_path = NULL, *source = NULL, *report_fmt = "json";
   while ((opt = getopt (argc, argv, "l:t:r:o:q:f:h")) != -1)
-    {
+  {
       switch (opt)
-	{
+      {
 	case 't':
 	  (optarg) && ((tole_rate = atof (optarg)), 1);
 	  break;
@@ -82,14 +78,13 @@ int remove_main (int argc, char **argv)
 	default:
 	  printf ("Unknown option: -%c\n", (char) optopt);
 	  return remove_usage ();
-	}
-    }
-
+      }
+  }
   if (!target_path && !source)
-    {
-      fprintf (stderr, "\nPlease, at least specify a bloom filter (-b) and a query file (-q)\n");
-      exit (-1);
-    }
+  {
+  	fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
+  	exit (-1);
+  }
   char *result = query(source, ref, tole_rate, 1.000,  list, target_path, report_fmt, 'r');
   printf("%s\n",result);
   return 1;
@@ -98,78 +93,64 @@ int remove_main (int argc, char **argv)
 /*-------------------------------------*/
 void save_result (char *source, char *obj_file, char type, char *prefix, char *clean2, char *contam2)
 {
-  printf ("source->%s\n", source);
-  printf ("obj_file->%s\n", obj_file);
-  printf ("prefix->%s\n", prefix);
   char *so = NULL, *obj = NULL;
-
-  char *match = (char *) calloc (4 * ONE, sizeof (char)),
-    *mismatch = (char *) calloc (4 * ONE, sizeof (char)),
-    *so_name = (char *) calloc (4 * ONE, sizeof (char)),
-    *obj_name = (char *) calloc (4 * ONE, sizeof (char));
-
+  char *match = (char *)calloc(4 * ONE, sizeof (char)),
+       *mismatch = (char *)calloc(4 * ONE, sizeof (char)),
+       *so_name = (char *)calloc(4 * ONE, sizeof (char)),
+       *obj_name = (char *)calloc(4 * ONE, sizeof (char));
   so = strrchr (source, '/');
   obj = strrchr (obj_file, '/');
   if (so)
-    so += 1;
+  	so += 1;
   else
-    so = NULL;
+  	so = NULL;
   if (obj)
-    obj += 1;
+  	obj += 1;
   else
-    obj = NULL;
+  	obj = NULL;
   if (so)
-    strncat (so_name, so, strrchr (source, '.') - so);
+  	strncat (so_name, so, strrchr (source, '.') - so);
   else
-    strncat (so_name, source, strrchr (source, '.') - source);
+  	strncat (so_name, source, strrchr (source, '.') - source);
   if (obj)
-    strncat (obj_name, obj, strrchr (obj_file, '.') - obj);
+  	strncat (obj_name, obj, strrchr (obj_file, '.') - obj);
   else
-    strncat (obj_name, obj_file, strrchr (obj_file, '.') - obj_file);
+  	strncat (obj_name, obj_file, strrchr (obj_file, '.') - obj_file);
   if (prefix)
-    {
-      strcat (match, prefix);
-      strcat (mismatch, prefix);
-    }
+  {
+  	strcat (match, prefix);
+  	strcat (mismatch, prefix);
+  }
   else if (so)
-    {
-      strncat (match, source, so - source);
-      strncat (mismatch, source, so - source);
-    }
-  //printf ("objname->%s\n",obj_name);
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
+  {
+  	strncat (match, source, so - source);
+  	strncat (mismatch, source, so - source);
+  }
   strcat (match, so_name);
   strcat (mismatch, so_name);
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, "_");
   strcat (mismatch, "_");
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, obj_name);
   strcat (mismatch, obj_name);
-  //printf ("match->%s\n", match);
-  //printf ("mismatch->%s\n", mismatch);
   strcat (match, "_contam");
   strcat (mismatch, "_clean");
-
   if (type == '>')
-    {
-      strcat (match, ".fasta");
-      strcat (mismatch, ".fasta");
-    }
+  {
+  	strcat (match, ".fasta");
+  	strcat (mismatch, ".fasta");
+  }
   else
-    {
-      strcat (match, ".fastq");
-      strcat (mismatch, ".fastq");
-    }
+  {
+  	strcat (match, ".fastq");
+  	strcat (mismatch, ".fastq");
+  }
   printf ("match->%s\n", match);
   printf ("mis->%s\n", mismatch);
   write_result (match, contam2);
   write_result (mismatch, clean2);
   memset(contam2,0,strlen(contam2));
   memset(clean2,0,strlen(clean2));
+
   free (match);
   free (mismatch);
   free (so_name);
