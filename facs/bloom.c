@@ -134,6 +134,7 @@ int bloom_test (bloom * bloom, char *str, int mode)
 {
   int i, hit=1;
   BIGNUM ret;
+  //printf("In test\n");
   /* as many times as our ideal hash count dictates, salt our key
    * and hash it into the bit vector */
   for (i = 0; i < bloom->stat.ideal_hashes; i++)
@@ -202,7 +203,6 @@ BIGNUM report_capacity (bloom * bloom)
 
 char *prefix_make (char *filename, char *prefix, char *target)
 {
-  char *default_path = strrchr (filename, '/');
   char *bloom_file = (char *) calloc (1, 3*ONE * sizeof (char));
   if (target)
   {
@@ -304,7 +304,7 @@ load_bloom (char *filename, bloom * bl)
   }
   if (read (fd, bl, sizeof (bloom)) < 0)
   {
-      perror ("Problem reading bloom filter");
+      perror ("Problem reading Bloom filter");
   };
   bl->vector = (char *) calloc (1, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
   total_size = ((BIGNUM) (bl->stat.elements / 8) + 1);
@@ -312,14 +312,14 @@ load_bloom (char *filename, bloom * bl)
   {
   	ret = read (fd, bl->vector + off, sizeof (char) * ONEG*2);
   	if (ret < 0)
-		perror ("Problem reading bloom filter");
+		perror ("Problem reading Bloom filter");
    	total_size -= ONEG*2;
   	off += ONEG*2;
   }
   ret = read (fd, bl->vector + off, sizeof (char) * total_size);
 #ifdef DEBUG
   if (ret > 0)
-  	printf ("bloom filter read successfully\n");
+  	printf ("Bloom filter read successfully\n");
   else
   	ret = errno;
 #endif
@@ -471,3 +471,10 @@ BIGCAST get_size (char *filename)
   	return 0;
   }
 }
+
+void print_bloom_info(bloom *bl) {
+   printf("Word size:\t%d\n", bl->k_mer);
+   printf("Filter size:\t%lld\n", bl->stat.elements);
+   printf("Max error rate:\t%e\n", bl->stat.e);
+   printf("#inserts:\t%lld\n", bl->inserts);
+ }

@@ -130,4 +130,6 @@ extern char *large_load (char *fifoname);
 extern char *mmaping (char *source);
 extern char *prefix_make (char *filename, char *prefix, char *target);
 extern void normal_lower(char *str, int length);
+
+extern void print_bloom_info(bloom *bl); /* Print information about the given Bloom filter: size, word size, et.c. */
 #endif
