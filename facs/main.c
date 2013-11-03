@@ -2,6 +2,7 @@
 #include "build.h"
 #include "remove.h"
 #include "big_query.h"
+#include "info.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,12 +22,14 @@ usage (void)
   fprintf (stderr, "Contact: Enze Liu <enze.liu@scilifelab.se>\n\n");
   fprintf (stderr, "Usage:   facs <command> [options]\n\n");
   fprintf (stderr,
-	   "Command: build         build a Bloom filter from a FASTQ/FASTA reference file\n");
+	   "Command: build         Build a Bloom filter from a FASTQ/FASTA reference file\n");
   fprintf (stderr,
-	   "         query         query a Bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
+	   "         query         Query a Bloom filter given a FASTQ/FASTA file. Large files and compressed files supported\n");
   fprintf (stderr,
-	   "         remove        remove (contamination) sequences from FASTQ/FASTA file\n");
-  fprintf (stderr, "\n");
+	   "         remove        Remove (contamination) sequences from FASTQ/FASTA file\n");
+  fprintf (stderr,
+	   "         info          Print information about a Bloom filter to stdout. \n");
+  fprintf (stderr, "\nUse the '-h' option to get usage information for the subcommands.\n");
   return 1;
 }
 
@@ -45,6 +48,8 @@ main (int argc, char **argv)
     ret = bq_main (argc-1, argv+1);
   } else if (strcmp (argv[1], "remove") == 0)
     ret = remove_main (argc-1, argv+1);
+  else if (strcmp (argv[1], "info") == 0)
+    ret = info_main (argc-1, argv+1);
   else
     usage();
 

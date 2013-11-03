@@ -131,7 +131,7 @@ By using stdout and stderr, clean sequences will be stored in stdout, contaminat
 will be stored in stderr. They can be stored into specific files, for instance:
 
 ```
-$./facs remove -r ecoli.bloom -q contaminated_sample.fastq > clean_part.fastq >& contaminated_part.fastq
+$(./facs remove -r ecoli.bloom -q contaminated_sample.fastq > clean_part.fastq ) >& contaminated_part.fastq
 ```
 
 If output_path '-o' is specified, two output files will be generated:

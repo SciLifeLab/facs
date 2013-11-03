@@ -21,17 +21,17 @@
 
 static int build_usage (void)
 {
-  fprintf (stderr, "\nUsage: ./facs build [options]\n");
+  fprintf (stderr, "\nUsage: facs build [options]\n");
   fprintf (stderr, "Options:\n");
-  fprintf (stderr, "\t-r reference FASTA/FASTQ file\n");
-  fprintf (stderr, "\t-o output bloom filter file\n");
-  fprintf (stderr,
-	   "\t-l text file containing all reference files, will build individual bloom filters for each\n");
-  fprintf (stderr,
-	   "\t-k k-mer size, default is automatically estimated from the reference file\n");
-  fprintf (stderr,
-	   "\t-e allowed false positive frequency, default is 0.005\n");
+  fprintf (stderr, "\t-r <file>  Reference sequence(s) in FASTA/FASTQ format. .\n");
+  fprintf (stderr, "\t-o <file>  Name your output Bloom filter file. Default is to base the name on the reference file.\n");
+  fprintf (stderr, "\t-l <file>  Text file containing a list of reference files, one filename per line. One\n\t           Bloom filter is built for each reference file.\n");
+  fprintf (stderr, "\t-k <int>   Choose word size (k-mer size) for Bloom filter lookups. \n\t           Default: a value chosen based the size of the reference file.\n");
+  fprintf (stderr, "\t-e <float> Allowed false positive frequency in Bloom filter lookups. Default: 0.005\n");
   fprintf (stderr, "\n");
+  fprintf (stderr, "Note that one of '-r' and '-l' has to be used.\n");
+  fprintf (stderr, "\n");
+  fprintf (stderr, "Example:\n\tfacs build -r hsapiens.fa\n");
   return 1;
 }
 
