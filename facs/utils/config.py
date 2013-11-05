@@ -17,5 +17,9 @@ try:
     DECONSEQ_DB = config.get('facs', 'DECONSEQ_DB').rstrip()
     USERNAME = config.get('facs', 'USERNAME').rstrip()
     PASSWORD = config.get('facs', 'PASSWORD').rstrip()
+    if config.has_option('facs', 'WAKE'):
+        WAKE = bool(config.get('facs', 'WAKE'))
+    else:
+        WAKE = False 
 except:
 	warnings.warn("Please make sure you've created your own configuration file (i.e: ~/.facsrc) as stated in README.md")

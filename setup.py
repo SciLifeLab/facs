@@ -45,7 +45,8 @@ setup(name='facs',
       install_requires=[
             "nose",
             "nose-timer",
-            "couchdb"
+            "couchdb",
+            "requests"
       ],
       entry_points="""
       # -*- Entry points: -*-
