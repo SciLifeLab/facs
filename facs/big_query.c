@@ -209,7 +209,6 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   	}
 	else
 	{
-		printf("%lld\n",offset);
 		write_default(re_clean(), re_contam(), offset);
 	}
 	
