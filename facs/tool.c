@@ -154,7 +154,6 @@ int total_full_check (bloom * bl, char *start_point, int length, float tole_rate
 		start_point++;
 		read_length--;
 	}				// end while
-	printf ("%d\n",bl->dx);
 	result = (float)(match_time*bl->k_mer+conse)/(float)(bl->k_mer*length+length-bl->dx);
 	//result = (float) (match_time * bl->k_mer + conse) / (float) (length * bl->k_mer - 2 * bl->dx + length - bl->k_mer + 1);
 	#pragma omp atomic
