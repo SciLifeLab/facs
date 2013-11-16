@@ -48,6 +48,8 @@ void reset_string()
 {
 	memset(_clean2,0,strlen(_clean2));
 	memset(_contam2,0,strlen(_contam2));
+	_clean = _clean2;
+        _contam = _contam2;
 }
 /*---------------------------*/
 void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
