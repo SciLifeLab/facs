@@ -146,8 +146,6 @@ void save_result (char *source, char *obj_file, char type, char *prefix, char *c
   	strcat (match, ".fastq");
   	strcat (mismatch, ".fastq");
   }
-  printf ("match->%s\n", match);
-  printf ("mis->%s\n", mismatch);
   write_result (match, contam2);
   write_result (mismatch, clean2);
   memset(contam2,0,strlen(contam2));
