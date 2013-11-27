@@ -1,7 +1,7 @@
 #include "check.h"
 #include "build.h"
 #include "remove.h"
-#include "big_query.h"
+#include "query.h"
 #include "info.h"
 
 #include <stdio.h>

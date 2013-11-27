@@ -17,9 +17,8 @@
 #include "check.h"
 #include "bloom.h"
 #include "remove.h"
-#include "big_query.h"
+#include "query.h"
 #include "file_dir.h"
-#include "big_query.h"
 #ifndef __clang__
 #include<omp.h>
 //#include<mpi.h>

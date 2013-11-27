@@ -4,7 +4,7 @@
 #include "tool.h"
 #include "build.h"
 #include "check.h"
-#include "big_query.h"
+#include "query.h"
 #include "remove.h"
 
 static char module_docstring[] =

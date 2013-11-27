@@ -16,7 +16,7 @@
 #include "check.h"
 #include "remove.h"
 #include "file_dir.h"
-#include "big_query.h"
+#include "query.h"
 
 #ifndef __clang__
   // openMP not yet ported to clang: http://www.phoronix.com/scan.php?page=news_item&px=MTI2MjU
