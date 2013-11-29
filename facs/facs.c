@@ -3,7 +3,6 @@
 #include "file_dir.h"
 #include "tool.h"
 #include "build.h"
-#include "check.h"
 #include "query.h"
 #include "remove.h"
 
