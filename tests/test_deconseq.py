@@ -28,7 +28,7 @@ class DeconSeqTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
 
-        self.deconseq_url = 'http://downloads.sourceforge.net/project/deconseq/standalone/deconseq-standalone-0.4.3.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fdeconseq%2Ffiles%2Fstandalone%2F&ts=1381593179'
+        self.deconseq_url = 'http://downloads.sourceforge.net/project/deconseq/standalone/deconseq-standalone-0.4.3.tar.gz'
 
         helpers._mkdir_p(self.tmp)
 
