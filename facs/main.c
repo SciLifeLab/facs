@@ -1,4 +1,3 @@
-#include "check.h"
 #include "build.h"
 #include "remove.h"
 #include "query.h"
