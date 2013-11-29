@@ -1,9 +1,13 @@
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
 #include <zlib.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <libgen.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -13,7 +17,6 @@
 #include "tool.h"
 #include "prob.h"
 #include "bloom.h"
-#include "check.h"
 #include "remove.h"
 #include "file_dir.h"
 #include "query.h"
@@ -23,13 +26,14 @@
   #include <omp.h>
 #endif
 
+char *_clean, *_contam, *_clean2, *_contam2;
+
 static int query_usage (void)
 {
   fprintf (stderr, "\nUsage: facs query [options]\n");
   fprintf (stderr, "Options:\n");
   fprintf (stderr, "\t-r <file>    Reference Bloom filter to query against.\n");
   fprintf (stderr, "\t-q <file>    A file in FASTA/FASTQ format containing query sequences.\n");
-  fprintf (stderr, "\t-l <file>    A file containing a list of Bloom filter files, one per line.\n");
   fprintf (stderr, "\t-t <float>   A threshold value between 0 and 1.0. Default: depends on word size (k), typically 0.4.\n");
   fprintf (stderr, "\t-f <string>  Output format for reports. Valid values are: 'json' and 'tsv'\n");
   fprintf (stderr, "\t-s <float>   Sampling rate. Setting this parameter to less than 1.0 means you only\n\t             consider a sample of reads from the query file.\n");
@@ -50,7 +54,7 @@ int bq_main (int argc, char **argv)
   double tole_rate = 0, sampling_rate = 1;
   char *ref = NULL, *list = NULL, *target_path = NULL, *source = NULL, *report_fmt = "json";
   // XXX: make r and l mutually exclusive
-  while ((opt = getopt (argc, argv, "s:t:r:o:q:l:f:h")) != -1)
+  while ((opt = getopt (argc, argv, "s:t:r:o:q:f:h")) != -1)
   {
       switch (opt)
       {
@@ -68,9 +72,6 @@ int bq_main (int argc, char **argv)
 	  break;
 	case 'r':
 	  ref = optarg;
-	  break;
-	case 'l':
-	  list = optarg;
 	  break;
 	case 'f': // "json", "tsv" or none
 	  (optarg) && (report_fmt = optarg, 1);
@@ -262,6 +263,7 @@ BIGCAST CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
   char c;
   char *pos = NULL;
   int length = 0;
+  /*in case the file is zipped, move the satrting point to the start of real data*/
   if (offset == 0)
   	while (offset < 10 * ONE)
     	{
@@ -279,7 +281,7 @@ BIGCAST CHUNKer (gzFile zip, BIGCAST offset, int chunk, char *data, char type)
   	if (type == '@')
 	{
 		pos = strrstr (data, "\n+");
-		pos = bac_2_n (pos - 1);
+		pos = move_start_point (pos - 1);
 	}
    	else
 	{
@@ -328,8 +330,8 @@ BIGCAST CHUNKgz (gzFile zip, BIGCAST offset, int chunk, char *position, char *ex
   offset+=(position-x+1);
   return offset;
 }
-
-char *bac_2_n (char *filename)
+/*move the starting point to the right position*/
+char *move_start_point (char *filename)
 {
   while (*filename != '\n')
   	filename--;
@@ -340,3 +342,177 @@ char *bac_2_n (char *filename)
   return filename;
 }
 
+void init_string(int chunk)
+{
+        _clean = (char *) calloc (1,chunk*sizeof (char));
+        _contam = (char *) calloc (1,chunk*sizeof (char));
+        _clean2 = _clean;
+        _contam2 = _contam;
+}
+
+char *re_clean()
+{
+        return _clean2;
+}
+
+char *re_contam()
+{
+        return _contam2;
+}
+
+void reset_string()
+{
+        memset(_clean2,0,strlen(_clean2));
+        memset(_contam2,0,strlen(_contam2));
+        _clean = _clean2;
+        _contam = _contam2;
+}
+
+void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
+{
+	char *start_point = info->location;
+	char *next_job = NULL, *temp = NULL, *previous_point = NULL, *temp_next = NULL;
+	int result = 0;
+	next_job = check_fmt (info, tail, start_point, fmt_type);
+	// make sure it can handle DOS and Unix format ('\r\n' and '\n')
+	if (next_job == NULL)
+		return;
+	while (start_point != next_job) 
+		{
+		if (mode == 'c')
+		{
+			if (sampling_rate<1)
+				temp = jump (start_point, fmt_type, sampling_rate);
+			else
+				temp = start_point;
+		// function for fast/proportional scan
+			if (start_point != temp)
+			{
+				start_point = temp;
+				continue;
+			}
+		}
+		// skip to the next read if needed
+		#pragma omp atomic
+		File_head->reads_num++;
+		// atomic process for summing reads number
+		previous_point = start_point;
+		start_point = get_right_sp (start_point, fmt_type);
+		// skip the ID line
+		if (fmt_type == '@')
+		{
+			result = fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head);
+			start_point = strchr (start_point, '\n') + 1;
+			start_point = strchr (start_point, '\n') + 1;
+			start_point = strchr (start_point, '\n') + 1;
+		}
+		else
+		{
+			temp_next = strchr(start_point+1,'>');
+			if (temp_next == NULL)
+				temp_next = next_job;
+			result = fasta_read_check (start_point, temp_next-start_point, 'n', bl, tole_rate, File_head);
+			start_point = temp_next;
+		}
+		if (result>0)
+		{
+                	 #pragma omp atomic
+                         File_head->reads_contam++;
+			 if (mode == 'r')
+			 	{
+					#pragma omp critical
+					{
+						memcpy(_contam,previous_point,start_point-previous_point);
+						_contam+=(start_point-previous_point);
+					}
+				}
+		}
+		else
+		{
+			if (mode == 'r')
+				{
+					#pragma omp critical
+					{
+                                        	memcpy(_clean,previous_point,start_point-previous_point);
+                                        	_clean+=(start_point-previous_point);
+					}
+				}
+		}
+	}	// outside while
+}
+
+char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob)
+{
+  static char buffer[800] = {0};
+  static char timestamp[40] = {0};
+  float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
+  double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
+  if(!fmt)
+  {
+      fprintf(stderr, "Output format not specified\n");
+      exit(EXIT_FAILURE);
+  } 
+  else if(!strcmp(fmt, "json"))
+  {
+      isodate(timestamp);
+      snprintf(buffer, sizeof(buffer),
+"{\n"
+"\t\"begin_timestamp\": \"%s\",\n"
+"\t\"end_timestamp\": \"%s\",\n"
+"\t\"sample\": \"%s\",\n"
+"\t\"bloom_filter\": \"%s\",\n"
+"\t\"total_read_count\": %lld,\n"
+"\t\"contaminated_reads\": %lld,\n"
+"\t\"total_hits\": %lld,\n"
+"\t\"contamination_rate\": %f,\n"
+"\t\"p_value\": %e,\n"
+"}",  start_timestamp, timestamp,query, File_head->filename,
+        File_head->reads_num, File_head->reads_contam, File_head->hits,
+        _contamination_rate,p_value);
+  // TSV output format
+  }
+  else if (!strcmp(fmt, "tsv"))
+  {
+  	sprintf(buffer,
+"sample\tbloom_filter\ttotal_read_count\t_contaminated_reads\t_contamination_rate\n"
+"%s\t%s\t%lld\t%lld\t%f\t%e\n", query, File_head->filename,
+                            File_head->reads_num, File_head->reads_contam,
+                            _contamination_rate,p_value);
+  }
+  return buffer;
+}
+
+char *statistic_save (char *filename, char *prefix)
+{
+  char *save_file = NULL;
+  int length = 0;
+  if (prefix!=NULL && prefix[0]=='.')
+  {
+      prefix+=2;
+      length = strrchr(prefix,'/')-prefix+1;
+      if(length != 0 && strrchr(prefix,'/')!=NULL)
+      {
+      	 save_file =(char *) calloc (length, sizeof (char));
+         memcpy(save_file,prefix,length);
+         prefix = save_file;
+         save_file = NULL;
+      }
+      else
+      {              
+         prefix = NULL;
+      } 
+  }
+  if (prefix!=NULL)
+      if (prefix[strlen(prefix)-1]=='/')
+          prefix[strlen(prefix)-1]='\0'; 
+  save_file = prefix_make (filename, NULL, prefix);
+  if (is_dir(prefix) || prefix==NULL)
+      strcat (save_file, ".info");
+  if (strrchr(save_file,'/')==save_file)
+      save_file++;
+#ifdef DEBUG
+  printf ("Basename->%s\n", filename);
+  printf ("Info name->%s\n", save_file);
+#endif
+  return save_file;
+}

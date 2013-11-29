@@ -14,7 +14,6 @@
 #include<sys/types.h>
 
 #include "tool.h"
-#include "check.h"
 #include "bloom.h"
 #include "remove.h"
 #include "query.h"
@@ -33,10 +32,8 @@ remove_usage (void)
   fprintf (stderr, "Options:\n");
   fprintf (stderr, "\t-r <file>   Reference Bloom filter to query against\n");
   fprintf (stderr, "\t-q <file>   FASTA/FASTQ file containing the query reads\n");
-  fprintf (stderr, "\t-l <file>   A file with a list of Bloom filter files, one per line.\n");
   fprintf (stderr, "\t-t <float>  A threshold value between 0 and 1.0. Default: depends on word size (k), typically 0.4.\n");
-  fprintf (stderr, "\n");
-  fprintf (stderr, "Note that one of '-r' and '-l' has to be used.\n");
+  fprintf (stderr, "\t-o <dir>	  A directory with a '/' in the end for two output files. If a directory is not specified, clean reads and contaminated reads will be printed to stdout and stderr respectively\n");
   fprintf (stderr, "\n");
   fprintf (stderr, "Example:\n\tfacs remove -r ecoli.bloom -q reads.fq\n");
   exit (1);
@@ -52,7 +49,7 @@ int remove_main (int argc, char **argv)
   int opt;
   float tole_rate = 0;
   char *ref = NULL, *list = NULL, *target_path = NULL, *source = NULL, *report_fmt = "json";
-  while ((opt = getopt (argc, argv, "l:t:r:o:q:f:h")) != -1)
+  while ((opt = getopt (argc, argv, "t:r:o:q:f:h")) != -1)
   {
       switch (opt)
       {
@@ -67,9 +64,6 @@ int remove_main (int argc, char **argv)
 	  break;
 	case 'r':
 	  (optarg) && (ref = optarg, 1);
-	  break;
-	case 'l':
-	  (optarg) && ((list = optarg), 1);
 	  break;
         case 'f': // "json", "tsv" or none
           (optarg) && (report_fmt = optarg, 1);
