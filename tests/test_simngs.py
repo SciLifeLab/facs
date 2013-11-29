@@ -4,6 +4,7 @@ import json
 import glob
 import shutil
 import sys
+import math
 import subprocess
 import unittest
 
@@ -64,12 +65,21 @@ class SimNGSTest(unittest.TestCase):
         orgs = [o for o in glob.glob(os.path.join(self.reference, "*/seq/*.fa"))]
 
         for org in orgs:
+            fa_entries = 0
+
             dst = os.path.join(self.synthetic_fastq,
                                "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
+            # Determine how many FASTA "Description lines" (headers) there are
+            # since simNGS will generate reads depending on that number
+            with open(org, 'r') as cnt:
+                for line in cnt:
+                    if '>' in line:
+                        fa_entries = fa_entries+1
+
             with open(dst, 'w') as fh:
                 # Spikes a single ecoli read into all synthetically generated reads
-                cl1 = [simlib, "-n", str(reads), org]
+                cl1 = [simlib, "-n", str(math.ceil(reads/fa_entries)), org]
                 cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
                 # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
