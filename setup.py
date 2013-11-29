@@ -45,6 +45,7 @@ setup(name='facs',
       install_requires=[
             "nose",
             "nose-timer",
+            "jinja2",
             "couchdb"
       ],
       entry_points="""

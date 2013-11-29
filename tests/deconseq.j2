@@ -1,0 +1,47 @@
+package DeconSeqConfig;
+
+use strict;
+
+use constant DEBUG => 0;
+use constant PRINT_STUFF => 1;
+use constant VERSION => '0.4.3';
+use constant VERSION_INFO => 'DeconSeq version '.VERSION;
+
+use constant ALPHABET => 'ACGTN';
+
+use constant DB_DIR => '{{ dbdir }}';
+use constant TMP_DIR => '{{ tmpdir }}';
+use constant OUTPUT_DIR => '{{ outputdir }}';
+
+use constant PROG_NAME => '{{ bwa_bin }}';
+use constant PROG_DIR => 'deconseq-standalone-0.4.3/';
+
+use constant DBS => {
+                      '{{ ref }}'=> {name => 'Currently testing this database in the testsuite',
+                                   db => '{{ db }}' }
+                    };
+
+#use constant DB_DEFAULT => '';
+
+#######################################################################
+
+use base qw(Exporter);
+
+use vars qw(@EXPORT);
+
+@EXPORT = qw(
+             DEBUG
+             PRINT_STUFF
+             VERSION
+             VERSION_INFO
+             ALPHABET
+             PROG_NAME
+             PROG_DIR
+             DB_DIR
+             TMP_DIR
+             OUTPUT_DIR
+             DBS
+             DB_DEFAULT
+             );
+
+1;
