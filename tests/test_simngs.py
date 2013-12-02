@@ -31,7 +31,7 @@ class SimNGSTest(unittest.TestCase):
         helpers._mkdir_p(self.tmp)
 
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
-        self.sim_reads = [100, 1000, 10000]
+        self.sim_reads = [100, 1000, 10000, 1000000]
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
