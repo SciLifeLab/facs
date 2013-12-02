@@ -4,7 +4,6 @@ import json
 import glob
 import shutil
 import sys
-import math
 import subprocess
 import unittest
 
@@ -79,7 +78,7 @@ class SimNGSTest(unittest.TestCase):
 
                 with open(dst, 'w') as fh:
                     # Spikes a single ecoli read into all synthetically generated reads
-                    cl1 = [simlib, "-n", str(math.ceil(reads/fa_entries)), org]
+                    cl1 = [simlib, "-n", str(reads/fa_entries), org]
                     cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
                     # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
