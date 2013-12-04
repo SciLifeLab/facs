@@ -227,8 +227,11 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   	gzclose(zip);
   	free (position);        //dont like file mapping, strings need to be freed in a normal way
   }
+
   /*
-  mode c and r refer to contamination checking and removal function respectively. The following 9 lines make sure that json/tsv output is printed after the checking process, but willnot be written in stdout when running removal process.
+  mode c and r refer to contamination checking and removal function respectively. 
+  The following 9 lines make sure that json/tsv output is printed after the checking 
+  process, but willnot be written in stdout when running removal process.
   */
   if (target_path!=NULL || mode == 'c')
   {
@@ -466,16 +469,15 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
   {
       isodate(timestamp);
       snprintf(buffer, sizeof(buffer),
-"{\n"
-"\t\"begin_timestamp\": \"%s\",\n"
-"\t\"end_timestamp\": \"%s\",\n"
-"\t\"sample\": \"%s\",\n"
-"\t\"bloom_filter\": \"%s\",\n"
-"\t\"total_read_count\": %lld,\n"
-"\t\"contaminated_reads\": %lld,\n"
-"\t\"total_hits\": %lld,\n"
-"\t\"contamination_rate\": %f,\n"
-"\t\"p_value\": %e,\n"
+"{\"begin_timestamp\": \"%s\","
+"\"end_timestamp\": \"%s\","
+"\"sample\": \"%s\","
+"\"bloom_filter\": \"%s\","
+"\"total_read_count\": %lld,"
+"\"contaminated_reads\": %lld,"
+"\"total_hits\": %lld,"
+"\"contamination_rate\": %f,"
+"\"p_value\": %e"
 "}",  start_timestamp, timestamp,query, File_head->filename,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         _contamination_rate,p_value);

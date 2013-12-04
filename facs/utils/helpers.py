@@ -4,6 +4,7 @@ import errno
 import shutil
 import json
 import warnings
+import requests
 from contextlib import contextmanager
 
 import couchdb
@@ -44,10 +45,33 @@ def generate_dummy_fastq(fname, num_reads, case=''):
                 f.write('arvestad' * stride + os.linesep)
 
 
-def send_couchdb(server, db, user, passwd, doc):
+def _wake(server, retries=5):
+    """Try to wake up server by retrying get requests.
+
+    This method is basically used to wake up the public database facs.iriscouch.com
+    used to store the tests results.
+    """
+    status_code = requests.codes.NO_RESPONSE
+    while status_code != requests.codes.OK and retries:
+        try:
+            r = requests.get(db)
+            status_code = r.status_code
+            retries = 0
+        except requests.ConnectionError:
+            if retries == 1:
+                raise requests.ConnectionError("There was a problem connecting to {} and the " \
+                                               "results could not be uploaded".format(db))
+            else:
+                retries -= 1
+                pass
+
+
+def send_couchdb(server, db, user, passwd, doc, wake_up=False):
     ''' Send JSON document to couchdb
     '''
     try:
+        if wake_up:
+            _wake(server)
         couch = couchdb.Server(server)
         couch.resource.credentials = (user, passwd)
         db = couch[db]

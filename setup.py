@@ -46,6 +46,7 @@ setup(name='facs',
             "nose",
             "nose-timer",
             "jinja2",
+            "requests",
             "couchdb"
       ],
       entry_points="""

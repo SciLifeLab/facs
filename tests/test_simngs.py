@@ -31,7 +31,7 @@ class SimNGSTest(unittest.TestCase):
         helpers._mkdir_p(self.tmp)
 
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
-        self.sim_reads = 100
+        self.sim_reads = [100, 1000, 10000]
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
@@ -53,7 +53,6 @@ class SimNGSTest(unittest.TestCase):
     def test_2_run_simNGS(self):
         """ Generates a synthetic library and runs with built-in simNGS runfile
         """
-        reads = self.sim_reads
         simngs = os.path.join(self.progs, "simNGS")
         simlib = os.path.join(self.progs, "simLibrary")
 
@@ -64,15 +63,25 @@ class SimNGSTest(unittest.TestCase):
         orgs = [o for o in glob.glob(os.path.join(self.reference, "*/seq/*.fa"))]
 
         for org in orgs:
-            dst = os.path.join(self.synthetic_fastq,
-                               "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
+            fa_entries = 0
 
-            with open(dst, 'w') as fh:
-                # Spikes a single ecoli read into all synthetically generated reads
-                cl1 = [simlib, "-n", str(reads), org]
-                cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
+            for reads in self.sim_reads:
+                dst = os.path.join(self.synthetic_fastq,
+                                   "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
-                # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
-                p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
-                p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
-                p1.stdout.close()
+                # Determine how many FASTA "Description lines" (headers) there are
+                # since simNGS will generate reads depending on that number
+                with open(org, 'r') as cnt:
+                    for line in cnt:
+                        if '>' in line:
+                            fa_entries = fa_entries+1
+
+                with open(dst, 'w') as fh:
+                    # Spikes a single ecoli read into all synthetically generated reads
+                    cl1 = [simlib, "-n", str(reads/fa_entries), org]
+                    cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
+
+                    # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
+                    p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
+                    p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
+                    p1.stdout.close()
