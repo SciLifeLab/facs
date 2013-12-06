@@ -20,8 +20,7 @@
 #include "tool.h"
 #include "prob.h"
 #include "bloom.h"
-#include "big_query.h"
-#include "check.h"
+#include "query.h"
 #include "hashes.h"
 #include "mpi_bloom.h"
 #include<omp.h>
@@ -272,7 +271,7 @@ BIGCAST gz_mpi (gzFile zip, BIGCAST offset, BIGCAST left, char *data, char type)
 		temp = start;
         }
 	end = strrstr (data, "\n+");
-        end = bac_2_n (end - 1);
+        end = move_start_point (end - 1);
   }
   else
   {

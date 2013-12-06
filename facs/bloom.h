@@ -54,8 +54,8 @@ typedef struct
   BIGNUM inserts;
   struct bloomstat stat;
   int k_mer;
-  int dx;
-  float mcf;
+  int dx;		/* number saved in bloom filter so that k_mer square doesnt need to be calculated everytime*/
+  float mcf;			/* match cut off, aka tolerant rate*/
 } bloom;
 
 typedef struct info
@@ -90,9 +90,6 @@ typedef struct file_list
 #define ONE 100
 
 BIGNUM mkprime (BIGNUM startval);
-//extern double get_mu (BIGNUM num_hit, double prob);
-//extern double get_sigma (BIGNUM num_hit, double prob);
-//extern double get_evalue (BIGNUM number, double mu, double sigma);
 extern BIGCAST get_size (char *filename);
 extern int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity,double error_rate, int hashes, hash_t hash, int flags);
 extern int bloom_check (bloom * bloom, char *str);

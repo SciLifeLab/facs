@@ -10,6 +10,8 @@ import unittest
 import datetime
 from collections import defaultdict
 
+from jinja2 import Environment, FileSystemLoader
+
 import facs
 from facs.utils import helpers, galaxy, config
 from nose.plugins.attrib import attr
@@ -26,7 +28,7 @@ class DeconSeqTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
 
-        self.deconseq_url = 'http://downloads.sourceforge.net/project/deconseq/standalone/deconseq-standalone-0.4.3.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fdeconseq%2Ffiles%2Fstandalone%2F&ts=1381593179'
+        self.deconseq_url = 'http://downloads.sourceforge.net/project/deconseq/standalone/deconseq-standalone-0.4.3.tar.gz'
 
         helpers._mkdir_p(self.tmp)
 
@@ -154,53 +156,8 @@ class DeconSeqTest(unittest.TestCase):
         dbdir = os.path.join(dbdir, "bwa_index/")
         db = os.path.basename(os.path.join(dbdir, ref+".fa"))
 
-        self.config = """
-package DeconSeqConfig;
+        j2_env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
 
-use strict;
-
-use constant DEBUG => 0;
-use constant PRINT_STUFF => 1;
-use constant VERSION => '0.4.3';
-use constant VERSION_INFO => 'DeconSeq version '.VERSION;
-
-use constant ALPHABET => 'ACGTN';
-
-use constant DB_DIR => '%s';
-use constant TMP_DIR => '%s';
-use constant OUTPUT_DIR => '%s';
-
-use constant PROG_NAME => '%s';  # should be either bwa64 or bwaMAC (based on your system architecture)
-use constant PROG_DIR => 'deconseq-standalone-0.4.3/';      # should be the location of the PROG_NAME file (use './' if in the same location at the perl script)
-
-use constant DBS => {
-                      %s => {name => 'Currently testing this database in the testsuite',
-                      db => '%s'}
-                    };
-
-#use constant DB_DEFAULT => '';
-
-#######################################################################
-
-use base qw(Exporter);
-
-use vars qw(@EXPORT);
-
-@EXPORT = qw(
-             DEBUG
-             PRINT_STUFF
-             VERSION
-             VERSION_INFO
-             ALPHABET
-             PROG_NAME
-             PROG_DIR
-             DB_DIR
-             TMP_DIR
-             OUTPUT_DIR
-             DBS
-             DB_DEFAULT
-             );
-
-1;
-""" % (dbdir, tmpdir, outputdir, bwa_bin, ref, db)
-        return self.config
+        return j2_env.get_template('deconseq.j2').render(dbdir=dbdir, tmpdir=tmpdir,
+                                                        outputdir=outputdir, bwa_bin=bwa_bin,
+                                                        ref=ref, db=db)
