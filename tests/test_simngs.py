@@ -31,10 +31,10 @@ class SimNGSTest(unittest.TestCase):
         helpers._mkdir_p(self.tmp)
 
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
-        self.sim_reads = [100]
-        # Same seed as missile launch codes:
-         # http://www.theguardian.com/world/2004/jun/17/usa.oliverburkeman1
-        self.sim_seed = "00000000"
+        self.sim_reads = [100, 1000]
+
+         # simNGS will generate exactly the same "random" datasets on each run
+        self.sim_seed = "6666520666"
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
@@ -83,8 +83,8 @@ class SimNGSTest(unittest.TestCase):
                 with open(dst, 'w') as fh:
                     # Spikes a single ecoli read into all synthetically generated reads
                     # XXX: Find a good solution for floats on reads/fa_entries
-                    cl1 = [simlib, "-seed", self.sim_seed, "-n", str(reads/fa_entries), org]
-                    cl2 = [simngs, "-seed", self.sim_seed, "-o", "fastq", runfile]
+                    cl1 = [simlib, "--seed", self.sim_seed, "-n", str(reads/fa_entries), org]
+                    cl2 = [simngs, "-s", self.sim_seed, "-o", "fastq", runfile]
                     # XXX: To be parametrized in future benchmarks (for paired end reads)
                     #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
