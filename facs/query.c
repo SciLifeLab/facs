@@ -90,6 +90,14 @@ int bq_main (int argc, char **argv)
   	fprintf (stderr, "\nPlease, at least specify a bloom filter (-r) and a query file (-q)\n");
       	exit (-1);
   }
+  /*
+  check the format for reference bloom filter by the extension name so far, can write special tag in the filter for format checking in the future.
+  */
+  if (strstr(ref,".bloom") == NULL)
+  {
+	fprintf (stderr,"\nIncorrect bloom filter\n");
+	exit(-1);
+  }
   if (target_path == NULL) 
   {
       	target_path = argv[0];
@@ -118,7 +126,6 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->filename = bloom_filter;           //extra initialization for python interface
-  
   load_bloom (File_head->filename, bl_2);	//load a bloom filter
   
   if (tole_rate == 0)
