@@ -103,7 +103,6 @@ class DeconSeqTest(unittest.TestCase):
 
             clean = glob.glob('*_clean.fq')[0]
             contam = glob.glob('*_cont.fq')[0]
-            print clean, contam
 
             self.results.append(self._deconseq_metrics_to_json(fastq_path, clean, contam,
                                     start_time, end_time))

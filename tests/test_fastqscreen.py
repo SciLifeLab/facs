@@ -94,28 +94,26 @@ class FastqScreenTest(unittest.TestCase):
         references = glob.glob(os.path.join(self.reference, '*'))
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
-            with open(os.path.join(self.progs, "fastq_screen.conf"), 'w') as cfg:
-                try:
-                    cfg.write(self._genconf(fastq, references.pop().split(os.path.sep)[-1], self.fastq_threads))
-                except IndexError:
-                    break
+            for ref in references:
+                with open(os.path.join(self.progs, "fastq_screen.conf"), 'w') as cfg:
+                    cfg.write(self._genconf(fastq, ref, self.fastq_threads))
 
-            start_time = str(datetime.datetime.utcnow())+'Z'
+                start_time = str(datetime.datetime.utcnow())+'Z'
 
-            fastq_path = os.path.join(self.synthetic_fastq, fastq)
-            cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
-                  "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
-            subprocess.call(cl)
+                fastq_path = os.path.join(self.synthetic_fastq, fastq)
+                cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
+                      "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+                subprocess.call(cl)
 
-            end_time = str(datetime.datetime.utcnow())+'Z'
+                end_time = str(datetime.datetime.utcnow())+'Z'
 
-            # Process fastq_screen results format and report it in JSON
-            fastq_name = os.path.basename(fastq)
-            fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
-            fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
-            if os.path.exists(fastq_screen_resfile):
-                with open(fastq_screen_resfile, 'rU') as fh:
-                    self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, start_time, end_time))
+                # Process fastq_screen results format and report it in JSON
+                fastq_name = os.path.basename(fastq)
+                fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
+                fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
+                if os.path.exists(fastq_screen_resfile):
+                    with open(fastq_screen_resfile, 'rU') as fh:
+                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, start_time, end_time))
 
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, start_time, end_time):
@@ -161,22 +159,20 @@ class FastqScreenTest(unittest.TestCase):
             galaxy.rsync_genomes(self.reference, genomes, ["bowtie"])
 
     def _genconf(self, query, reference, threads):
-        bwt_index = os.path.abspath(os.path.join(self.reference, reference, "bowtie_index", reference))
-        self.databases.append(("DATABASE", reference, bwt_index))
+        # The latter string (reference) shouldn't start with a slash
+        bwt_index = os.path.join(self.reference, reference, "bowtie_index", os.path.basename(reference))
+        config_dbs = ""
 
         self.config = """
 BOWTIE\t\t{bowtie}
 THREADS\t\t{threads}\n
 """.format(bowtie="bowtie", threads=self.fastq_threads)
 
-        for db in range(len(self.databases)):
-            self.config_dbs = """
-{database}\t{short_name}\t{full_path}
-""".format(database=self.databases[db][0], short_name=self.databases[db][1],
-           full_path=self.databases[db][2])
+        for db in reference:
+            config_dbs = """
+DATABASE\t{short_name}\t{full_path}
+""".format(short_name=os.path.basename(reference),
+           full_path=bwt_index)
 
-            self.config=self.config+self.config_dbs
-        # reset databases list, we don't want to accumulate them for
-        # multithreading like before
-        self.databases = []
-        return self.config
+        print self.config+config_dbs
+        return self.config+config_dbs
