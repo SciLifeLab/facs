@@ -113,12 +113,13 @@ class FastqScreenTest(unittest.TestCase):
                 fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
                 if os.path.exists(fastq_screen_resfile):
                     with open(fastq_screen_resfile, 'rU') as fh:
-                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, start_time, end_time))
+                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time))
 
 
-    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, start_time, end_time):
+    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time):
         reader = csv.reader(in_handle, delimiter="\t")
         data = defaultdict(lambda: defaultdict(list))
+        ref = os.path.basename(ref)
 
         #Fastq_screen version: 0.4
         version = reader.next()
@@ -136,7 +137,8 @@ class FastqScreenTest(unittest.TestCase):
                 break
 
             organism = {}
-            organism[header[0]] = row[0]
+            #XXX: library is always dm3 with this
+            organism[header[0]] = ref
             for i in range(1,5):
                 organism[header[i]] = float(row[i])
             data['organisms'].append(organism)
@@ -146,6 +148,9 @@ class FastqScreenTest(unittest.TestCase):
             data['contamination_rate'] = data['organisms'][0]['%One_hit_one_library']
             data['fastq_screen_index'] = data['organisms'][0]['Library']
 
+
+        # How many threads are bowtie/fastqscreen using in this test?
+        data['threads'] = self.fastq_threads
 
         return json.dumps(data)
 
@@ -164,15 +169,13 @@ class FastqScreenTest(unittest.TestCase):
         config_dbs = ""
 
         self.config = """
-BOWTIE\t\t{bowtie}
-THREADS\t\t{threads}\n
-""".format(bowtie="bowtie", threads=self.fastq_threads)
+    BOWTIE\t\t{bowtie}
+    THREADS\t\t{threads}\n
+    """.format(bowtie="bowtie", threads=self.fastq_threads)
 
-        for db in reference:
-            config_dbs = """
-DATABASE\t{short_name}\t{full_path}
-""".format(short_name=os.path.basename(reference),
+        config_dbs = """
+    DATABASE\t{short_name}\t{full_path}
+    """.format(short_name=os.path.basename(reference),
            full_path=bwt_index)
 
-        print self.config+config_dbs
         return self.config+config_dbs
