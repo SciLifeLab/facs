@@ -120,13 +120,14 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   isodate(timestamp);
   bloom *bl_2 = NEW (bloom);
   F_set *File_head = make_list (bloom_filter, list);
-  /*initialize for python interface*/
+  /*initialization for python interface*/
   File_head->hits = 0;
   File_head->all_k = 0;
   File_head->reads_num = 0;
   File_head->reads_contam = 0;
   File_head->filename = bloom_filter;           //extra initialization for python interface
-  load_bloom (File_head->filename, bl_2);	//load a bloom filter
+  if (load_bloom (File_head->filename, bl_2)<=0)	//load a bloom filter
+	exit(-1);
   
   if (tole_rate == 0)
   {
@@ -149,10 +150,14 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
       normal = 0;
   }
 */
-  if ((zip = gzopen (query, "rb")) < 0)
+  if ((zip = gzopen (query, "rb")) <= 0)
   {
   	fprintf(stderr, "%s\n", strerror(errno));
   	exit(EXIT_FAILURE);
+  }
+  else
+  {
+	printf ("%d\n",zip);
   }
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
   	type = '@';
