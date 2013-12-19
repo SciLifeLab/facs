@@ -10,8 +10,8 @@ tests: python
 
 benchmarks: python
 	cd tests &&  \
-	nosetests -v -s --with-timer test_basic.py && \
 	nosetests -v -s --with-timer test_simngs.py && \
+	nosetests -v -s --with-timer test_basic.py && \
 	nosetests -v -s --with-timer test_fastqscreen.py && \
 	nosetests -v -s --with-timer test_deconseq.py
 

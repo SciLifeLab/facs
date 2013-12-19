@@ -31,7 +31,10 @@ class SimNGSTest(unittest.TestCase):
         helpers._mkdir_p(self.tmp)
 
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
-        self.sim_reads = [100, 1000, 10000]
+        self.sim_reads = [100, 1000, 1000000, 10000000]
+
+         # simNGS will generate exactly the same "random" datasets on each run
+        self.sim_seed = "6666520666"
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
@@ -51,7 +54,8 @@ class SimNGSTest(unittest.TestCase):
         helpers._move_p(runfile, self.progs)
 
     def test_2_run_simNGS(self):
-        """ Generates a synthetic library and runs with built-in simNGS runfile
+        """ For a given organism, simulates an Illumina run with simNGS read
+            simulator.
         """
         simngs = os.path.join(self.progs, "simNGS")
         simlib = os.path.join(self.progs, "simLibrary")
@@ -71,17 +75,22 @@ class SimNGSTest(unittest.TestCase):
 
                 # Determine how many FASTA "Description lines" (headers) there are
                 # since simNGS will generate reads depending on that number
+
                 with open(org, 'r') as cnt:
                     for line in cnt:
                         if '>' in line:
                             fa_entries = fa_entries+1
 
                 with open(dst, 'w') as fh:
-                    # Spikes a single ecoli read into all synthetically generated reads
-                    cl1 = [simlib, "-n", str(reads/fa_entries), org]
-                    cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
+                    # XXX: Find a good solution for floats on reads/fa_entries
+                    cl1 = [simlib, "--seed", self.sim_seed, "-n", str(reads/fa_entries), org]
+                    cl2 = [simngs, "-s", self.sim_seed, "-o", "fastq", runfile]
+                    # XXX: To be parametrized in future benchmarks (for paired end reads)
+                    #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
                     # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
                     p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
+
+        # IMPORTANT: Spikes a single random read into previous reads

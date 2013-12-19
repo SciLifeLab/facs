@@ -83,36 +83,30 @@ class DeconSeqTest(unittest.TestCase):
         os.chmod(os.path.join('deconseq-standalone-0.4.3', bwa_bin), 0700)
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
-            with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
-                try:
-                    cur_ref_path = references.pop()
-                    cur_ref = cur_ref_path.split(os.path.sep)[-1]
+            for ref in references:
+                ref_shortname = os.path.basename(ref)
+                with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
+                    cfg.write(self._genconf(ref, ref_shortname, self.tmp, self.tmp, bwa_bin))
 
-                    cfg.write(self._genconf(cur_ref_path, cur_ref, self.tmp, self.tmp, bwa_bin))
-                except IndexError:
-                    break
+                fastq_path = os.path.join(self.synthetic_fastq, fastq)
 
-            fastq_path = os.path.join(self.synthetic_fastq, fastq)
+                start_time = str(datetime.datetime.utcnow())+'Z'
 
-            start_time = str(datetime.datetime.utcnow())+'Z'
+                cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", ref_shortname]
+                subprocess.call(cl)
 
-            cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
-            subprocess.call(cl)
+                end_time = str(datetime.datetime.utcnow())+'Z'
 
-            end_time = str(datetime.datetime.utcnow())+'Z'
+                clean = glob.glob('*_clean.fq')[0]
+                contam = glob.glob('*_cont.fq')[0]
 
-            clean = glob.glob('*_clean.fq')[0]
-            contam = glob.glob('*_cont.fq')[0]
-            print clean, contam
-
-            self.results.append(self._deconseq_metrics_to_json(fastq_path, clean, contam,
-                                    start_time, end_time))
+                self.results.append(self._deconseq_metrics_to_json(fastq_path, ref, clean, contam,
+                                        start_time, end_time))
 
 
-    def _deconseq_metrics_to_json(self, sample, clean, contam, start_time, end_time):
+    def _deconseq_metrics_to_json(self, sample, ref, clean, contam, start_time, end_time):
         """ Counts contaminated and clean reads from resulting deconseq files
         """
-
         data = defaultdict(lambda: defaultdict(list))
 
         num_clean = self._count_lines(clean)
@@ -122,9 +116,9 @@ class DeconSeqTest(unittest.TestCase):
         reads_clean = int(num_clean)/4
         reads_contam = int(num_contam)/4
 
-        if int(reads_clean) != 0:
+        if int(reads_clean) > 0:
             contamination_rate = reads_contam / reads_clean
-        else: # XXX: no clean reads, 100% contaminated?
+        else: # no "clean" reads => 100% contaminated
             contamination_rate = 100
 
         data['contamination_rate'] = contamination_rate
@@ -133,6 +127,7 @@ class DeconSeqTest(unittest.TestCase):
         data['start_timestamp'] = start_time
         data['end_timestamp'] = end_time
         data['sample'] = sample
+        data['reference'] = ref
 
         return json.dumps(data)
 
@@ -147,7 +142,7 @@ class DeconSeqTest(unittest.TestCase):
         for ref in os.listdir(self.reference):
             # Downloads bowtie indexes genome(s)
             genomes.append(ref)
-            #XXX: Should only accept bwa 0.5.x, not 0.6.x indices
+            #XXX: Should only accept bwa 0.5.x (binary bundled within deconseq), not 0.6.x indices
             galaxy.rsync_genomes(self.reference, genomes, ["bwa"])
 
     def _genconf(self, dbdir, ref, tmpdir, outputdir, bwa_bin):
