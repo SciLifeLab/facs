@@ -54,8 +54,8 @@ class SimNGSTest(unittest.TestCase):
         helpers._move_p(runfile, self.progs)
 
     def test_2_run_simNGS(self):
-        """ For a given organism, simulates an Illumina run with simNGS read
-            simulator.
+        """ Simulates an Illumina run with simNGS read simulator
+            for each organism in references directory.
         """
         simngs = os.path.join(self.progs, "simNGS")
         simlib = os.path.join(self.progs, "simLibrary")
@@ -93,4 +93,4 @@ class SimNGSTest(unittest.TestCase):
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
 
-        # IMPORTANT: Spikes a single random read into previous reads
+        # IMPORTANT TODO: Spike a single random read into previous reads
