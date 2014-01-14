@@ -336,8 +336,8 @@ void write_default (char *clean, char *contam, BIGCAST sign)
 	}
 	else
 	{
-		fprintf(stdout,"%s\n",clean);
-		fprintf(stderr,"%s\n",contam);
+		fprintf(stdout,"%s",clean);
+		fprintf(stderr,"%s",contam);
 	}
 }
 void write_result (char *filename, char *detail)

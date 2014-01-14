@@ -10,6 +10,8 @@ import unittest
 import datetime
 from collections import defaultdict
 
+from jinja2 import Environment, FileSystemLoader
+
 import facs
 from facs.utils import helpers, galaxy, config
 from nose.plugins.attrib import attr
@@ -26,7 +28,7 @@ class DeconSeqTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
 
-        self.deconseq_url = 'http://downloads.sourceforge.net/project/deconseq/standalone/deconseq-standalone-0.4.3.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fdeconseq%2Ffiles%2Fstandalone%2F&ts=1381593179'
+        self.deconseq_url = 'http://downloads.sourceforge.net/project/deconseq/standalone/deconseq-standalone-0.4.3.tar.gz'
 
         helpers._mkdir_p(self.tmp)
 
@@ -81,36 +83,30 @@ class DeconSeqTest(unittest.TestCase):
         os.chmod(os.path.join('deconseq-standalone-0.4.3', bwa_bin), 0700)
 
         for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
-            with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
-                try:
-                    cur_ref_path = references.pop()
-                    cur_ref = cur_ref_path.split(os.path.sep)[-1]
+            for ref in references:
+                ref_shortname = os.path.basename(ref)
+                with open(os.path.join(self.progs, "DeconSeqConfig.pm"), 'w') as cfg:
+                    cfg.write(self._genconf(ref, ref_shortname, self.tmp, self.tmp, bwa_bin))
 
-                    cfg.write(self._genconf(cur_ref_path, cur_ref, self.tmp, self.tmp, bwa_bin))
-                except IndexError:
-                    break
+                fastq_path = os.path.join(self.synthetic_fastq, fastq)
 
-            fastq_path = os.path.join(self.synthetic_fastq, fastq)
+                start_time = str(datetime.datetime.utcnow())+'Z'
 
-            start_time = str(datetime.datetime.utcnow())+'Z'
+                cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", ref_shortname]
+                subprocess.call(cl)
 
-            cl = ['perl', deconseq_bin, "-f", fastq_path, "-dbs", cur_ref]
-            subprocess.call(cl)
+                end_time = str(datetime.datetime.utcnow())+'Z'
 
-            end_time = str(datetime.datetime.utcnow())+'Z'
+                clean = glob.glob('*_clean.fq')[0]
+                contam = glob.glob('*_cont.fq')[0]
 
-            clean = glob.glob('*_clean.fq')[0]
-            contam = glob.glob('*_cont.fq')[0]
-            print clean, contam
-
-            self.results.append(self._deconseq_metrics_to_json(fastq_path, clean, contam,
-                                    start_time, end_time))
+                self.results.append(self._deconseq_metrics_to_json(fastq_path, ref, clean, contam,
+                                        start_time, end_time))
 
 
-    def _deconseq_metrics_to_json(self, sample, clean, contam, start_time, end_time):
+    def _deconseq_metrics_to_json(self, sample, ref, clean, contam, start_time, end_time):
         """ Counts contaminated and clean reads from resulting deconseq files
         """
-
         data = defaultdict(lambda: defaultdict(list))
 
         num_clean = self._count_lines(clean)
@@ -120,9 +116,9 @@ class DeconSeqTest(unittest.TestCase):
         reads_clean = int(num_clean)/4
         reads_contam = int(num_contam)/4
 
-        if int(reads_clean) != 0:
+        if int(reads_clean) > 0:
             contamination_rate = reads_contam / reads_clean
-        else: # XXX: no clean reads, 100% contaminated?
+        else: # no "clean" reads => 100% contaminated
             contamination_rate = 100
 
         data['contamination_rate'] = contamination_rate
@@ -131,6 +127,7 @@ class DeconSeqTest(unittest.TestCase):
         data['start_timestamp'] = start_time
         data['end_timestamp'] = end_time
         data['sample'] = sample
+        data['reference'] = ref
 
         return json.dumps(data)
 
@@ -145,7 +142,7 @@ class DeconSeqTest(unittest.TestCase):
         for ref in os.listdir(self.reference):
             # Downloads bowtie indexes genome(s)
             genomes.append(ref)
-            #XXX: Should only accept bwa 0.5.x, not 0.6.x indices
+            #XXX: Should only accept bwa 0.5.x (binary bundled within deconseq), not 0.6.x indices
             galaxy.rsync_genomes(self.reference, genomes, ["bwa"])
 
     def _genconf(self, dbdir, ref, tmpdir, outputdir, bwa_bin):
@@ -154,53 +151,8 @@ class DeconSeqTest(unittest.TestCase):
         dbdir = os.path.join(dbdir, "bwa_index/")
         db = os.path.basename(os.path.join(dbdir, ref+".fa"))
 
-        self.config = """
-package DeconSeqConfig;
+        j2_env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
 
-use strict;
-
-use constant DEBUG => 0;
-use constant PRINT_STUFF => 1;
-use constant VERSION => '0.4.3';
-use constant VERSION_INFO => 'DeconSeq version '.VERSION;
-
-use constant ALPHABET => 'ACGTN';
-
-use constant DB_DIR => '%s';
-use constant TMP_DIR => '%s';
-use constant OUTPUT_DIR => '%s';
-
-use constant PROG_NAME => '%s';  # should be either bwa64 or bwaMAC (based on your system architecture)
-use constant PROG_DIR => 'deconseq-standalone-0.4.3/';      # should be the location of the PROG_NAME file (use './' if in the same location at the perl script)
-
-use constant DBS => {
-                      %s => {name => 'Currently testing this database in the testsuite',
-                      db => '%s'}
-                    };
-
-#use constant DB_DEFAULT => '';
-
-#######################################################################
-
-use base qw(Exporter);
-
-use vars qw(@EXPORT);
-
-@EXPORT = qw(
-             DEBUG
-             PRINT_STUFF
-             VERSION
-             VERSION_INFO
-             ALPHABET
-             PROG_NAME
-             PROG_DIR
-             DB_DIR
-             TMP_DIR
-             OUTPUT_DIR
-             DBS
-             DB_DEFAULT
-             );
-
-1;
-""" % (dbdir, tmpdir, outputdir, bwa_bin, ref, db)
-        return self.config
+        return j2_env.get_template('deconseq.j2').render(dbdir=dbdir, tmpdir=tmpdir,
+                                                        outputdir=outputdir, bwa_bin=bwa_bin,
+                                                        ref=ref, db=db)
