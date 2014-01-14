@@ -51,7 +51,7 @@ class FacsBasicTest(unittest.TestCase):
         try:
             for res in self.results:
                 if config.SERVER:
-                    helpers.send_couchdb(config.SERVER, config.FACS_DB, config.USERNAME, config.PASSWORD, res, config.WAKE)
+                    helpers.send_couchdb(config.SERVER, config.FACS_DB, config.USERNAME, config.PASSWORD, res, wake_up=config.WAKE)
         except:
             pass
 
