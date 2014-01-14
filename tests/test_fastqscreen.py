@@ -114,6 +114,7 @@ class FastqScreenTest(unittest.TestCase):
                 if os.path.exists(fastq_screen_resfile):
                     with open(fastq_screen_resfile, 'rU') as fh:
                         self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time))
+                        os.remove(fastq_screen_resfile)
 
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time):
