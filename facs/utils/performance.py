@@ -2,12 +2,6 @@
 
 Given previous test results stored in an external database (specified in your
 ~/.facsrc file), downloads this results and plot them.
-<<<<<<< HEAD
-"""
-import logbook
-import sys
-import couchdb
-=======
 
 XXX: Needs serious refactoring, way too much code repetition :/
 """
@@ -19,7 +13,6 @@ import json
 import couchdb
 import datetime
 from collections import defaultdict
->>>>>>> 1b076dbe2938652cc6ff5ade1e9f1d25413d9f51
 
 from facs.utils import config
 
@@ -35,17 +28,6 @@ def _fetch_results(couch, database):
     log.info("Fetched %s documents" % str(len(docs)))
     return docs
 
-<<<<<<< HEAD
-
-def facs_vs_fastq_screen():
-    stream = logbook.StreamHandler(sys.stdout, level=logbook.INFO)
-    with stream.applicationbound():
-        log.info("Establishing connection with database %s" % config.SERVER)
-        couch = couchdb.Server(config.SERVER)
-        couch.resource.credentials = (config.USERNAME, config.PASSWORD)
-        facs_results = _fetch_results(couch, config.FACS_DB)
-        fastq_screen_results = _fetch_results(couch, config.FASTQ_SCREEN_DB)
-=======
 def facs_vs_deconseq():
     """ Compare FACS against bwa-based deconseq
     """
@@ -206,4 +188,3 @@ if __name__ == "__main__":
 
     #log.info("Comparing runtimes of FACS vs deconseq")
     #facs_vs_deconseq()
->>>>>>> 1b076dbe2938652cc6ff5ade1e9f1d25413d9f51
