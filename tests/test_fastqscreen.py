@@ -137,7 +137,6 @@ class FastqScreenTest(unittest.TestCase):
                 break
 
             organism = {}
-            #XXX: library is always dm3 with this
             organism[header[0]] = ref
             for i in range(1,5):
                 organism[header[i]] = float(row[i])
@@ -145,7 +144,12 @@ class FastqScreenTest(unittest.TestCase):
 
             # Useful to compare with other programs such as FACS or Deconseq
             print data['organisms']
-            data['contamination_rate'] = data['organisms'][0]['%One_hit_one_library']
+            data['contamination_rate'] = data['organisms'][0]['%One_hit_one_library'] + \
+                                         data['organisms'][0]['%Multiple_hits_one_library'] + \
+                                         data['organisms'][0]['%One_hit_multiple_libraries']
+
+            assert data['contamination_rate']+data['organisms'][0]['%Unmapped'] ==  100
+
             data['fastq_screen_index'] = data['organisms'][0]['Library']
 
 

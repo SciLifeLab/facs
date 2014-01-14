@@ -32,15 +32,13 @@ def facs_vs_deconseq():
     """ Compare FACS against bwa-based deconseq
     """
     facs, deconseq = "", ""
+    results = defaultdict(list)
 
     with open("facs.json") as fh:
         facs = json.load(fh)
 
     with open("deconseq.json") as fh:
         deconseq = json.load(fh)
-
-    # Print header for performance and accuracy results
-    #print("runtime_deco\tcontam_deco\truntime_facs\tcontam_facs\tsample_deco\t\t\tsample_facs\tfilter_fqscr\tfilter_facs")
 
     for decon in deconseq:
         if decon.get('sample'):
@@ -80,13 +78,16 @@ def facs_vs_deconseq():
                             contam_fcs = fcs.get('contamination_rate')
                             contam_deco = decon.get('contamination_rate')
 
-                            #result.append(delta_deco.total_seconds(), contam_deco,
-                            #              delta_fcs.total_seconds(), contam_fcs,
-                            #              decon.get('sample'), fcs.get('sample'))
+                            results[run] = dict(delta = delta_deco.total_seconds(),
+                                                contam_deco = contam_deco,
+                                                delta_facs = delta_fcs.total_seconds(),
+                                                contam_facs = contam_fcs,
+                                                sample_deco = decon.get('sample'),
+                                                sample_facs = fcs.get('sample'),
+                                                filter_deco = decon.get('reference'),
+                                                filter_facs = fcs.get('bloom_filter'))
 
-#                            print("{runtime_deco:.3f}\t\t{contam_deco}\t\t{runtime_facs:.3f}\t\t{contam_facs:.3f}\t\t{sample_deco:>30}\t\t{sample_facs:>30}".format(runtime_deco = delta_deco.total_seconds(), contam_deco=contam_deco, runtime_facs = delta_fcs.total_seconds(), contam_facs = contam_fcs, sample_deco=decon.get('sample'), sample_facs=fcs.get('sample')))
-
-    #return json.dumps(result)
+    return json.dumps(results)
 
 def facs_vs_fastq_screen():
     """ Work from the json files on disk instead of fetched from DB
@@ -105,9 +106,8 @@ def facs_vs_fastq_screen():
             for fcs in facs:
                 if fcs.get('sample'):
                     # fqscreen stores the full path, FACS does not
-                    # XXX: We are Actually losing info here since full pathnames
-                    # provide information about the system on which a particular
-                    # test ran on... to be fixed upstream (in FACS report() function).
+                    # Full pathnames could provide information about the system on which a particular
+                    # test ran on... to be fixed upstream (GitHub scilifelab/facs issue #98).
                     if os.path.basename(fcs['sample']) == fqscr['sample']:
                         facs_filt_name, _ = os.path.splitext(os.path.basename(fcs['bloom_filter']))
                         if facs_filt_name == fqscr['fastq_screen_index']:
@@ -143,27 +143,17 @@ def facs_vs_fastq_screen():
                                     contam_fqscr = fqscr.get('contamination_rate')
 
                                     results[run] = dict(delta = delta.total_seconds(),
-                                                   contam_fqscr = contam_fqscr,
-                                                   delta_facs = delta_fcs.total_seconds(),
-                                                   contam_facs = contam_fcs,
-                                                   sample_fqscr = fqscr.get('sample'),
-                                                   sample_facs = fcs.get('sample'),
-                                                   filter_fqscr = fqscr.get('fastq_screen_index'),
-                                                   filter_facs = fcs.get('bloom_filter'))
-
-
+                                                        contam_fqscr = contam_fqscr,
+                                                        delta_facs = delta_fcs.total_seconds(),
+                                                        contam_facs = contam_fcs,
+                                                        sample_fqscr = fqscr.get('sample'),
+                                                        sample_facs = fcs.get('sample'),
+                                                        filter_fqscr = fqscr.get('fastq_screen_index'),
+                                                        filter_facs = fcs.get('bloom_filter'))
 
 
     return json.dumps(results)
 
-def json_to_csv(doc):
-    """ XXX: Maybe unnecessary since we can just parse the resulting json
-        and process it with pandas & co, avoiding sheets
-    """
-    # Print header for performance and accuracy results
-    print("runtime_fqscr\tcontam_fqscr\truntime_facs\tcontam_facs\tsample_fqscr\t\t\tsample_facs")
-
-    #print("{runtime_fqscr:.3f}\t\t{contam_fqscr}\t\t{runtime_facs:.3f}\t\t{contam_facs:.3f}\t\t{sample_fqscr:>30}\t\t{sample_facs:>30}\t\t{filter_fqscr}\t\t{filter_fcs}".format(runtime_fqscr = delta.total_seconds(), contam_fqscr = contam_fqscr, runtime_facs = delta_fcs.total_seconds(), contam_facs = contam_fcs, sample_fqscr = fqscr.get('sample'), sample_facs = fcs.get('sample'), filter_fqscr = fqscr.get('fastq_screen_index'), filter_fcs = fcs.get('bloom_filter')))
 
 def fetch_couchdb_results():
     stream = logbook.StreamHandler(sys.stdout, level=logbook.INFO)
