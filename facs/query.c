@@ -112,6 +112,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   gzFile zip = NULL;
   char type = '@';
   int normal = 0;
+  int threads = 0;
   BIGCAST offset = 0;
   char *position = NULL;
   static char timestamp[40] = {0};
@@ -181,6 +182,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
       get_parainfo (position, head, type);
 #pragma omp parallel
       {
+          threads = omp_get_num_threads();
 #pragma omp single nowait
 	{
 	  while (head != tail)
@@ -237,7 +239,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   */
   if (target_path!=NULL || mode == 'c')
   {
-  	return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  	return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer), threads);
   }
   else
   {
@@ -456,7 +458,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	}	// outside while
 }
 
-char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob)
+char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob, int threads)
 {
   char *abs_query_path = NULL, *abs_filter_path = NULL;
   static char buffer[800] = {0};
@@ -487,7 +489,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\"threads\": %d"
 "}",  start_timestamp, timestamp,abs_query_path, abs_filter_path,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
-        _contamination_rate, p_value, omp_get_num_threads());
+        _contamination_rate, p_value, threads);
   // TSV output format
   }
   else if (!strcmp(fmt, "tsv"))
