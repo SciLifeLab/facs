@@ -485,10 +485,11 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\"contaminated_reads\": %lld,"
 "\"total_hits\": %lld,"
 "\"contamination_rate\": %f,"
-"\"p_value\": %e"
+"\"p_value\": %e,"
+"\"threads\": %d"
 "}",  start_timestamp, timestamp,abs_query_path, abs_filter_path,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
-        _contamination_rate,p_value);
+        _contamination_rate, p_value, omp_get_num_threads());
   // TSV output format
   }
   else if (!strcmp(fmt, "tsv"))
