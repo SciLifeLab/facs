@@ -461,8 +461,11 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 
 char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob)
 {
+  char *abs_query_path = NULL, *abs_filter_path = NULL;
   static char buffer[800] = {0};
   static char timestamp[40] = {0};
+  abs_query_path = get_abs_path(query);
+  abs_filter_path = get_abs_path(File_head->filename);
   float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
   double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
   if(!fmt)
@@ -483,7 +486,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\"total_hits\": %lld,"
 "\"contamination_rate\": %f,"
 "\"p_value\": %e"
-"}",  start_timestamp, timestamp,query, File_head->filename,
+"}",  start_timestamp, timestamp,abs_query_path, abs_filter_path,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
         _contamination_rate,p_value);
   // TSV output format
@@ -492,7 +495,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
   {
   	sprintf(buffer,
 "sample\tbloom_filter\ttotal_read_count\t_contaminated_reads\t_contamination_rate\n"
-"%s\t%s\t%lld\t%lld\t%f\t%e\n", query, File_head->filename,
+"%s\t%s\t%lld\t%lld\t%f\t%e\n", abs_query_path , abs_filter_path,
                             File_head->reads_num, File_head->reads_contam,
                             _contamination_rate,p_value);
   }
@@ -532,4 +535,17 @@ char *statistic_save (char *filename, char *prefix)
   printf ("Info name->%s\n", save_file);
 #endif
   return save_file;
+}
+
+char *get_abs_path(char *filename)
+{
+  char *path = realpath(filename, NULL);
+  if(path == NULL)
+  {
+        fprintf(stderr,"cannot find file with name[%s]\n", filename);
+  } 
+  else
+  {
+	return path; 
+  }  
 }
