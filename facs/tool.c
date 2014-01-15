@@ -179,7 +179,6 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 		start_point = begin;
 	true_length = strlen(start_point);
 	read_length = true_length;
-	//printf("true_length->%d\n",true_length);
        	if (mode == 'r') // make a copy of the read for reverse compliment process
        	{
                 rev_trans (start_point,true_length);
@@ -242,7 +241,6 @@ get_parainfo (char *full, Queue * head, char type)
 		if (add != 0)
 			{
                 	temp = fastq_relocate(full, offset*add, length);   
-			//printf ("temp->%0.20s\n",temp);
 			}    
               	if (previous!=temp)
 		{
