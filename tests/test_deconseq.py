@@ -41,7 +41,7 @@ class DeconSeqTest(unittest.TestCase):
         try:
             for res in self.results:
                 if config.SERVER:
-                    helpers.send_couchdb(config.SERVER, config.DECONSEQ_DB, config.USERNAME, config.PASSWORD, res)
+                    helpers.send_couchdb(config.SERVER, config.DECONSEQ_DB, config.USERNAME, config.PASSWORD, res, wake_up=config.WAKE)
         except:
             pass
 
