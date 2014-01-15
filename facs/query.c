@@ -155,10 +155,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   	fprintf(stderr, "%s\n", strerror(errno));
   	exit(EXIT_FAILURE);
   }
-  else
-  {
-	printf ("%d\n",zip);
-  }
+  
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
   	type = '@';
   else
@@ -468,6 +465,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
   abs_filter_path = get_abs_path(File_head->filename);
   float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
   double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
+
   if(!fmt)
   {
       fprintf(stderr, "Output format not specified\n");
@@ -544,9 +542,8 @@ char *get_abs_path(char *filename)
   if(path == NULL)
   {
         fprintf(stderr,"cannot find file with name[%s]\n", filename);
-  } 
-  else
-  {
-	return path; 
-  }  
+        exit(errno);
+  }
+
+  return path;
 }
