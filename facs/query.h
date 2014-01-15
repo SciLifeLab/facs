@@ -13,6 +13,7 @@ extern char *statistic_save (char *filename, char *prefix);
 extern char *remove_data(char *data, char *start, char *end);
 extern char *re_clean();
 extern char *re_contam();
+char *get_abs_path(char *filename);
 extern char *move_start_point(char *filename);
 extern char *strrstr(char *s, char *str);
 extern void reset_string();

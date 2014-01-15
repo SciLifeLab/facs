@@ -47,7 +47,6 @@ facs_bloom_query(PyObject * self, PyObject * args)
   char *qry, *bloom;
   char* report_fmt = "json";
   char* ret;
-
   if (!PyArg_ParseTuple(args, "ss|dds", &qry, &bloom, &tole_rate, &sampling_rate, report_fmt))
     return NULL;
   ret = query(qry, bloom, tole_rate, sampling_rate, NULL, NULL, report_fmt,'c');

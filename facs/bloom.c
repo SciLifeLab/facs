@@ -300,11 +300,12 @@ load_bloom (char *filename, bloom * bl)
   if (fd < 0)
   {
       perror (filename);
-      exit (-1);
+      return -1;
   }
   if (read (fd, bl, sizeof (bloom)) < 0)
   {
       perror ("Problem reading Bloom filter");
+      return 0;
   };
   bl->vector = (char *) calloc (1, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
   total_size = ((BIGNUM) (bl->stat.elements / 8) + 1);
