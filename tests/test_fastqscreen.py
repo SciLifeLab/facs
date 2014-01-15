@@ -36,7 +36,6 @@ class FastqScreenTest(unittest.TestCase):
             galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
         self.fastq_threads = 1
-        self.databases = []
         self.results = []
 
     def tearDown(self):

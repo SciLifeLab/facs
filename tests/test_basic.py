@@ -43,6 +43,7 @@ class FacsBasicTest(unittest.TestCase):
         # Collates results from all tests for later bulk reporting.
         # This way runtime is not biased by connection delays.
         self.results = []
+        os.environ['OMP_NUM_THREADS'] = "2"
 
 
     def tearDown(self):
