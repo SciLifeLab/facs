@@ -35,8 +35,9 @@ class FastqScreenTest(unittest.TestCase):
         if not os.path.exists(twobit_fa_path):
             galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
-        self.fastq_threads = 1
-        self.databases = []
+        # Fastq_screen does not use OpenMP, but here we reuse the environment
+        # variable from the benchmarks
+        self.fastq_threads = os.environ['OMP_NUM_THREADS']
         self.results = []
 
     def tearDown(self):
@@ -150,7 +151,14 @@ class FastqScreenTest(unittest.TestCase):
                                          data['organisms'][0]['%Multiple_hits_one_library'] + \
                                          data['organisms'][0]['%One_hit_multiple_libraries']
 
-            assert data['contamination_rate']+data['organisms'][0]['%Unmapped'] ==  100
+            # Percent of mapped/unmapped should be around 100% or less
+            # (XXX better way to assert this)
+            assert data['contamination_rate'] + data['organisms'][0]['%Unmapped'] <= 101
+
+            # Normalize contamination to [0, 1] values, in order to
+            # make it easily comparable with those from FACS
+            data['contamination_rate'] = float(data['contamination_rate']) / 100
+
 
             data['fastq_screen_index'] = data['organisms'][0]['Library']
 

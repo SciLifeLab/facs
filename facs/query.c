@@ -112,6 +112,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   gzFile zip = NULL;
   char type = '@';
   int normal = 0;
+  int threads = 0;
   BIGCAST offset = 0;
   char *position = NULL;
   static char timestamp[40] = {0};
@@ -155,10 +156,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   	fprintf(stderr, "%s\n", strerror(errno));
   	exit(EXIT_FAILURE);
   }
-  else
-  {
-	printf ("%d\n",zip);
-  }
+  
   if (strstr (query, ".fastq") != NULL || strstr (query, ".fq") != NULL)
   	type = '@';
   else
@@ -184,6 +182,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
       get_parainfo (position, head, type);
 #pragma omp parallel
       {
+          threads = omp_get_num_threads();
 #pragma omp single nowait
 	{
 	  while (head != tail)
@@ -240,7 +239,7 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
   */
   if (target_path!=NULL || mode == 'c')
   {
-  	return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  	return report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer), threads);
   }
   else
   {
@@ -459,7 +458,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	}	// outside while
 }
 
-char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob)
+char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob, int threads)
 {
   char *abs_query_path = NULL, *abs_filter_path = NULL;
   static char buffer[800] = {0};
@@ -468,6 +467,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
   abs_filter_path = get_abs_path(File_head->filename);
   float _contamination_rate = (float) (File_head->reads_contam) / (float) (File_head->reads_num);
   double p_value = cdf(File_head->hits,get_mu(File_head->all_k,prob),get_sigma(File_head->all_k,prob));
+
   if(!fmt)
   {
       fprintf(stderr, "Output format not specified\n");
@@ -485,10 +485,11 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
 "\"contaminated_reads\": %lld,"
 "\"total_hits\": %lld,"
 "\"contamination_rate\": %f,"
-"\"p_value\": %e"
+"\"p_value\": %e,"
+"\"threads\": %d"
 "}",  start_timestamp, timestamp,abs_query_path, abs_filter_path,
         File_head->reads_num, File_head->reads_contam, File_head->hits,
-        _contamination_rate,p_value);
+        _contamination_rate, p_value, threads);
   // TSV output format
   }
   else if (!strcmp(fmt, "tsv"))
@@ -543,9 +544,8 @@ char *get_abs_path(char *filename)
   if(path == NULL)
   {
         fprintf(stderr,"cannot find file with name[%s]\n", filename);
-  } 
-  else
-  {
-	return path; 
-  }  
+        exit(errno);
+  }
+
+  return path;
 }
