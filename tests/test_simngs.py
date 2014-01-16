@@ -33,7 +33,7 @@ class SimNGSTest(unittest.TestCase):
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
         self.sim_reads = [100, 1000, 1000000, 10000000]
 
-         # simNGS will generate exactly the same "random" datasets on each run
+        # simNGS will generate exactly the same "random" datasets on each run
         self.sim_seed = "6666520666"
 
     def test_1_fetch_simNGS(self):
@@ -73,9 +73,12 @@ class SimNGSTest(unittest.TestCase):
                 dst = os.path.join(self.synthetic_fastq,
                                    "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
+                # Synthetic file has already been generated in a previous run
+                if dst is not None:
+                    break
+
                 # Determine how many FASTA "Description lines" (headers) there are
                 # since simNGS will generate reads depending on that number
-
                 with open(org, 'r') as cnt:
                     for line in cnt:
                         if '>' in line:
