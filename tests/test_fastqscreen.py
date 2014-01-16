@@ -35,7 +35,9 @@ class FastqScreenTest(unittest.TestCase):
         if not os.path.exists(twobit_fa_path):
             galaxy.download_twoBitToFa_bin(twobit_fa_path)
 
-        self.fastq_threads = 1
+        # Fastq_screen does not use OpenMP, but here we reuse the environment
+        # variable from the benchmarks
+        self.fastq_threads = os.environ['OMP_NUM_THREADS']
         self.results = []
 
     def tearDown(self):
