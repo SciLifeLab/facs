@@ -182,7 +182,10 @@ char *query (char *query, char *bloom_filter, double tole_rate, double sampling_
       get_parainfo (position, head, type);
 #pragma omp parallel
       {
+// XXX: Awesome will be the day when OpenMP is in OSX
+#ifndef __APPLE__ 
           threads = omp_get_num_threads();
+#endif
 #pragma omp single nowait
 	{
 	  while (head != tail)

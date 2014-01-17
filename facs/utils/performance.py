@@ -149,7 +149,9 @@ def facs_vs_fastq_screen():
                                                         sample_fqscr = fqscr.get('sample'),
                                                         sample_facs = fcs.get('sample'),
                                                         filter_fqscr = fqscr.get('fastq_screen_index'),
-                                                        filter_facs = fcs.get('bloom_filter'))
+                                                        filter_facs = fcs.get('bloom_filter'),
+                                                        threads_facs = fcs.get('threads'),
+                                                        threads_fqscr = fqscr.get('threads'))
 
 
     return json.dumps(results)
@@ -165,7 +167,7 @@ def fetch_couchdb_results():
 
         facs_results = _fetch_results(couch, config.FACS_DB)
         fastq_screen_results = _fetch_results(couch, config.FASTQ_SCREEN_DB)
-        deconseq_results = _fetch_results(couch, config.DECONSEQ_DB)
+        #deconseq_results = _fetch_results(couch, config.DECONSEQ_DB)
 
         with open("facs.json", 'w') as fh:
             json.dump(facs_results, fh)
@@ -173,8 +175,8 @@ def fetch_couchdb_results():
         with open("fastq_screen.json", 'w') as fh:
             json.dump(fastq_screen_results, fh)
 
-        with open("deconseq.json", 'w') as fh:
-            json.dump(deconseq_results, fh)
+        #with open("deconseq.json", 'w') as fh:
+        #    json.dump(deconseq_results, fh)
 
 if __name__ == "__main__":
 
