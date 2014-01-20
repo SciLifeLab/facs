@@ -114,7 +114,7 @@ class SimNGSTest(unittest.TestCase):
                                                                                         reads2=reads[1]))
 
         for org, read in izip(orgs, reads):
-            with open(dst, 'w') as fh:
+            with open(dst, 'a') as fh:
                 cl1 = [self.simlib, "--seed", self.sim_seed, "-n", str(read), org]
                 cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
 
