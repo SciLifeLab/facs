@@ -98,7 +98,7 @@ class SimNGSTest(unittest.TestCase):
                     p1.stdout.close()
 
 
-    def test_3_generate_mixed_dataset():
+    def test_3_generate_mixed_dataset(self):
         """ Generates a mixed synthetic dataset of eschColi with 100 reads
             and dm3 with 400 reads.
         """
