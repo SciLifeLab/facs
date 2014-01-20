@@ -6,6 +6,7 @@ import shutil
 import sys
 import subprocess
 import unittest
+from itertools import izip
 
 import facs
 from facs.utils import helpers
@@ -30,11 +31,17 @@ class SimNGSTest(unittest.TestCase):
         helpers._mkdir_p(self.synthetic_fastq)
         helpers._mkdir_p(self.tmp)
 
+        # SimNGS-specific variables
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
         self.sim_reads = [100, 1000, 1000000, 10000000]
 
         # simNGS will generate exactly the same "random" datasets on each run
         self.sim_seed = "6666520666"
+        self.simngs = os.path.join(self.progs, "simNGS")
+        self.simlib = os.path.join(self.progs, "simLibrary")
+
+        # Default Illumina error profiles for simNGS
+        self.runfile = os.path.join(self.progs, "s_3_4x.runfile")
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
@@ -57,12 +64,6 @@ class SimNGSTest(unittest.TestCase):
         """ Simulates an Illumina run with simNGS read simulator
             for each organism in references directory.
         """
-        simngs = os.path.join(self.progs, "simNGS")
-        simlib = os.path.join(self.progs, "simLibrary")
-
-        # Default Illumina error profiles for simNGS
-        runfile = os.path.join(self.progs, "s_3_4x.runfile")
-
         # Generate N simulated reads of every organism present in "org"
         orgs = [o for o in glob.glob(os.path.join(self.reference, "*/seq/*.fa"))]
 
@@ -86,8 +87,8 @@ class SimNGSTest(unittest.TestCase):
 
                 with open(dst, 'w') as fh:
                     # XXX: Find a good solution for floats on reads/fa_entries
-                    cl1 = [simlib, "--seed", self.sim_seed, "-n", str(reads/fa_entries), org]
-                    cl2 = [simngs, "-s", self.sim_seed, "-o", "fastq", runfile]
+                    cl1 = [self.simlib, "--seed", self.sim_seed, "-n", str(reads/fa_entries), org]
+                    cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
                     # XXX: To be parametrized in future benchmarks (for paired end reads)
                     #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
@@ -96,4 +97,27 @@ class SimNGSTest(unittest.TestCase):
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
 
-        # IMPORTANT TODO: Spike a single random read into previous reads
+
+    def test_3_generate_mixed_dataset():
+        """ Generates a mixed synthetic dataset of eschColi with 100 reads
+            and dm3 with 400 reads.
+        """
+        orgs = [os.path.join(self.reference, "eschColi_K12/seq/eschColi_K12.fa"),
+                os.path.join(self.reference, "dm3/seq/dm3.fa")]
+
+        reads = [100, 400]
+
+        dst = os.path.join(self.synthetic_fastq,
+                           "simngs.mixed_{org1}_{org2}_{reads1}vs{reads2}.fastq".format(org1='eschColi_K12',
+                                                                                        org2='dm3',
+                                                                                        reads1=reads[0],
+                                                                                        reads2=reads[1]))
+
+        for org, read in izip(orgs, reads):
+            with open(dst, 'w') as fh:
+                cl1 = [self.simlib, "--seed", self.sim_seed, "-n", str(read), org]
+                cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
+
+                p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
+                p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
+                p1.stdout.close()
