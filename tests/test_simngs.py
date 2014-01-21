@@ -99,13 +99,13 @@ class SimNGSTest(unittest.TestCase):
 
 
     def test_3_generate_mixed_dataset(self):
-        """ Generates a mixed synthetic dataset of eschColi with 100 reads
-            and dm3 with 400 reads.
+        """ Generates a mixed synthetic dataset of eschColi with reads[0] reads
+            and dm3 with reads[1] reads.
         """
         orgs = [os.path.join(self.reference, "eschColi_K12/seq/eschColi_K12.fa"),
                 os.path.join(self.reference, "dm3/seq/dm3.fa")]
 
-        reads = [100, 400]
+        reads = [3000, 6000]
 
         dst = os.path.join(self.synthetic_fastq,
                            "simngs.mixed_{org1}_{org2}_{reads1}vs{reads2}.fastq".format(org1='eschColi_K12',
