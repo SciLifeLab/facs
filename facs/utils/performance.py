@@ -104,9 +104,6 @@ def facs_vs_fastq_screen():
 
     for run, (fqscr, fcs) in enumerate(izip(fastq_screen, facs)):
         if fqscr.get('sample') and fcs.get('sample'):
-            # fqscreen stores the full path, FACS does not
-            # Full pathnames could provide information about the system on which a particular
-            # test ran on... to be fixed upstream (GitHub scilifelab/facs issue #98).
             if os.path.basename(fcs['sample']) == fqscr['sample']:
                 facs_filt_name, _ = os.path.splitext(os.path.basename(fcs['bloom_filter']))
                 if facs_filt_name == fqscr['fastq_screen_index']:
