@@ -109,8 +109,8 @@ class DeconSeqTest(unittest.TestCase):
         """
         data = defaultdict(lambda: defaultdict(list))
 
-        num_clean = self._count_lines(clean)
-        num_contam = self._count_lines(contam)
+        num_clean = helpers._count_lines(clean)
+        num_contam = helpers._count_lines(contam)
 
         # FastQ format, therefore 4 lines per read
         reads_clean = int(num_clean)/4
@@ -130,12 +130,6 @@ class DeconSeqTest(unittest.TestCase):
         data['reference'] = ref
 
         return json.dumps(data)
-
-    def _count_lines(self, fname):
-        with open(fname) as fh:
-            lines = sum(1 for line in fh)
-
-        return lines
 
     def _fetch_bwa_indices(self):
         genomes = []

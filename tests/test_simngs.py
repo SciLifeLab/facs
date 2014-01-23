@@ -107,6 +107,10 @@ class SimNGSTest(unittest.TestCase):
 
         reads = [3000, 6000]
 
+        # Will hold the real number of fastq reads after simNGS, independent of
+        # organism
+        lines = []
+
         dst = os.path.join(self.synthetic_fastq,
                            "simngs.mixed_{org1}_{org2}_{reads1}vs{reads2}.fastq".format(org1='eschColi_K12',
                                                                                         org2='dm3',
@@ -121,3 +125,14 @@ class SimNGSTest(unittest.TestCase):
                 p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
                 p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                 p1.stdout.close()
+
+            lines.append(helpers._count_lines(dst))
+
+        # Read actual FASTQ reads present in output file and rename it accordingly
+        reads = [read/4 for read in lines]
+        shutil.move(dst, os.path.join(self.synthetic_fastq,
+                         "simngs.mixed_{org1}_{org2}_{reads1}vs{reads2}.fastq".format(org1='eschColi_K12',
+                                                                                      org2='dm3',
+                                                                                      reads1=reads[0],
+                                                                                      reads2=reads[1]
+                                                                                      )))
