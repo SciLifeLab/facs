@@ -74,10 +74,6 @@ class SimNGSTest(unittest.TestCase):
                 dst = os.path.join(self.synthetic_fastq,
                                    "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
-                # Synthetic file has already been generated in a previous run
-                if dst is not None:
-                    break
-
                 # Determine how many FASTA "Description lines" (headers) there are
                 # since simNGS will generate reads depending on that number
                 with open(org, 'r') as cnt:
