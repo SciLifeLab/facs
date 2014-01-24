@@ -7,6 +7,7 @@ import sys
 import subprocess
 import unittest
 from itertools import izip
+from math import ceil
 
 import facs
 from facs.utils import helpers
@@ -69,21 +70,20 @@ class SimNGSTest(unittest.TestCase):
 
         for org in orgs:
             fa_entries = 0
+            # Determine how many FASTA "Description lines" (headers) there are
+            # since simNGS will generate reads depending on that number
+            with open(org, 'r') as cnt:
+                for line in cnt:
+                    if '>' in line:
+                        fa_entries += 1
 
             for reads in self.sim_reads:
                 dst = os.path.join(self.synthetic_fastq,
                                    "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
-                # Determine how many FASTA "Description lines" (headers) there are
-                # since simNGS will generate reads depending on that number
-                with open(org, 'r') as cnt:
-                    for line in cnt:
-                        if '>' in line:
-                            fa_entries = fa_entries+1
-
                 with open(dst, 'w') as fh:
-                    # XXX: Find a good solution for floats on reads/fa_entries
-                    cl1 = [self.simlib, "--seed", self.sim_seed, "-n", str(reads/fa_entries), org]
+                    n = str(ceil(reads/float(fa_entries)))
+                    cl1 = [self.simlib, "--seed", self.sim_seed, "-n", n, org]
                     cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
                     # XXX: To be parametrized in future benchmarks (for paired end reads)
                     #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
@@ -92,6 +92,10 @@ class SimNGSTest(unittest.TestCase):
                     p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
+                    #Trim the FAST file to the actual number of reads
+                print "Trimming {} file to {} reads...".format(dst, reads)
+                helpers.trim_fastq(dst, reads)
+
 
 
     def test_3_generate_mixed_dataset(self):
@@ -112,23 +116,23 @@ class SimNGSTest(unittest.TestCase):
                                                                                         org2='dm3',
                                                                                         reads1=reads[0],
                                                                                         reads2=reads[1]))
-
         for org, read in izip(orgs, reads):
+            fa_entries = 0
+            with open(org, 'r') as cnt:
+                for line in cnt:
+                    if '>' in line:
+                        fa_entries += 1
+
             with open(dst, 'a') as fh:
-                cl1 = [self.simlib, "--seed", self.sim_seed, "-n", str(read), org]
+                n = str(ceil(read/float(fa_entries)))
+                cl1 = [self.simlib, "--seed", self.sim_seed, "-n", n, org]
                 cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
 
                 p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
                 p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                 p1.stdout.close()
 
-            lines.append(helpers._count_lines(dst))
+        #trim_fastq will trim the excess of dm3 reads, as they're the last ones,
+        #leading to a file with exactly 3000 reads of E.choli and 6000 of dm3
+        helpers.trim_fastq(dst, sum(reads))
 
-        # Read actual FASTQ reads present in output file and rename it accordingly
-        reads = [read/4 for read in lines]
-        shutil.move(dst, os.path.join(self.synthetic_fastq,
-                         "simngs.mixed_{org1}_{org2}_{reads1}vs{reads2}.fastq".format(org1='eschColi_K12',
-                                                                                      org2='dm3',
-                                                                                      reads1=reads[0],
-                                                                                      reads2=reads[1]
-                                                                                      )))

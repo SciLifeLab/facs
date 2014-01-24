@@ -51,9 +51,10 @@ def trim_fastq(fastq, n):
     if not os.path.exists(fastq):
         raise IOError('FASTQ file {} not found.'.format(fastq))
     trimmed = os.path.join(os.path.dirname(fastq), '_' + os.path.basename(fastq))
+    n *= 4
     with open(fastq, 'r') as f1, open(trimmed, 'w') as f2:
-        for i, read in enumerate([read for read in f1]):
-            if i < n*4:
+        for i, read in enumerate(f1):
+            if i < n:
                 f2.write(read)
             else:
                 break
