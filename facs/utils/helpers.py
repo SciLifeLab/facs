@@ -45,6 +45,21 @@ def generate_dummy_fastq(fname, num_reads, case=''):
                 f.write('arvestad' * stride + os.linesep)
 
 
+def trim_fastq(fastq, n):
+    """Trims a FASTQ file to the first n reads.
+    """
+    if not os.path.exists(fastq):
+        raise IOError('FASTQ file {} not found.'.format(fastq))
+    trimmed = os.path.join(os.path.dirname(fastq), '_' + os.path.basename(fastq))
+    with open(fastq, 'r') as f1, open(trimmed, 'w') as f2:
+        for i, read in enumerate([read for read in f1]):
+            if i < n*4:
+                f2.write(read)
+            else:
+                break
+    shutil.move(trimmed, fastq)
+
+
 def _wake(server, retries=5):
     """Try to wake up server by retrying get requests.
 
