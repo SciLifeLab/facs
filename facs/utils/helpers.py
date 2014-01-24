@@ -66,6 +66,13 @@ def _wake(server, retries=5):
                 pass
 
 
+def _count_lines(fname):
+    with open(fname) as fh:
+        lines = sum(1 for line in fh)
+
+    return lines
+
+
 def send_couchdb(server, db, user, passwd, doc, wake_up=False):
     ''' Send JSON document to couchdb
     '''

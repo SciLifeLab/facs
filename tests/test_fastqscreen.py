@@ -26,7 +26,7 @@ class FastqScreenTest(unittest.TestCase):
         self.synthetic_fastq = os.path.join(os.path.dirname(__file__), "data", "synthetic_fastq")
         self.tmp = os.path.join(os.path.dirname(__file__), "data", "tmp")
 
-        self.fscreen_url = 'http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/fastq_screen_v0.4.tar.gz'
+        self.fscreen_url = 'http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/fastq_screen_v0.4.2.tar.gz'
 
         helpers._mkdir_p(self.tmp)
 
@@ -82,7 +82,6 @@ class FastqScreenTest(unittest.TestCase):
 
                 perl5_local = os.path.join(os.environ['HOME'], '/perl5', 'lib', 'perl5')
                 subprocess.check_call(['./cpanm', '-f', '--local-lib=', perl5_local, 'local::lib'])
-                subprocess.check_call(['./cpanm', '-n', '-f', 'GD::Graph::bars'])
             except:
                 pass
 
@@ -124,10 +123,10 @@ class FastqScreenTest(unittest.TestCase):
         data = defaultdict(lambda: defaultdict(list))
         ref = os.path.basename(ref)
 
-        #Fastq_screen version: 0.4
+        #Fastq_screen version: 0.4.2
         version = reader.next()
-        # ['Library', '%Unmapped', '%One_hit_one_library', '%Multiple_hits_one_library',
-        #  '%One_hit_multiple_libraries', '%Multiple_hits_multiple_libraries']
+
+        #['Library', '#Reads_processed', '#Unmapped', '%Unmapped', '#One_hit_one_library', '%One_hit_one_library', '#Multiple_hits_one_library', '%Multiple_hits_one_library', '#One_hit_multiple_libraries', '%One_hit_multiple_libraries', 'Multiple_hits_multiple_libraries', '%Multiple_hits_multiple_libraries']
         header = reader.next()
 
         data['sample'] = os.path.join(os.path.dirname(fastq_name), fastq_name)
@@ -136,12 +135,14 @@ class FastqScreenTest(unittest.TestCase):
         data['organisms'] = []
 
         for row in reader:
+            # skip empty rows
             if not row:
                 break
 
             organism = {}
             organism[header[0]] = ref
-            for i in range(1,5):
+            # Go through all headers
+            for i in range(1, len(header)):
                 organism[header[i]] = float(row[i])
             data['organisms'].append(organism)
 
@@ -159,10 +160,12 @@ class FastqScreenTest(unittest.TestCase):
             # make it easily comparable with those from FACS
             data['contamination_rate'] = float(data['contamination_rate']) / 100
 
-
+            # reference
             data['fastq_screen_index'] = data['organisms'][0]['Library']
 
 
+        # Which fastq_screen version are we running?
+        data['version'] = version
         # How many threads are bowtie/fastqscreen using in this test?
         data['threads'] = self.fastq_threads
 
