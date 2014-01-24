@@ -92,7 +92,7 @@ class SimNGSTest(unittest.TestCase):
                     p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
-                    #Trim the FAST file to the actual number of reads
+                #Trim the FAST file to the actual number of reads
                 helpers.trim_fastq(dst, reads)
 
 
