@@ -93,7 +93,6 @@ class SimNGSTest(unittest.TestCase):
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
                     #Trim the FAST file to the actual number of reads
-                print "Trimming {} file to {} reads...".format(dst, reads)
                 helpers.trim_fastq(dst, reads)
 
 
