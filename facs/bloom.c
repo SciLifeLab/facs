@@ -18,6 +18,10 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 /*---------------------------*/
+/*
+bloom_init, bloom_check, bloom_test, set and set functions are orinigally from bloom::faster
+*/ 
+/*---------------------------*/
 int seed[20] = {152501029, 152501717,152503097,152500171,152500157,152504837,10161313,10371313,10431313,10501313,10581313,10611313,10641313,10651313,10671313,10731313,10821313,10881313,10951313,11001313};
 /*---------------------------*/
 int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
@@ -134,7 +138,6 @@ int bloom_test (bloom * bloom, char *str, int mode)
 {
   int i, hit=1;
   BIGNUM ret;
-  //printf("In test\n");
   /* as many times as our ideal hash count dictates, salt our key
    * and hash it into the bit vector */
   for (i = 0; i < bloom->stat.ideal_hashes; i++)
@@ -194,11 +197,6 @@ int finder (BIGNUM index, deref * dr)
 	dr->index = (BIGNUM) (index >> 3);
 	dr->spot = 1 << (index & 0x07);
 	return 0;
-}
-
-BIGNUM report_capacity (bloom * bloom)
-{
-	return bloom->stat.capacity;
 }
 
 char *prefix_make (char *filename, char *prefix, char *target)

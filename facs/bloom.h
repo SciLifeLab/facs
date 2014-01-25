@@ -110,7 +110,6 @@ extern int kmer_suggestion (BIGCAST size);
 extern float mco_suggestion (int k_mer);
 extern int is_prime (BIGNUM m);
 extern void get_rec (struct bloomstat *stat);
-extern BIGNUM report_capacity (bloom * bloom);
 
 extern void write_default (char *clean, char *contam, BIGCAST sign);
 extern void write_result (char *filename, char *detail);
