@@ -20,8 +20,8 @@
 /*
 In the following functions, there are two different read formats and two read scanning mode
 'q' means fastq format; 'a' means fasta format; 'n' means normal mode; 'r' means reverse compliment mode.
-One read will be scaned in normal mode first and reverse compliment mode next. Only if the read has
-been identified as a hit read, the reverse compliment mode will be skipped.
+One read will be scaned in normal mode first and reverse complement mode next. Only if the read has
+been identified as a hit read, the reverse complement mode will be skipped.
 */
 
 void isodate(char* buf) {
@@ -106,6 +106,12 @@ if one hit exists, pass the read to total_subscan to do full check and return th
 */
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
+/*
+begin is the start point of the read in the string. Hence length is read length. mode contains 'r' and 'n'
+as mentioned above. bl is a structor containing bloom filter. tole_rate is the threshold/match cutoff  value 
+File_head is a structor containing all the info for the query, including statistic info.
+Same principle applies to fasta_read_check function.
+*/
 	if (mode == 'r') // make a copy of the read for reverse compliment process
 	{
 		char *re_compliment = (char *) calloc (length+1, sizeof (char));

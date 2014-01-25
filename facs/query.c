@@ -63,7 +63,7 @@ int bq_main (int argc, char **argv)
 	  break;
 	case 's':
 	  sampling_rate = atof(optarg); 
-	  // sampling_rate is the rate for users who wants to partially exam the sample.
+	  // Sampling rate is the partial proportion of a sample, or subsampling, i.e: 0.20 means take only 20% of the input file.
 	  break;
 	case 'o':
 	  target_path = optarg;

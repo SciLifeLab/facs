@@ -17,7 +17,7 @@
 get_suggestion, find_close_prime, get_rec and is_prime functions are invoked from bloom::faster
 */
 /*------------------------------*/
-/*suggestion for probability of random hits based on different k-mer in a empiricism way*/
+/*suggestion for probability of random hits based on different k-mer in a empiric way*/
 double prob_suggestion (int k_mer)
 {
 double prob = 0;

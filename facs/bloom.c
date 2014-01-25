@@ -19,7 +19,7 @@
 #include <sys/types.h>
 /*---------------------------*/
 /*
-bloom_init, bloom_check, bloom_test, set and set functions are orinigally from bloom::faster
+bloom_init, bloom_check, bloom_test, set and set functions are originally from bloom::faster
 */ 
 /*---------------------------*/
 int seed[20] = {152501029, 152501717,152503097,152500171,152500157,152504837,10161313,10371313,10431313,10501313,10581313,10611313,10641313,10651313,10671313,10731313,10821313,10881313,10951313,11001313};
