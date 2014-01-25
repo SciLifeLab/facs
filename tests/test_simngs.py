@@ -6,6 +6,8 @@ import shutil
 import sys
 import subprocess
 import unittest
+from itertools import izip
+from math import ceil
 
 import facs
 from facs.utils import helpers
@@ -30,11 +32,17 @@ class SimNGSTest(unittest.TestCase):
         helpers._mkdir_p(self.synthetic_fastq)
         helpers._mkdir_p(self.tmp)
 
+        # SimNGS-specific variables
         self.simngs_url = 'http://www.ebi.ac.uk/goldman-srv/simNGS/current/simNGS.tgz'
         self.sim_reads = [100, 1000, 1000000, 10000000]
 
-         # simNGS will generate exactly the same "random" datasets on each run
+        # simNGS will generate exactly the same "random" datasets on each run
         self.sim_seed = "6666520666"
+        self.simngs = os.path.join(self.progs, "simNGS")
+        self.simlib = os.path.join(self.progs, "simLibrary")
+
+        # Default Illumina error profiles for simNGS
+        self.runfile = os.path.join(self.progs, "s_3_4x.runfile")
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
@@ -57,34 +65,26 @@ class SimNGSTest(unittest.TestCase):
         """ Simulates an Illumina run with simNGS read simulator
             for each organism in references directory.
         """
-        simngs = os.path.join(self.progs, "simNGS")
-        simlib = os.path.join(self.progs, "simLibrary")
-
-        # Default Illumina error profiles for simNGS
-        runfile = os.path.join(self.progs, "s_3_4x.runfile")
-
         # Generate N simulated reads of every organism present in "org"
         orgs = [o for o in glob.glob(os.path.join(self.reference, "*/seq/*.fa"))]
 
         for org in orgs:
             fa_entries = 0
+            # Determine how many FASTA "Description lines" (headers) there are
+            # since simNGS will generate reads depending on that number
+            with open(org, 'r') as cnt:
+                for line in cnt:
+                    if '>' in line:
+                        fa_entries += 1
 
             for reads in self.sim_reads:
                 dst = os.path.join(self.synthetic_fastq,
                                    "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
-                # Determine how many FASTA "Description lines" (headers) there are
-                # since simNGS will generate reads depending on that number
-
-                with open(org, 'r') as cnt:
-                    for line in cnt:
-                        if '>' in line:
-                            fa_entries = fa_entries+1
-
                 with open(dst, 'w') as fh:
-                    # XXX: Find a good solution for floats on reads/fa_entries
-                    cl1 = [simlib, "--seed", self.sim_seed, "-n", str(reads/fa_entries), org]
-                    cl2 = [simngs, "-s", self.sim_seed, "-o", "fastq", runfile]
+                    n = str(ceil(reads/float(fa_entries)))
+                    cl1 = [self.simlib, "--seed", self.sim_seed, "-n", n, org]
+                    cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
                     # XXX: To be parametrized in future benchmarks (for paired end reads)
                     #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
 
@@ -92,5 +92,46 @@ class SimNGSTest(unittest.TestCase):
                     p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
                     p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
                     p1.stdout.close()
+                #Trim the FAST file to the actual number of reads
+                helpers.trim_fastq(dst, reads)
 
-        # IMPORTANT TODO: Spike a single random read into previous reads
+
+
+    def test_3_generate_mixed_dataset(self):
+        """ Generates a mixed synthetic dataset of eschColi with reads[0] reads
+            and dm3 with reads[1] reads.
+        """
+        orgs = [os.path.join(self.reference, "eschColi_K12/seq/eschColi_K12.fa"),
+                os.path.join(self.reference, "dm3/seq/dm3.fa")]
+
+        reads = [3000, 6000]
+
+        # Will hold the real number of fastq reads after simNGS, independent of
+        # organism
+        lines = []
+
+        dst = os.path.join(self.synthetic_fastq,
+                           "simngs.mixed_{org1}_{org2}_{reads1}vs{reads2}.fastq".format(org1='eschColi_K12',
+                                                                                        org2='dm3',
+                                                                                        reads1=reads[0],
+                                                                                        reads2=reads[1]))
+        for org, read in izip(orgs, reads):
+            fa_entries = 0
+            with open(org, 'r') as cnt:
+                for line in cnt:
+                    if '>' in line:
+                        fa_entries += 1
+
+            with open(dst, 'a') as fh:
+                n = str(ceil(read/float(fa_entries)))
+                cl1 = [self.simlib, "--seed", self.sim_seed, "-n", n, org]
+                cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
+
+                p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
+                p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
+                p1.stdout.close()
+
+        #trim_fastq will trim the excess of dm3 reads, as they're the last ones,
+        #leading to a file with exactly 3000 reads of E.choli and 6000 of dm3
+        helpers.trim_fastq(dst, sum(reads))
+
