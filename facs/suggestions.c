@@ -12,8 +12,12 @@
 #include <sys/types.h>
 #include "prob.h"
 #define MB 1048576
-
-/*suggestion for probability of random hits*/
+/*------------------------------*/
+/*
+get_suggestion, find_close_prime, get_rec and is_prime functions are invoked from bloom::faster
+*/
+/*------------------------------*/
+/*suggestion for probability of random hits based on different k-mer in a empiric way*/
 double prob_suggestion (int k_mer)
 {
 double prob = 0;
@@ -27,7 +31,7 @@ else
 	prob = 0.001057;
 return prob;
 }
-/*suggestion for kmer*/
+/*suggestion for kmer,suggest different k_mer number based on the size of the sample*/
 int kmer_suggestion (BIGCAST size)
 {
   if (size < 10 * MB)
@@ -55,7 +59,7 @@ int kmer_suggestion (BIGCAST size)
       return 20;
     }
 }
-/*suggestion for match cutoff*/
+/*suggestion for match cutoff (threshold) based on the k-mer number*/
 float mco_suggestion (int k_mer)
 {
   switch (k_mer)
@@ -76,7 +80,7 @@ float mco_suggestion (int k_mer)
       return 0.4;
     }
 }
-/*suggestion for size of bloom filter*/
+/*suggestion for size of bloom filter, estimated by the number of elements in the query*/
 int get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
 {
   stats->capacity = n;
@@ -85,7 +89,7 @@ int get_suggestion (struct bloomstat *stats, BIGNUM n, double e)
 
   return 0;
 }
-
+/*find the closest prme number for number of elements*/
 BIGNUM find_close_prime (BIGNUM m)
 {
   if ((m % 2) == 0)
