@@ -133,5 +133,5 @@ int is_prime (BIGNUM m)
 	return 0;
       currval += 8;
     }
-  return (int) m % currval;`
+  return (int) m % currval;
 }

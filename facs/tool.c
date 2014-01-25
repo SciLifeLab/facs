@@ -17,7 +17,12 @@
 #include "tool.h"
 #include "bloom.h"
 #include "file_dir.h"
-
+/*
+In the following functions, there are two different read formats and two read scanning mode
+'q' means fastq format; 'a' means fasta format; 'n' means normal mode; 'r' means reverse compliment mode.
+One read will be scaned in normal mode first and reverse compliment mode next. Only if the read has
+been identified as a hit read, the reverse compliment mode will be skipped.
+*/
 
 void isodate(char* buf) {
     /* Borrowed from: https://raw.github.com/jordansissel/experiments/bd58235b99f608472212a5933b52fca9cf1cac8d/c/time/iso8601.c */
@@ -96,7 +101,9 @@ int total_subscan (bloom *bl, F_set *File_head, char *begin, char *start_point, 
 			return fasta_read_check (begin, true_length, 'r', bl, tole_rate, File_head);
 	}
 }
-/*quick pass for fastq reads using k-mer and 0 overlap*/
+/*quick pass for fastq reads using k-mer and 0 overlap
+if one hit exists, pass the read to total_subscan to do full check and return the value, other wise return 0
+*/
 int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole_rate, F_set * File_head)
 {
 	if (mode == 'r') // make a copy of the read for reverse compliment process
@@ -116,7 +123,9 @@ int fastq_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	}
 	return total_subscan (bl, File_head, begin, start_point, read_length, length, tole_rate, mode, 'q');
 }
-/*full check for fastq or fasta sequence with k-mer and k-1 overlap*/
+/*full check for fastq or fasta sequence with k-mer and k-1 overlap
+return a value that larger than match cut off, otherwise, return 0
+*/
 int total_full_check (bloom * bl, char *start_point, int length, float tole_rate, F_set * File_head)
 {
 	int read_length = length, count = 0, match_s = 0, mark = 1, prev = 0, conse = 0, match_time = 0;
@@ -181,17 +190,15 @@ int fasta_read_check (char *begin, int length, char mode, bloom * bl, float tole
 	read_length = true_length;
        	if (mode == 'r') // make a copy of the read for reverse compliment process
        	{
-                rev_trans (start_point,true_length);
+                rev_trans (start_point,true_length); // reverse compliment process
         }
-	// reverse compliment process
 	if (mode == 'n')
 		begin = start_point;
         normal_lower(start_point,true_length); 
 	return total_subscan (bl, File_head, begin, start_point, read_length, true_length, tole_rate, mode, 'a');
 }
 /*Parallel job distribution*/
-int
-get_parainfo (char *full, Queue * head, char type)
+int get_parainfo (char *full, Queue * head, char type)
 {
 #ifdef DEBUG
   printf ("distributing...\n");
@@ -257,8 +264,7 @@ get_parainfo (char *full, Queue * head, char type)
 }
 
 /*reads skipping process for proportional check*/
-char *
-jump (char *target, char type, float sampling_rate)
+char *jump (char *target, char type, float sampling_rate)
 {
   float seed = rand () % 10;
 
