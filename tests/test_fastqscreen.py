@@ -111,7 +111,7 @@ class FastqScreenTest(unittest.TestCase):
                       "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
                 mem = [-1]
                 if profile:
-                    mem = memory_usage((helpers.profile_call,([cl]),), include_children=True)
+                    mem = memory_usage((subprocess.call,([cl]),), include_children=True)
                 else:
                     subprocess.call(cl)
 
