@@ -274,5 +274,6 @@ class FastqScreenTest(unittest.TestCase):
     """.format(short_name=os.path.basename(reference),
            full_path=bwt_index)
 
+        print self.config+config_dbs
         return self.config+config_dbs
 
