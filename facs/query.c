@@ -62,7 +62,8 @@ int bq_main (int argc, char **argv)
 	  tole_rate = atof(optarg);
 	  break;
 	case 's':
-	  sampling_rate = atof(optarg);
+	  sampling_rate = atof(optarg); 
+	  // Sampling rate is the partial proportion of a sample, or subsampling, i.e: 0.20 means take only 20% of the input file.
 	  break;
 	case 'o':
 	  target_path = optarg;
@@ -387,7 +388,7 @@ void reset_string()
         _clean = _clean2;
         _contam = _contam2;
 }
-
+/*cut the reads from the string and process them one by one*/
 void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, float sampling_rate, float tole_rate, char mode, char fmt_type)
 {
 	char *start_point = info->location;
@@ -421,6 +422,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 		// skip the ID line
 		if (fmt_type == '@')
 		{
+			//identify read as fastq format read and pass it to fastq_read_check to process
 			result = fastq_read_check (start_point, strchr (start_point, '\n') - start_point, 'n', bl, tole_rate, File_head);
 			start_point = strchr (start_point, '\n') + 1;
 			start_point = strchr (start_point, '\n') + 1;
@@ -431,6 +433,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 			temp_next = strchr(start_point+1,'>');
 			if (temp_next == NULL)
 				temp_next = next_job;
+			//identify read as fasta format read and pass it to fasta_read_check to process
 			result = fasta_read_check (start_point, temp_next-start_point, 'n', bl, tole_rate, File_head);
 			start_point = temp_next;
 		}
@@ -460,7 +463,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 		}
 	}	// outside while
 }
-
+/*generates statistic results*/
 char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start_timestamp, double prob, int threads)
 {
   char *abs_query_path = NULL, *abs_filter_path = NULL;
@@ -505,7 +508,7 @@ char *report(F_set *File_head, char *query, char *fmt, char *prefix, char *start
   }
   return buffer;
 }
-
+/*save statistic results*/
 char *statistic_save (char *filename, char *prefix)
 {
   char *save_file = NULL;
@@ -540,7 +543,7 @@ char *statistic_save (char *filename, char *prefix)
 #endif
   return save_file;
 }
-
+/*get absolute path from a file*/
 char *get_abs_path(char *filename)
 {
   char *path = realpath(filename, NULL);
