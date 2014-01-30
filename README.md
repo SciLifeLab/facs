@@ -13,6 +13,9 @@ FACS is the C implementation of a previous Perl module, please select the
 <a href="https://github.com/SciLifeLab/facs/tree/perl">perl branch</a> if
 you want to have a look at the old (unsupported) implementation.
 
+Some components of this work are based in the excellent Perl `Bloom::Faster`
+<a href='http://search.cpan.org/~palvaro/Bloom-Faster-1.7/lib/Bloom/Faster.pm'>implementation</a>.
+
 Overview
 --------
 
