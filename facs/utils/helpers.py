@@ -104,6 +104,11 @@ def send_couchdb(server, db, user, passwd, doc, wake_up=False):
         pass
 
 
+def profile_call(cl):
+    """Just a wrapper around check_call so it can be profiled
+    """
+    subprocess.call(cl)
+
 ### Software management
 
 def _download_to_dir(url, dirname):

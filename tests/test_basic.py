@@ -6,10 +6,17 @@ import unittest
 import subprocess
 import contextlib
 import collections
+import json
 
 import facs
 from facs.utils import helpers, galaxy, config
 from nose.plugins.attrib import attr
+
+try:
+    from memory_profiler import memory_usage
+    profile = True
+except ImportError:
+    profile = False
 
 @attr('standard')
 class FacsBasicTest(unittest.TestCase):
@@ -74,8 +81,16 @@ class FacsBasicTest(unittest.TestCase):
                 qry = os.path.join(self.synthetic_fastq, sample)
                 bf = os.path.join(self.bloom_dir, os.path.splitext(ref)[0]+".bloom")
                 print(qry, bf)
-                json_doc = facs.query(qry, bf)
-                self.results.append(json_doc)
+                mem = [-1]
+                if profile:
+                    mem, json_doc = memory_usage((facs.query, (qry, bf),), include_children=True, retval=True)
+                else:
+                    json_doc = facs.query(qry, bf)
+                json_dict = json.loads(json_doc)
+                json_dict['max_mem'] = max(mem)
+                json_dict['min_mem'] = min(mem)
+                json_dict['mean_mem'] = sum(mem)/float(len(mem))
+                self.results.append(json.dumps(json_dict))
 
     def test_3_query_custom(self):
         """ Query against the uncompressed FastQ files files manually deposited

@@ -14,6 +14,12 @@ import facs
 from facs.utils import helpers, galaxy, config
 from nose.plugins.attrib import attr
 
+try:
+    from memory_profiler import memory_usage
+    profile = True
+except ImportError:
+    profile = False
+
 class FastqScreenTest(unittest.TestCase):
     """Tests against Fastq Screen, to compare performance metrics.
     """
@@ -103,7 +109,11 @@ class FastqScreenTest(unittest.TestCase):
                 fastq_path = os.path.join(self.synthetic_fastq, fastq)
                 cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
                       "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
-                subprocess.call(cl)
+                mem = [-1]
+                if profile:
+                    mem = memory_usage((helpers.profile_call,([cl]),), include_children=True)
+                else:
+                    subprocess.call(cl)
 
                 end_time = str(datetime.datetime.utcnow())+'Z'
 
@@ -113,12 +123,13 @@ class FastqScreenTest(unittest.TestCase):
                 fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
                 if os.path.exists(fastq_screen_resfile):
                     with open(fastq_screen_resfile, 'rU') as fh:
-                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time))
+                        self.results.append(self._fastq_screen_metrics_to_json(fh, \
+                                fastq_name, ref, start_time, end_time, mem))
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
 
-    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time):
+    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem):
         reader = csv.reader(in_handle, delimiter="\t")
         data = defaultdict(lambda: defaultdict(list))
         ref = os.path.basename(ref)
@@ -168,6 +179,9 @@ class FastqScreenTest(unittest.TestCase):
         data['version'] = version
         # How many threads are bowtie/fastqscreen using in this test?
         data['threads'] = self.fastq_threads
+        data['max_mem'] = max(mem)
+        data['min_mem'] = min(mem)
+        data['mean_mem'] = sum(mem)/float(len(mem))
 
         return json.dumps(data)
 
@@ -196,3 +210,4 @@ class FastqScreenTest(unittest.TestCase):
            full_path=bwt_index)
 
         return self.config+config_dbs
+
