@@ -11,7 +11,6 @@ tests: python
 benchmarks: python
 	# XXX: Add a helper function that determines the number of cores present
 	cd tests &&  \
-	nosetests -v -s -P --with-timer test_simngs.py && \
 	export OMP_NUM_THREADS=1 && nosetests -v -s -P --with-timer test_basic.py && \
 	export OMP_NUM_THREADS=8 && nosetests -v -s -P --with-timer test_basic.py && \
 	export OMP_NUM_THREADS=16 && nosetests -v -s -P --with-timer test_basic.py && \
