@@ -1,2 +1,4 @@
 nose
 nose-timer
+psutil
+memory_profiler
