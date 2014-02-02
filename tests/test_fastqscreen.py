@@ -145,6 +145,7 @@ class FastqScreenTest(unittest.TestCase):
                 fastq_path = os.path.join(self.synthetic_fastq, fastq)
                 cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
                       "--aligner", "bowtie2", "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+
                 mem = [-1]
                 if profile:
                     mem = memory_usage((subprocess.call,([cl]),), include_children=True)
@@ -250,7 +251,7 @@ class FastqScreenTest(unittest.TestCase):
 
         for ref in os.listdir(self.reference):
             test_ref = os.path.basename(ref)
-            bowtie2_paths.append(os.path.join(site_prefix, site_map[test_ref], ref, "bowtie2", test_ref))
+            bowtie2_paths.append(os.path.join(site_prefix, site_map[test_ref], test_ref, "bowtie2", test_ref))
 
         return bowtie2_paths
 
@@ -270,10 +271,9 @@ class FastqScreenTest(unittest.TestCase):
     """.format(bowtie=bowtie, threads=self.fastq_threads)
 
         config_dbs = """
-    DATABASE\t{short_name}\t{full_path}
+    DATABASE\t{short_name}\t{full_path}\t{bowtie}
     """.format(short_name=os.path.basename(reference),
-           full_path=bwt_index)
+           full_path=bwt_index, bowtie=str.upper(bowtie))
 
-        print self.config+config_dbs
         return self.config+config_dbs
 
