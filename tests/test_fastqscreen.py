@@ -59,7 +59,7 @@ class FastqScreenTest(unittest.TestCase):
                     helpers.send_couchdb(config.SERVER, config.FASTQ_SCREEN_DB, config.USERNAME, config.PASSWORD, res, wake_up=config.WAKE)
 
             # remove fastq_screen files from old test runs
-            _cleanup_fastq_screen_results()
+            self._cleanup_fastq_screen_results()
         except:
             pass
 
@@ -131,7 +131,7 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
-        _cleanup_fastq_screen_results()
+        self._cleanup_fastq_screen_results()
 
     def test_3_run_fastq_screen_with_bowtie2(self):
         """ Runs fastq_screen using bowtie2 tests against synthetically generated fastq files folder.
@@ -177,7 +177,7 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
-        _cleanup_fastq_screen_results()
+        self._cleanup_fastq_screen_results()
 
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem):
