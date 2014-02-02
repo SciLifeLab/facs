@@ -132,6 +132,10 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
+        # remove fastq_screen files from old test runs (bowtie1 vs bowtie2 have the same results files)
+        shutil.rmtree(self.tmp)
+        os.mkdir(self.tmp)
+
     def test_3_run_fastq_screen_with_bowtie2(self):
         """ Runs fastq_screen using bowtie2 tests against synthetically generated fastq files folder.
             It runs generates single threaded config files, to measure performance per-sample.
@@ -175,6 +179,10 @@ class FastqScreenTest(unittest.TestCase):
                         self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time, mem))
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
+
+        # remove fastq_screen files from old test runs (bowtie1 vs bowtie2 have the same results files)
+        shutil.rmtree(self.tmp)
+        os.mkdir(self.tmp)
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem):
         reader = csv.reader(in_handle, delimiter="\t")
