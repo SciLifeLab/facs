@@ -66,10 +66,6 @@ class FastqScreenTest(unittest.TestCase):
     def test_1_fetch_fastqscreen(self):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
-        # Does not work @UPPMAX, maybe some env var tweaked by the module system?
-        # ... works elsewhere.
-        #self.assertTrue(self._is_bowtie_present())
-
         dirname, fname = helpers._fetch_and_unpack(self.fscreen_url)
         self._fetch_bowtie_indices()
 
@@ -126,8 +122,9 @@ class FastqScreenTest(unittest.TestCase):
                 fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
                 if os.path.exists(fastq_screen_resfile):
                     with open(fastq_screen_resfile, 'rU') as fh:
+                        bowtie1_ver, _ = self._bowtie_versions()
                         self.results.append(self._fastq_screen_metrics_to_json(fh, \
-                                fastq_name, ref, start_time, end_time, mem))
+                                fastq_name, ref, start_time, end_time, mem, bowtie1_ver))
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
@@ -173,14 +170,15 @@ class FastqScreenTest(unittest.TestCase):
                 fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
                 if os.path.exists(fastq_screen_resfile):
                     with open(fastq_screen_resfile, 'rU') as fh:
-                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time, mem))
+                        _, bowtie2_ver = self._bowtie_versions()
+                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time, mem, bowtie2_ver))
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
         self._cleanup_fastq_screen_results()
 
 
-    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem):
+    def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem, prov):
         reader = csv.reader(in_handle, delimiter="\t")
         data = defaultdict(lambda: defaultdict(list))
         ref = os.path.basename(ref)
@@ -199,6 +197,9 @@ class FastqScreenTest(unittest.TestCase):
         data['begin_timestamp'] = start_time
         data['end_timestamp'] = end_time
         data['organisms'] = []
+
+        # Add provenance such as which version of bowtie is running
+        data['versions'] = prov
 
         for row in reader:
             # skip empty rows
@@ -271,6 +272,17 @@ class FastqScreenTest(unittest.TestCase):
 
         return bowtie2_paths
 
+    def _bowtie_versions(self):
+        """ Provenance, we should know which versions of third party tools were
+            running while running the testsuite.
+        """
+        try:
+            bowtie1_ver = subprocess.check_output(["bowtie", "--version"])
+            bowtie2_ver = subprocess.check_output(["bowtie2", "--version"])
+        except:
+            raise RuntimeError('bowtie1 or bowtie2 seem to be missing, aborting test')
+
+        return bowtie1_ver, bowtie2_ver
 
     def _genconf(self, query, reference, threads, bowtie="bowtie"):
         # The latter string (reference) shouldn't start with a slash
