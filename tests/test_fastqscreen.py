@@ -128,7 +128,7 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
-        self._cleanup_fastq_screen_results()
+                self._cleanup_fastq_screen_results()
 
     def test_3_run_fastq_screen_with_bowtie2(self):
         """ Runs fastq_screen using bowtie2 tests against synthetically generated fastq files folder.
@@ -175,7 +175,7 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
-        self._cleanup_fastq_screen_results()
+                self._cleanup_fastq_screen_results()
 
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem, prov):
@@ -199,7 +199,7 @@ class FastqScreenTest(unittest.TestCase):
         data['organisms'] = []
 
         # Add provenance such as which version of bowtie is running
-        data['versions'] = prov
+        data['fastq_screen_version'] = prov
 
         for row in reader:
             # skip empty rows
@@ -232,7 +232,7 @@ class FastqScreenTest(unittest.TestCase):
 
 
         # Which fastq_screen version are we running?
-        data['version'] = version
+        data['fastq_screen_version'] = version
         # How many threads are bowtie/fastqscreen using in this test?
         data['threads'] = self.fastq_threads
         data['max_mem'] = max(mem)
@@ -277,8 +277,8 @@ class FastqScreenTest(unittest.TestCase):
             running while running the testsuite.
         """
         try:
-            bowtie1_ver = subprocess.check_output(["bowtie", "--version"])
-            bowtie2_ver = subprocess.check_output(["bowtie2", "--version"])
+            bowtie1_ver = subprocess.check_output(["bowtie", "--version"]).split('\n')
+            bowtie2_ver = subprocess.check_output(["bowtie2", "--version"]).split('\n')
         except:
             raise RuntimeError('bowtie1 or bowtie2 seem to be missing, aborting test')
 
