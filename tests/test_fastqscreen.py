@@ -63,6 +63,17 @@ class FastqScreenTest(unittest.TestCase):
         except:
             pass
 
+    def test_0_bowtie_versions(self):
+        """ Test whether locally installed bowtie versions work, we need
+            versions for provenance.
+        """
+        bowtie1, bowtie2 = self._bowtie_versions()
+
+        # are the relevant version strings present in the output?
+        assert "bowtie2-align" in bowtie2
+        assert "bowtie" in bowtie1
+
+
     def test_1_fetch_fastqscreen(self):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
@@ -277,8 +288,8 @@ class FastqScreenTest(unittest.TestCase):
             running while running the testsuite.
         """
         try:
-            bowtie1_ver = subprocess.check_output(["bowtie", "--version"]).split('\n')
-            bowtie2_ver = subprocess.check_output(["bowtie2", "--version"]).split('\n')
+            bowtie1_ver = subprocess.check_output(["bowtie", "--version"])
+            bowtie2_ver = subprocess.check_output(["bowtie2", "--version"])
         except:
             raise RuntimeError('bowtie1 or bowtie2 seem to be missing, aborting test')
 
