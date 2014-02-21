@@ -63,6 +63,17 @@ class FastqScreenTest(unittest.TestCase):
         except:
             pass
 
+    def test_0_bowtie_versions(self):
+        """ Test whether locally installed bowtie versions work, we need
+            versions for provenance.
+        """
+        bowtie1, bowtie2 = self._bowtie_versions()
+
+        # are the relevant version strings present in the output?
+        assert "bowtie2-align" in bowtie2
+        assert "bowtie" in bowtie1
+
+
     def test_1_fetch_fastqscreen(self):
         """Downloads and installs fastq_screen locally, generates fastq_screen.conf file
         """
@@ -128,7 +139,7 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
-        self._cleanup_fastq_screen_results()
+                self._cleanup_fastq_screen_results()
 
     def test_3_run_fastq_screen_with_bowtie2(self):
         """ Runs fastq_screen using bowtie2 tests against synthetically generated fastq files folder.
@@ -175,7 +186,7 @@ class FastqScreenTest(unittest.TestCase):
                     # Clean to avoid parsing the wrong results file
                     os.remove(fastq_screen_resfile)
 
-        self._cleanup_fastq_screen_results()
+                self._cleanup_fastq_screen_results()
 
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem, prov):
@@ -199,7 +210,7 @@ class FastqScreenTest(unittest.TestCase):
         data['organisms'] = []
 
         # Add provenance such as which version of bowtie is running
-        data['versions'] = prov
+        data['fastq_screen_version'] = prov
 
         for row in reader:
             # skip empty rows
@@ -232,7 +243,7 @@ class FastqScreenTest(unittest.TestCase):
 
 
         # Which fastq_screen version are we running?
-        data['version'] = version
+        data['fastq_screen_version'] = version
         # How many threads are bowtie/fastqscreen using in this test?
         data['threads'] = self.fastq_threads
         data['max_mem'] = max(mem)
