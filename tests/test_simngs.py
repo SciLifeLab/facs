@@ -69,31 +69,34 @@ class SimNGSTest(unittest.TestCase):
         orgs = [o for o in glob.glob(os.path.join(self.reference, "*/seq/*.fa"))]
 
         for org in orgs:
-            fa_entries = 0
-            # Determine how many FASTA "Description lines" (headers) there are
-            # since simNGS will generate reads depending on that number
-            with open(org, 'r') as cnt:
-                for line in cnt:
-                    if '>' in line:
-                        fa_entries += 1
 
             for reads in self.sim_reads:
                 dst = os.path.join(self.synthetic_fastq,
                                    "simngs_{org}_{reads}.fastq".format(org=org.split(os.sep)[-3], reads=reads))
 
-                with open(dst, 'w') as fh:
-                    n = str(ceil(reads/float(fa_entries)))
-                    cl1 = [self.simlib, "--seed", self.sim_seed, "-n", n, org]
-                    cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
-                    # XXX: To be parametrized in future benchmarks (for paired end reads)
-                    #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
+                #Do not regenerate datasets that are already present
+                if not os.path.exists(dst):
+                    fa_entries = 0
+                    # Determine how many FASTA "Description lines" (headers) there are
+                    # since simNGS will generate reads depending on that number
+                    with open(org, 'r') as cnt:
+                        for line in cnt:
+                            if '>' in line:
+                                fa_entries += 1
 
-                    # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
-                    p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
-                    p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
-                    p1.stdout.close()
-                #Trim the FAST file to the actual number of reads
-                helpers.trim_fastq(dst, reads)
+                    with open(dst, 'w') as fh:
+                        n = str(ceil(reads/float(fa_entries)))
+                        cl1 = [self.simlib, "--seed", self.sim_seed, "-n", n, org]
+                        cl2 = [self.simngs, "-s", self.sim_seed, "-o", "fastq", self.runfile]
+                        # XXX: To be parametrized in future benchmarks (for paired end reads)
+                        #cl2 = [simngs, "-o", "fastq", "-p", "paired", runfile]
+
+                        # http://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
+                        p1 = subprocess.Popen(cl1, stdout=subprocess.PIPE)
+                        p2 = subprocess.Popen(cl2, stdin=p1.stdout, stdout=fh).communicate()
+                        p1.stdout.close()
+                    #Trim the FAST file to the actual number of reads
+                    helpers.trim_fastq(dst, reads)
 
 
 
