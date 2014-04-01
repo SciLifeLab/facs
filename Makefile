@@ -23,7 +23,7 @@ valgrind: python
 	valgrind --tool=memcheck --suppressions=facs/utils/valgrind-python.supp nosetests -P -v -s
 
 python: clean
-	python setup.py install
+	ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future python setup.py install
 
 clean:
 	rm -rf build dist $(PROG).egg-info
