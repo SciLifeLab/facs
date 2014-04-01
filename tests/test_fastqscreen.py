@@ -110,7 +110,7 @@ class FastqScreenTest(unittest.TestCase):
                       "--aligner", "bowtie", "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
                 mem = [-1]
                 if profile:
-                    mem = memory_usage((subprocess.call,([cl]),), include_children=True)
+                    mem = memory_usage(subprocess.Popen(cl), include_children=True)
                 else:
                     subprocess.call(cl)
 
@@ -235,9 +235,7 @@ class FastqScreenTest(unittest.TestCase):
         data['version'] = version
         # How many threads are bowtie/fastqscreen using in this test?
         data['threads'] = self.fastq_threads
-        data['max_mem'] = max(mem)
-        data['min_mem'] = min(mem)
-        data['mean_mem'] = sum(mem)/float(len(mem))
+        data['memory_usage'] = mem
 
         return json.dumps(data)
 
