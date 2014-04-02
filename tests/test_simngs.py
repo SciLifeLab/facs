@@ -10,7 +10,7 @@ from itertools import izip
 from math import ceil
 
 import facs
-from facs.utils import helpers
+from facs.utils import helpers, galaxy
 
 class SimNGSTest(unittest.TestCase):
     """ Tests against simNGS, to compare performance metrics with FACS.
@@ -43,6 +43,16 @@ class SimNGSTest(unittest.TestCase):
 
         # Default Illumina error profiles for simNGS
         self.runfile = os.path.join(self.progs, "s_3_4x.runfile")
+
+        # Check if reference data is already downloaded, and do it if not
+
+        # Check if 2bit decompressor is available
+        twobit_fa_path = os.path.join(self.progs, "twoBitToFa")
+        if not os.path.exists(twobit_fa_path):
+            galaxy.download_twoBitToFa_bin(twobit_fa_path)
+
+        # Downloads reference genome(s)
+        galaxy.rsync_genomes(self.reference, ["phix", "dm3", "ecoli"], ["ucsc"], twobit_fa_path)
 
     def test_1_fetch_simNGS(self):
         """ Downloads and installs simNGS locally
