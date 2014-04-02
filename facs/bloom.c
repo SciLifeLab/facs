@@ -251,6 +251,7 @@ int save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   if (write (fd, bl, sizeof (bloom)) < 0)
   {
       perror (" error writing bloom file ");
+      close (fd);
       exit (EXIT_FAILURE);
   }
   total_size = (BIGNUM) (bl->stat.elements / 8) + 1;
@@ -260,6 +261,7 @@ int save_bloom (char *filename, bloom * bl, char *prefix, char *target)
       if (write (fd, bl->vector + off, sizeof (char) * ONEG*2) < 0)
       {
 	  perror (" error writing bloom file ");
+	  close (fd);
 	  exit (EXIT_FAILURE);
       }
       total_size -= ONEG*2;
@@ -268,6 +270,7 @@ int save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   if (write (fd, bl->vector + off, sizeof (char) * total_size) < 0)
   {
       perror (" error writing bloom file ");
+      close (fd);
       exit (EXIT_FAILURE);
   };
   close (fd);
@@ -303,6 +306,7 @@ load_bloom (char *filename, bloom * bl)
   if (read (fd, bl, sizeof (bloom)) < 0)
   {
       perror ("Problem reading Bloom filter");
+      close (fd);
       return 0;
   };
   bl->vector = (char *) calloc (1, sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1));
@@ -311,7 +315,11 @@ load_bloom (char *filename, bloom * bl)
   {
   	ret = read (fd, bl->vector + off, sizeof (char) * ONEG*2);
   	if (ret < 0)
+	{
 		perror ("Problem reading Bloom filter");
+		close (fd);
+		return 0;
+	}
    	total_size -= ONEG*2;
   	off += ONEG*2;
   }
@@ -418,19 +426,23 @@ char *mmaping (char *source)
   }
   if (fstat (fd, &statbuf) < 0) {
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
+      close (fd);
       exit (EXIT_FAILURE);
   } else if (statbuf.st_size == 0) {
       fprintf (stderr, "%s: %s\n", source, "File is empty");
-      exit (-1);
+      close (fd);
+      exit (EXIT_FAILURE);
   }
 
   sm = mmap (0, (BIGCAST) statbuf.st_size, PROT_READ, MAP_SHARED | MAP_NORESERVE, fd, 0);
 
   if (MAP_FAILED == sm){
       fprintf (stderr, "%s: %s\n", source, strerror (errno));
+      close (fd);
       exit (EXIT_FAILURE);
   }
 
+  close (fd);
   return sm;
 }
 
