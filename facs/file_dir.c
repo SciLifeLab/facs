@@ -11,15 +11,6 @@
 #include "bloom.h"
 
 
-void
-get_file_path (const char *path, const char *file_name, char *file_path)
-{
-  strcpy (file_path, path);
-  if (file_path[strlen (path) - 1] != '/')
-    strcat (file_path, "/");
-  strcat (file_path, file_name);
-}
-
 int
 is_dir (const char *path)
 {
@@ -109,15 +100,17 @@ make_list (char *file_user, char *list_user)
 	}
       while ((dir_info = readdir (dir)) != NULL)
 	{
-	  char *file_path = (char *) malloc (300 * sizeof (char));
-	  memset (file_path, 0, 300);
-	  get_file_path (file_user, dir_info->d_name, file_path);
-
 	  if (is_special_dir (dir_info->d_name))
 	    continue;
 
 	  if (!strstr (dir_info->d_name, ".bloom"))
 	    continue;
+
+	  char *file_path = (char *) malloc (strlen(file_user) + 1 + strlen(dir_info->d_name) + 1);
+	  strcpy (file_path, file_user);
+	  if (file_path[strlen(file_path) - 1] != '/')
+	    strcat (file_path, "/");
+	  strcat (file_path, dir_info->d_name);
 
 	  F_set *fset = NEW (F_set);
 	  fset->filename = file_path;
