@@ -108,7 +108,8 @@ def facs_vs_fastq_screen():
                 facs_filt_name, _ = os.path.splitext(os.path.basename(fcs['bloom_filter']))
                 if facs_filt_name == fqscr['fastq_screen_index']:
                     # Do not assume the test run went well
-                    if len(fqscr['organisms']) > 0:
+                    if len(fqscr['organisms']) > 0 and fqscr.get('memory_usage', None) and \
+                            fcs.get('memory_usage', None):
                         if fqscr.get('begin_timestamp') and fcs.get('begin_timestamp'):
                         # Fetch timing info for each program
                             begin = fqscr['begin_timestamp']
@@ -138,6 +139,10 @@ def facs_vs_fastq_screen():
                             contam_fcs = fcs.get('contamination_rate')
                             contam_fqscr = fqscr.get('contamination_rate')
 
+                            # Memory usage
+                            mem_facs = fcs.get('memory_usage')
+                            mem_fqscr = fqscr.get('memory_usage')
+
                             results[run] = dict(delta = delta.total_seconds(),
                                                 contam_fqscr = contam_fqscr,
                                                 delta_facs = delta_fcs.total_seconds(),
@@ -147,7 +152,9 @@ def facs_vs_fastq_screen():
                                                 filter_fqscr = fqscr.get('fastq_screen_index'),
                                                 filter_facs = fcs.get('bloom_filter'),
                                                 threads_facs = fcs.get('threads'),
-                                                threads_fqscr = fqscr.get('threads'))
+                                                threads_fqscr = fqscr.get('threads'),
+                                                mem_facs = mem_facs,
+                                                mem_fqscr = mem_fqscr)
 
 
     return json.dumps(results)
