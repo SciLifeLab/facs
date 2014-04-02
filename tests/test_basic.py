@@ -87,9 +87,7 @@ class FacsBasicTest(unittest.TestCase):
                 else:
                     json_doc = facs.query(qry, bf)
                 json_dict = json.loads(json_doc)
-                json_dict['max_mem'] = max(mem)
-                json_dict['min_mem'] = min(mem)
-                json_dict['mean_mem'] = sum(mem)/float(len(mem))
+                json_dict['memory_usage'] = mem
                 self.results.append(json.dumps(json_dict))
 
     def test_3_query_custom(self):
