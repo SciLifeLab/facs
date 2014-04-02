@@ -149,21 +149,53 @@ def _rsync_genome_index(gid, idx, org_dir):
                 org_rsync = test_rsync
                 break
         if org_rsync is None:
-            raise ValueError("Could not find genome %s on Galaxy rsync" % gid)
+            # Try to build the indexes
+            if not _build_index(org_dir, gid, idx.split('_')[0]):
+                raise RuntimeError("Index files for {} could not be either " \
+                        "downloaded or built".format(gid))
 
+        else:
+            check_dir = subprocess.Popen(["rsync", "--list-only", "{server}".format(server=org_rsync)],
+                                         stdout=subprocess.PIPE).communicate()[0]
 
-        check_dir = subprocess.Popen(["rsync", "--list-only", "{server}".format(server=org_rsync)],
-                                     stdout=subprocess.PIPE).communicate()[0]
-        if check_dir:
-            if not os.path.exists(idx_dir):
-                subprocess.check_call(['mkdir', '-p', idx_dir])
-            with cd(idx_dir):
-                subprocess.check_call(["rsync", "-avzP", org_rsync, "."])
+            if check_dir:
+                if not os.path.exists(idx_dir):
+                    subprocess.check_call(['mkdir', '-p', idx_dir])
+                with cd(idx_dir):
+                    subprocess.check_call(["rsync", "-avzP", org_rsync, "."])
     if os.path.exists(idx_dir):
         has_fa_ext = glob.glob("{idx_dir}/{gid}.fa*".format(idx_dir=idx_dir, gid=gid))
 
         ext = ".fa" if (has_fa_ext and idx not in ["seq"]) else ""
         return os.path.join(idx_dir, gid + ext)
+
+def _build_index(genome_dir, organism, aligner):
+    """Build aligner index files for the organism
+
+    Supported aligners: BWA, Bowtie and Bowtie2.
+
+    :param genome_dir: Directory where to store index files and where the reference genome is
+    :param organism: Reference genome
+    :param aligner: Aligner to build the indexes with
+    :raises RuntimeError: If any error when building the indexes.
+    """
+    ref = os.path.join(genome_dir, 'seq', organism + '.fa')
+    out_dir = os.path.join(genome_dir, aligner + '_index', organism)
+    subprocess.check_call(['mkdir', '-p', out_dir])
+    if aligner.find('bowtie') >= 0:
+        try:
+            subprocess.check_call([aligner + '-build', ref, out_dir])
+            return True
+        except subprocess.CalledProcessError:
+            return False
+    elif aligner == 'bwa':
+        try:
+            with cd(out_dir):
+                subprocess.check_call([aligner, 'index', ref, out_dir])
+                return True
+        except subprocess.CalledProcessError:
+            return False
+    return False
 
 @contextmanager
 def cd(path):

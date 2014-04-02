@@ -46,10 +46,6 @@ class FastqScreenTest(unittest.TestCase):
         self.fastq_threads = os.environ.get('OMP_NUM_THREADS', 1)
         self.results = []
 
-        # XXX: Given the lack of standard reference genomes and indexes repos,
-        # this site-specific hack (UPPMAX-only path) is needed
-        self.site_prefix = '/proj/a2010002/nobackup/biodata/genomes/'
-
     def tearDown(self):
         """ Report collated results of the tests to a remote CouchDB database.
         """
@@ -102,91 +98,46 @@ class FastqScreenTest(unittest.TestCase):
                 pass
 
 
-    def test_2_run_fastq_screen_with_bowtie1(self):
+    def test_2_run_fastq_screen(self):
         """ Runs fastq_screen tests against synthetically generated fastq files folder.
             It runs generates single threaded config files, to measure performance per-sample.
         """
         fscreen_dst = os.path.join(self.progs, "fastq_screen")
         references = glob.glob(os.path.join(self.reference, '*'))
 
-        for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
-            for ref in references:
-                with open(os.path.join(self.progs, "fastq_screen.conf"), 'w') as cfg:
-                    cfg.write(self._genconf(fastq, ref, self.fastq_threads))
+        for aligner in ['bowtie', 'bowtie2']:
+            print "Testing fastq_screen with {}".format(aligner)
+            for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
+                for ref in references:
+                    with open(os.path.join(self.progs, "fastq_screen.conf"), 'w') as cfg:
+                        cfg.write(self._genconf(fastq, ref, self.fastq_threads, aligner))
 
-                start_time = str(datetime.datetime.utcnow())+'Z'
+                    start_time = str(datetime.datetime.utcnow())+'Z'
 
-                fastq_path = os.path.join(self.synthetic_fastq, fastq)
-                cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
-                      "--aligner", "bowtie", "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
-                mem = [-1]
-                if profile:
-                    mem = memory_usage(subprocess.Popen(cl), include_children=True)
-                else:
-                    subprocess.call(cl)
+                    fastq_path = os.path.join(self.synthetic_fastq, fastq)
+                    cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
+                          "--aligner", "bowtie", "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
+                    mem = [-1]
+                    if profile:
+                        mem = memory_usage(subprocess.Popen(cl), include_children=True)
+                    else:
+                        subprocess.call(cl)
 
-                end_time = str(datetime.datetime.utcnow())+'Z'
+                    end_time = str(datetime.datetime.utcnow())+'Z'
 
-                # Process fastq_screen results format and report it in JSON
-                fastq_name = os.path.basename(fastq)
-                fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
-                fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
-                if os.path.exists(fastq_screen_resfile):
-                    with open(fastq_screen_resfile, 'rU') as fh:
-                        bowtie1_ver, _ = self._bowtie_versions()
-                        self.results.append(self._fastq_screen_metrics_to_json(fh, \
-                                fastq_name, ref, start_time, end_time, mem, bowtie1_ver))
-                    # Clean to avoid parsing the wrong results file
-                    os.remove(fastq_screen_resfile)
+                    # Process fastq_screen results format and report it in JSON
+                    fastq_name = os.path.basename(fastq)
+                    fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
+                    fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
+                    if os.path.exists(fastq_screen_resfile):
+                        with open(fastq_screen_resfile, 'rU') as fh:
+                            bowtie1_ver, _ = self._bowtie_versions()
+                            self.results.append(self._fastq_screen_metrics_to_json(fh, \
+                                    fastq_name, ref, start_time, end_time, mem, bowtie1_ver))
+                        # Clean to avoid parsing the wrong results file
+                        os.remove(fastq_screen_resfile)
 
-                self._cleanup_fastq_screen_results()
-
-    def test_3_run_fastq_screen_with_bowtie2(self):
-        """ Runs fastq_screen using bowtie2 tests against synthetically generated fastq files folder.
-            It runs generates single threaded config files, to measure performance per-sample.
-        """
-
-        # XXX: Will only run on UPPMAX for now, until reference genomes
-        # and indexes have some globally standard file system hierarchy.
-        #
-        # It should pass unnoticed on TravisCI for now.
-        if not os.path.exists(self.site_prefix):
-            pass
-
-        fscreen_dst = os.path.join(self.progs, "fastq_screen")
-        bowtie2_paths = self._find_bowtie2_indices()
-
-        for fastq in glob.glob(os.path.join(self.synthetic_fastq, "*.f*q")):
-            for ref in bowtie2_paths:
-                with open(os.path.join(self.progs, "fastq_screen.conf"), 'w') as cfg:
-                    cfg.write(self._genconf(fastq, ref, self.fastq_threads, "bowtie2"))
-
-                start_time = str(datetime.datetime.utcnow())+'Z'
-
-                fastq_path = os.path.join(self.synthetic_fastq, fastq)
-                cl = ['perl', '-I', os.path.join(os.environ['HOME'], "perl5/lib/perl5"), '-Mlocal::lib', fscreen_dst,
-                      "--aligner", "bowtie2", "--outdir", self.tmp, "--conf", cfg.name, fastq_path]
-
-                mem = [-1]
-                if profile:
-                    mem = memory_usage((subprocess.call,([cl]),), include_children=True)
-                else:
-                    subprocess.call(cl)
-
-                end_time = str(datetime.datetime.utcnow())+'Z'
-
-                # Process fastq_screen results format and report it in JSON
-                fastq_name = os.path.basename(fastq)
-                fscreen_name = os.path.splitext(fastq_name)[0]+"_screen.txt"
-                fastq_screen_resfile = os.path.join(self.tmp, fscreen_name)
-                if os.path.exists(fastq_screen_resfile):
-                    with open(fastq_screen_resfile, 'rU') as fh:
-                        _, bowtie2_ver = self._bowtie_versions()
-                        self.results.append(self._fastq_screen_metrics_to_json(fh, fastq_name, ref, start_time, end_time, mem, bowtie2_ver))
-                    # Clean to avoid parsing the wrong results file
-                    os.remove(fastq_screen_resfile)
-
-                self._cleanup_fastq_screen_results()
+                    self._cleanup_fastq_screen_results()
 
 
     def _fastq_screen_metrics_to_json(self, in_handle, fastq_name, ref, start_time, end_time, mem, prov):
@@ -210,7 +161,7 @@ class FastqScreenTest(unittest.TestCase):
         data['organisms'] = []
 
         # Add provenance such as which version of bowtie is running
-        data['fastq_screen_version'] = prov
+        data['bowtie_screen_version'] = prov
 
         for row in reader:
             # skip empty rows
@@ -253,33 +204,10 @@ class FastqScreenTest(unittest.TestCase):
     def _fetch_bowtie_indices(self):
         genomes = []
         for ref in os.listdir(self.reference):
-            # Downloads bowtie indexes genome(s)
+            # Downloads (or builds) bowtie indexes genome(s)
             genomes.append(ref)
-            #XXX: parametrize for bowtie2, although it is possible that bowtie2 indices are
-            # not still properly generated in the Galaxy rsync :_(
-            galaxy.rsync_genomes(self.reference, genomes, ["bowtie"])
+            galaxy.rsync_genomes(self.reference, genomes, ["bowtie", "bowtie2"])
 
-    def _find_bowtie2_indices(self):
-        # XXX
-        # Bad luck, Galaxy rsync server still does not have bowtie2 indices.
-        # Neither does Brad's, sigh... time to standardize reference genomes
-        # in computational biology?... only works on UPPMAX :_/
-        #
-        # Idea for a paper: the horrible mess of the reference genomes and their indexes.
-        bowtie2_paths = []
-
-        # Map organism names between Galaxy references and UPPMAX/SciLifeLab's
-        site_map = {
-                         'dm3': 'Dmelanogaster',
-                         'eschColi_K12': 'Ecoli',
-                         'phiX': 'phiX174'
-                   }
-
-        for ref in os.listdir(self.reference):
-            test_ref = os.path.basename(ref)
-            bowtie2_paths.append(os.path.join(self.site_prefix, site_map[test_ref], test_ref, "bowtie2", test_ref))
-
-        return bowtie2_paths
 
     def _bowtie_versions(self):
         """ Provenance, we should know which versions of third party tools were
@@ -295,10 +223,7 @@ class FastqScreenTest(unittest.TestCase):
 
     def _genconf(self, query, reference, threads, bowtie="bowtie"):
         # The latter string (reference) shouldn't start with a slash
-        if bowtie == 'bowtie2':
-            bwt_index = reference
-        else:
-            bwt_index = os.path.join(self.reference, reference, bowtie+"_index", os.path.basename(reference))
+        bwt_index = os.path.join(self.reference, reference, bowtie+"_index", os.path.basename(reference))
 
         config_dbs = ""
 
