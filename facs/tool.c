@@ -340,7 +340,7 @@ char *check_fmt (Queue *info, Queue *tail, char *start_point, char type)
                 next_job = info->next->location;
         }
         else
-        {
+        { // XXX: Does this account for OSX-style newlines? next_job is always NULL on OSX fastq files.
                 next_job = strchr (start_point, '\0');
                 if (next_job[-1] == '\n' && next_job[-2] == '\n')
                         next_job -= 1;
