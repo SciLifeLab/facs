@@ -50,7 +50,10 @@ environment.
 Installing
 ----------
 ----------
-Just type ```make python``` after creating and activating the virtual environment.
+
+For a standalone ```facs``` commandline tool, type: ```make```.
+
+To compile the python bindings: ```make python```, after creating and activating the virtual environment.
 
 
 Citation

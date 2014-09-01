@@ -396,6 +396,7 @@ void read_process (bloom * bl, Queue * info, Queue * tail, F_set * File_head, fl
 	int result = 0;
 	next_job = check_fmt (info, tail, start_point, fmt_type);
 	// make sure it can handle DOS and Unix format ('\r\n' and '\n')
+	// XXX: what about OSX sinle '\n' ('a0' in hexa)?
 	if (next_job == NULL)
 		return;
 	while (start_point != next_job) 
