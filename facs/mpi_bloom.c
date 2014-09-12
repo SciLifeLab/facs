@@ -10,12 +10,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include<fcntl.h>
-#include<unistd.h>
-#include<sys/stat.h>
-#include<sys/time.h>
-#include<sys/mman.h>
-#include<sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <sys/types.h>
 
 #include "tool.h"
 #include "prob.h"
@@ -23,8 +23,8 @@
 #include "query.h"
 #include "hashes.h"
 #include "mpi_bloom.h"
-#include<omp.h>
-#include<mpi.h>
+#include <omp.h>
+#include <mpi.h>
 
 char *temp = NULL;
 /*-------------------------------------*/
@@ -55,7 +55,7 @@ main (int argc, char **argv)
 /*------------variables----------------*/
   double tole_rate = 0, sampling_rate = 1;
   char *bloom_filter = NULL,  *target_path = NULL, *position = NULL, *query = NULL, *report_fmt = "json";
-  int opt=0,  exit_sign = 0;
+  int opt=0;
   BIGCAST share=0, offset=0;
   char type = '@';
   gzFile zip = NULL;
@@ -183,7 +183,7 @@ main (int argc, char **argv)
   gather (File_head, total_proc, proc_num);			//gather info from all nodes
   if (proc_num == 0)		
   {
-  	char *result =  report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer));
+  	char *result =  report(File_head, query, report_fmt, target_path, timestamp, prob_suggestion(bl_2->k_mer), total_proc);
   	printf("%s\n",result);
   }
   MPI_Finalize ();
