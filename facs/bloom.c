@@ -20,7 +20,7 @@
 /*---------------------------*/
 /*
 bloom_init, bloom_check, bloom_test, set and set functions are originally from bloom::faster
-*/ 
+*/
 /*---------------------------*/
 int seed[20] = {152501029, 152501717,152503097,152500171,152500157,152504837,10161313,10371313,10431313,10501313,10581313,10611313,10641313,10651313,10671313,10731313,10821313,10881313,10951313,11001313};
 /*---------------------------*/
@@ -83,7 +83,7 @@ int bloom_init (bloom * bloom, BIGNUM size, BIGNUM capacity, double error_rate,
   	fprintf (stderr, "overflow2\n");
   	return -2;
   }
-  /* allocate our array of bytes.  where m is the size of our desired 
+  /* allocate our array of bytes.  where m is the size of our desired
    * bit vector, we allocate m/8 + 1 bytes. */
   if ((bloom->vector = (char *) calloc (1, sizeof (char) *((BIGNUM) (bloom->stat.elements /8) + 1))) == NULL)
   {
@@ -207,7 +207,7 @@ char *prefix_make (char *filename, char *prefix, char *target)
   	strcat (bloom_file, target);
   }
   if (!target||is_dir(target))
-  {	
+  {
 	strncat(bloom_file,filename,strrchr(filename,'.')-filename);
 	strcat (bloom_file,".bloom");
   }
@@ -218,6 +218,7 @@ int save_bloom (char *filename, bloom * bl, char *prefix, char *target)
 {
   char *bloom_file = NULL;
   int fd;
+	int check_ftruncate = 1;
   bloom_file = prefix_make (filename, prefix, target);
 #ifdef DEBUG
   printf ("Bloom file to be written in: %s\n", bloom_file);
@@ -237,12 +238,13 @@ int save_bloom (char *filename, bloom * bl, char *prefix, char *target)
   BIGNUM total_size = sizeof (bloom) + sizeof (char) * ((BIGNUM) (bl->stat.elements / 8) + 1) + sizeof (int) * (bl->stat.ideal_hashes + 1);
 
 #ifdef __APPLE__
-  if (ftruncate (fd, total_size) < 0)
+  check_ftruncate = (ftruncate (fd, total_size) < 0);
 #else
   #ifndef __clang__
-  if (ftruncate64 (fd, total_size) < 0)
+  check_ftruncate = (ftruncate64 (fd, total_size) < 0);
   #endif
 #endif
+	if (check_ftruncate)
   {
       printf ("[%d]-ftruncate64 error: %s/n", errno, strerror (errno));
       close (fd);
