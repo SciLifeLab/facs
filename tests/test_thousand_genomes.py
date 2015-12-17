@@ -48,7 +48,7 @@ class ThousandGenomesTest(unittest.TestCase):
         individual = "NA21137"
         fname = "SRR362119.filt.fastq.gz"
 
-        base_url = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/data/NA21137/sequence_read/%s" % individual
+        base_url = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/data/NA21137/sequence_read/%s" % individual
         fastq_url = os.path.join(base_url, "sequence_read", fname)
         dst = os.path.join(data_dir, fname)
 
