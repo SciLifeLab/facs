@@ -105,7 +105,7 @@ int bq_main (int argc, char **argv)
   }  //set default path, which is where the binary file is.
   char *result = query(source, ref, tole_rate, sampling_rate, list, target_path, report_fmt, 'c');
   printf("%s\n",result);
-  return 1;
+  return 0;
 }
 
 char *query (char *query, char *bloom_filter, double tole_rate, double sampling_rate, char *list, char *target_path, char *report_fmt, char mode)
